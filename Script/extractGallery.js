@@ -2,6 +2,8 @@
 
 console.log("[Mass image downloader]: 🧩 Extract Gallery script injected.");
 
+import { isAllowedImageFormat, calculatePathSimilarity } from "./utils.js";
+
 (function () {
     // 🔒 Prevent multiple simultaneous executions
     if (window.__mdi_extracting) {
@@ -50,15 +52,7 @@ console.log("[Mass image downloader]: 🧩 Extract Gallery script injected.");
      * @param {string} url - The URL to check.
      * @returns {boolean} - True if the URL is an image, false otherwise.
      */
-    function isValidImageUrl(url) {
-        try {
-            const imageExtensions = [".png", ".jpg", ".jpeg", ".webp"];
-            return imageExtensions.some(ext => url.toLowerCase().endsWith(ext));
-        } catch (error) {
-            console.log(`[Mass image downloader]: ❌ Error validating URL: ${error.message}`);
-            return false;
-        }
-    }
+
 
     /**
      * Displays a styled message to the user if no images are found.
@@ -136,81 +130,50 @@ console.log("[Mass image downloader]: 🧩 Extract Gallery script injected.");
     }
 
     /**
-     * 🔗 Calculates similarity between two image URLs based on their path segments.
-     * Used to group gallery candidates.
-     * @param {string} url1 - First image URL.
-     * @param {string} url2 - Second image URL.
-     * @returns {number} - Similarity percentage (0 to 100).
-     */
-    function calculatePathSimilarity(url1, url2) {
-        try {
-            const path1 = new URL(url1).pathname.split('/');
-            const path2 = new URL(url2).pathname.split('/');
-            const minLength = Math.min(path1.length, path2.length);
-            let matches = 0;
-
-            for (let i = 0; i < minLength; i++) {
-                if (path1[i] === path2[i]) matches++;
-            }
-
-            const similarity = (matches / Math.max(path1.length, path2.length)) * 100;
-            return similarity;
-        } catch (error) {
-            console.log(`[Mass image downloader]: ❌ Error in calculatePathSimilarity: ${error.message}`);
-	        console.log('[Mass image downloader]: ----------------------------------------------------');
-            return 0;
-        }
-    }
-
-    
-    /**
      * 📦 Main entry point to extract gallery images
-     * This function analyzes the page, identifies gallery candidates,
-     * filters them by size, and groups similar ones based on path similarity.
      */
-    function extractGalleryImages(settings) {
+    async function extractGalleryImages(settings) {
         console.log('[Mass image downloader]: ----------------------------------------------------');
         console.log('[Mass image downloader]: 🌄 Begin: Extract Gallery Images Process');
 
     // 🔍 Step 1: Collect all <img> elements and map them with size metadata
-    const allImages = Array.from(document.querySelectorAll('img'))
-        .map(img => {
-            const imageInfo = {
+        const allImages = Array.from(document.querySelectorAll('img'))
+            .map(img => ({
                 url: img.src,
                 width: img.naturalWidth,
                 height: img.naturalHeight
-            };
+            }))
+            .filter(img => img.url);
 
-            if (imageInfo.url) {
-                console.log('[Mass image downloader]: ------------------------------------');
-                console.log('[Mass image downloader]: 🖼️ Image detected on page:');
-                console.log(`[Mass image downloader]: └─ URL   : ${imageInfo.url}`);
-                console.log(`[Mass image downloader]: └─ Width : ${imageInfo.width}px`);
-                console.log(`[Mass image downloader]: └─ Height: ${imageInfo.height}px`);
-                console.log('[Mass image downloader]: ------------------------------------');
-                console.log('[Mass image downloader]:  ');
+        const validatedImages = [];
+
+        for (const img of allImages) {
+            try {
+                const allowed = await isAllowedImageFormat(img.url);
+                if (allowed) {
+                    validatedImages.push(img);
+                    logDebug(`✅ Image allowed: ${img.url}`);
+                } else {
+                    logDebug(`⛔ Skipped image: ${img.url}`);
+                }
+            } catch (e) {
+                console.log(`[Mass image downloader]: ❌ Error validating image: ${e.message}`);
             }
+        }
 
-            return imageInfo;
-        })
-        .filter(img => img.url); // ✅ Filter out any without valid URL
-
-
-        if (!allImages.length) {
-            console.log('[Mass image downloader]: ⚠️ No images found on the page.');
+        if (!validatedImages.length) {
+            console.log('[Mass image downloader]: ⚠️ No valid images found.');
             console.log('[Mass image downloader]: ❌ End: Extract Gallery Images Process (no input)');
             console.log('[Mass image downloader]: ----------------------------------------------------');
             return;
         }
 
         // 📏 Step 2: Filter images that do not meet the minimum size requirements
-        const minWidth = settings.minWidth || 800;
-        const minHeight = settings.minHeight || 600;
+        const minW = settings.minWidth || 800;
+        const minH = settings.minHeight || 600;
 
-        console.log(`[Mass image downloader]: 📐 Applying minimum size filter: ${minWidth}x${minHeight}`);
-        const filtered = allImages.filter(img =>
-            img.width >= minWidth && img.height >= minHeight
-        );
+        console.log(`[Mass image downloader]: 📐 Applying minimum size filter: ${minW}x${minH}`);
+        const filtered = validatedImages.filter(img => img.width >= minW && img.height >= minH);
 
         if (!filtered.length) {
             console.log('[Mass image downloader]: ⚠️ No images meet the minimum size requirements.');
@@ -261,6 +224,7 @@ console.log("[Mass image downloader]: 🧩 Extract Gallery script injected.");
 
         // ✉️ Step 4: Send the grouped gallery images to the background script
         console.log('[Mass image downloader]: 📤 Sending gallery to background for download/tab handling...');
+
         try {
             chrome.runtime.sendMessage({
                 action: "openGalleryImages",
@@ -286,17 +250,12 @@ console.log("[Mass image downloader]: 🧩 Extract Gallery script injected.");
         }
     }
 
-
-
     /**
      * 🧩 Load configuration from chrome.storage and initiate gallery extraction.
-     * - Retrieves minWidth, minHeight, and galleryMaxImages from sync storage.
-     * - Logs configuration and calls extractGalleryImages() with full config object.
-     * - Handles fallback with empty settings if error occurs.
      */
     function loadAndStart() {
         try {
-            chrome.storage.sync.get(["minWidth", "minHeight", "galleryMaxImages"], (data) => {
+            chrome.storage.sync.get(["minWidth", "minHeight", "galleryMaxImages", "pathSimilarityLevel"], (data) => {
                 if (chrome.runtime.lastError) {
                     console.warn(`[Mass image downloader]: ⚠ Failed to read config: ${chrome.runtime.lastError.message}`);
                     extractGalleryImages({}); // ⛑️ Fallback with empty settings
@@ -317,7 +276,6 @@ console.log("[Mass image downloader]: 🧩 Extract Gallery script injected.");
             extractGalleryImages({}); // ⛑️ Fallback if exception thrown
         }
     }
-
 
     // 🚀 Start process
     loadAndStart();

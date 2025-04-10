@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const filenameModeSelect = document.getElementById("filenameMode");
     const prefixInput = document.getElementById("prefix");
     const suffixInput = document.getElementById("suffix");
-    const extractGalleryModeSelect = document.getElementById("extractGalleryMode"); // ✅ Corrected ID
+    const extractGalleryModeSelect = document.getElementById("extractGalleryMode");
     const saveButton = document.getElementById("saveOptions");
     const closeButton = document.getElementById("closeOptions");
     const extensionVersion = document.getElementById("extension-version");
@@ -58,16 +58,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const minWidthInput = document.getElementById("minWidth");
     const minHeightInput = document.getElementById("minHeight");
     const pathSimilarityInput = document.getElementById("pathSimilarityLevel");
-    const preferHighResCheckbox = document.getElementById("preferHighRes");
     const galleryMaxImagesInput = document.getElementById("galleryMaxImages");
+
+    const allowJPGCheckbox = document.getElementById("allowJPG");
+    const allowJPEGCheckbox = document.getElementById("allowJPEG");
+    const allowPNGCheckbox = document.getElementById("allowPNG");
+    const allowWEBPCheckbox = document.getElementById("allowWEBP");
+
 
     console.log(`[Mass image downloader]: 📦 Getting UI elements references.`);
 
     extensionVersion.textContent = chrome.runtime.getManifest().version;
 
-    /**
-     * Enable or disable folder path input
-     */
+    // 🔁 Enable/Disable folder path input
     defaultFolderRadio.addEventListener("change", () => {
         folderPathInput.disabled = true;
         folderPathInput.value = "";
@@ -77,42 +80,105 @@ document.addEventListener("DOMContentLoaded", () => {
         folderPathInput.disabled = false;
     });
 
-    /**
-     * Updates UI for filename mode selection
-     */
-    filenameModeSelect.addEventListener("change", () => {
-        try {
-            const mode = filenameModeSelect.value;
-            console.log(`[Mass image downloader]: ✨ Updating UI for filename mode selection: ${mode}`);
-            if (mode === "prefix") {
-                prefixInput.disabled = false;
-                suffixInput.value = "";
-                suffixInput.disabled = true;
-            } else if (mode === "suffix") {
-                suffixInput.disabled = false;
-                prefixInput.value = "";
-                prefixInput.disabled = true;
-            } else if (mode === "both") {
-                prefixInput.disabled = false;
-                suffixInput.disabled = false;
-            } else if (mode === "timestamp") {
-                prefixInput.value = "";
-                suffixInput.value = "";
-                prefixInput.disabled = true;
-                suffixInput.disabled = true;
-            } else {
-                prefixInput.value = "";
-                suffixInput.value = "";
-                prefixInput.disabled = true;
-                suffixInput.disabled = true;
-            }
-        } catch (e) {
-            console.log("[Mass image downloader]: ❌ Error updating filename inputs: " + e.message);
-        }
-    });
+    // 🎛️ Update prefix/suffix UI based on filename mode
+    filenameModeSelect.addEventListener("change", updateFilenameInputs);
+
+    // 📋 Prefix/Suffix clipboard and clear handlers
+    pastePrefixButton.addEventListener("click", () => pasteFromClipboard(prefixInput, "Prefix"));
+    clearPrefixButton.addEventListener("click", () => clearInput(prefixInput, "Prefix"));
+    pasteSuffixButton.addEventListener("click", () => pasteFromClipboard(suffixInput, "Suffix"));
+    clearSuffixButton.addEventListener("click", () => clearInput(suffixInput, "Suffix"));
 
     /**
-     * Clipboard paste support for prefix/suffix
+     * Loads settings from chrome.storage.sync
+     */
+    try {
+        chrome.storage.sync.get([
+            "downloadFolder", "customFolderPath", "downloadLimit", "debugLogging",
+            "filenameMode", "prefix", "suffix", "extractGalleryMode",
+            "minWidth", "minHeight", "pathSimilarityLevel", "galleryMaxImages",
+            "allowJPG", "allowJPEG", "allowPNG", "allowWEBP"
+        ], (data) => {
+            console.log("[Mass image downloader]: 🔍 Settings loaded from storage.");
+
+            if (chrome.runtime.lastError) {
+                console.error("[Mass image downloader]: ❌ Error loading settings:", chrome.runtime.lastError);
+                showError("Failed to load extension settings.");
+                return;
+            }
+
+            // Apply settings to UI
+            try {
+                if (data.downloadFolder === "custom" && data.customFolderPath) {
+                    customFolderRadio.checked = true;
+                    folderPathInput.value = data.customFolderPath;
+                    folderPathInput.disabled = false;
+                } else {
+                    defaultFolderRadio.checked = true;
+                    folderPathInput.disabled = true;
+                }
+
+                downloadLimitInput.value = data.downloadLimit || 2;
+                debugLoggingCheckbox.checked = data.debugLogging || false;
+                filenameModeSelect.value = data.filenameMode || "none";
+                prefixInput.value = data.prefix || "";
+                suffixInput.value = data.suffix || "";
+                extractGalleryModeSelect.value = data.extractGalleryMode || "immediate";
+
+                minWidthInput.value = data.minWidth || 800;
+                minHeightInput.value = data.minHeight || 600;
+                pathSimilarityInput.value = data.pathSimilarityLevel || 80;
+                galleryMaxImagesInput.value = data.galleryMaxImages || 3;
+
+                allowJPGCheckbox.checked  = data.allowJPG  !== false;
+                allowJPEGCheckbox.checked  = data.allowJPEG  !== false;
+                allowPNGCheckbox.checked  = data.allowPNG  !== false;
+                allowWEBPCheckbox.checked  = data.allowWEBP  !== false;
+
+                updateFilenameInputs();
+            } catch (uiError) {
+                console.error("[Mass image downloader]: ❌ Error applying settings to UI:", uiError.message);
+                showError("Error applying settings to interface.");
+            }
+        });
+    } catch (err) {
+        console.error("[Mass image downloader]: ❌ Unexpected error during load:", err);
+        showError("Unexpected error occurred while loading.");
+    }
+
+    /**
+     * Updates the prefix/suffix input state based on filename mode
+     */
+    function updateFilenameInputs() {
+        const mode = filenameModeSelect.value;
+        logDebug(`🎛 Applying input state for filename mode: ${mode}`);
+
+        if (mode === "prefix") {
+            prefixInput.disabled = false;
+            suffixInput.value = "";
+            suffixInput.disabled = true;
+        } else if (mode === "suffix") {
+            suffixInput.disabled = false;
+            prefixInput.value = "";
+            prefixInput.disabled = true;
+        } else if (mode === "both") {
+            prefixInput.disabled = false;
+            suffixInput.disabled = false;
+        } else if (mode === "timestamp") {
+            prefixInput.value = "";
+            suffixInput.value = "";
+            prefixInput.disabled = true;
+            suffixInput.disabled = true;
+        } else {
+            prefixInput.value = "";
+            suffixInput.value = "";
+            prefixInput.disabled = true;
+            suffixInput.disabled = true;
+        }
+    }
+
+    /**
+     * Paste clipboard text into an input field
      */
     async function pasteFromClipboard(inputElement, label) {
         if (inputElement.disabled) return;
@@ -126,7 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /**
-     * Clear field values from input
+     * Clear text from input
      */
     function clearInput(inputElement, label) {
         if (inputElement.disabled) return;
@@ -134,93 +200,12 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log(`[Mass image downloader]: 🧹 ${label} cleared.`);
     }
 
-    pastePrefixButton.addEventListener("click", () => pasteFromClipboard(prefixInput, "Prefix"));
-    clearPrefixButton.addEventListener("click", () => clearInput(prefixInput, "Prefix"));
-    pasteSuffixButton.addEventListener("click", () => pasteFromClipboard(suffixInput, "Suffix"));
-    clearSuffixButton.addEventListener("click", () => clearInput(suffixInput, "Suffix"));
-
     /**
-     * Load settings from chrome storage
-     */
-    try {
-        chrome.storage.sync.get([
-            "downloadFolder", "customFolderPath", "downloadLimit", "debugLogging",
-            "filenameMode", "prefix", "suffix", "extractGalleryMode",
-            "minWidth", "minHeight", "pathSimilarityLevel", "preferHighRes", "galleryMaxImages"
-        ], (data) => {
-            console.log("[Mass image downloader]: 🔍 Settings loaded from storage.");
-
-            if (chrome.runtime.lastError) {
-                console.error("[Mass image downloader]: ❌ Error loading settings:", chrome.runtime.lastError);
-                return;
-            }
-
-            if (data.downloadFolder === "custom" && data.customFolderPath) {
-                customFolderRadio.checked = true;
-                folderPathInput.value = data.customFolderPath;
-                folderPathInput.disabled = false;
-            } else {
-                defaultFolderRadio.checked = true;
-                folderPathInput.disabled = true;
-            }
-
-            downloadLimitInput.value = data.downloadLimit || 2;
-            debugLoggingCheckbox.checked = data.debugLogging || false;
-            filenameModeSelect.value = data.filenameMode || "none";
-            prefixInput.value = data.prefix || "";
-            suffixInput.value = data.suffix || "";
-            extractGalleryModeSelect.value = data.extractGalleryMode || "immediate";
-
-            minWidthInput.value = data.minWidth || 800;
-            minHeightInput.value = data.minHeight || 600;
-            pathSimilarityInput.value = data.pathSimilarityLevel || 80;
-            preferHighResCheckbox.checked = data.preferHighRes ?? true;
-            galleryMaxImagesInput.value = data.galleryMaxImages || 3;
-
-            // ✅ Fix: Apply field enable/disable states after loading filename mode
-            updateFilenameInputs();
-        });
-    } catch (err) {
-        console.error("[Mass image downloader]: ❌ Unexpected error during load:", err);
-    }
-    
-    /**
- * Update the enabled/disabled state of prefix/suffix inputs based on the selected filename mode
- */
-function updateFilenameInputs() {
-    const mode = filenameModeSelect.value;
-    logDebug(`🎛 Applying input state for filename mode: ${mode}`);
-
-    if (mode === "prefix") {
-        prefixInput.disabled = false;
-        suffixInput.value = "";
-        suffixInput.disabled = true;
-    } else if (mode === "suffix") {
-        suffixInput.disabled = false;
-        prefixInput.value = "";
-        prefixInput.disabled = true;
-    } else if (mode === "both") {
-        prefixInput.disabled = false;
-        suffixInput.disabled = false;
-    } else if (mode === "timestamp") {
-        prefixInput.value = "";
-        suffixInput.value = "";
-        prefixInput.disabled = true;
-        suffixInput.disabled = true;
-    } else {
-        prefixInput.value = "";
-        suffixInput.value = "";
-        prefixInput.disabled = true;
-        suffixInput.disabled = true;
-    }
-}
-
-
-    /**
-     * Save button click - validate and store options
+     * 💾 Save button click - validate and store options
      */
     saveButton.addEventListener("click", () => {
         try {
+            // 🧠 Retrieve and validate all settings from UI
             const selectedFolder = customFolderRadio.checked ? "custom" : "default";
             const folderPath = customFolderRadio.checked ? folderPathInput.value.trim() : "";
             const downloadLimit = parseInt(downloadLimitInput.value, 10);
@@ -234,57 +219,72 @@ function updateFilenameInputs() {
             const minWidth = parseInt(minWidthInput.value, 10);
             const minHeight = parseInt(minHeightInput.value, 10);
             const pathSimilarityLevel = parseInt(pathSimilarityInput.value, 10);
-            const preferHighRes = preferHighResCheckbox.checked;
 
+            const allowJPG  = document.getElementById("allowJPG").checked;
+            const allowJPEG = document.getElementById("allowJPEG").checked;
+            const allowPNG  = document.getElementById("allowPNG").checked;
+            const allowWEBP = document.getElementById("allowWEBP").checked;
+
+            // ❌ Validations and constraint enforcement
             if (selectedFolder === "custom" && folderPath === "") {
+                console.log('[Mass image downloader]: ❌ Custom folder path cannot be empty!');
                 showError("Custom folder path cannot be empty.");
                 return;
             }
 
             if (isNaN(downloadLimit) || downloadLimit < 1 || downloadLimit > 15) {
+                console.log('[Mass image downloader]: ❌ Download limit must be between 1 and 15!');
                 showError("Download limit must be between 1 and 15.");
                 return;
             }
 
             if (isNaN(galleryMaxImages) || galleryMaxImages < 1 || galleryMaxImages > 10) {
+                console.log('[Mass image downloader]: ❌ Max images per second must be between 1 and 10!');
                 showError("Max images per second must be between 1 and 10.");
                 return;
             }
 
             if (filenameMode === "prefix" && (!isValidAlphanumeric(prefix) || prefix.length > 30)) {
+                console.log('[Mass image downloader]: ❌ Prefix must be alphanumeric, allow spaces, and be 4-30 characters!');
                 showError("Prefix must be alphanumeric, allow spaces, and be 4-30 characters.");
                 return;
             }
 
             if (filenameMode === "suffix" && (!isValidAlphanumeric(suffix) || suffix.length > 15)) {
+                console.log('[Mass image downloader]: ❌ Suffix must be alphanumeric, allow spaces, and be 4-15 characters!');
                 showError("Suffix must be alphanumeric, allow spaces, and be 4-15 characters.");
                 return;
             }
 
             if (filenameMode === "both" &&
                 ((!isValidAlphanumeric(prefix) || prefix.length > 30) ||
-                 (!isValidAlphanumeric(suffix) || suffix.length > 15))) {
+                (!isValidAlphanumeric(suffix) || suffix.length > 15))) {
+                    console.log('[Mass image downloader]: ❌ Prefix/Suffix must meet character and length restrictions!');
                 showError("Prefix/Suffix must meet character and length restrictions.");
                 return;
             }
 
             if (filenameMode === "timestamp" && (prefix || suffix)) {
+                console.log('[Mass image downloader]: ❌ Timestamp mode should not include prefix or suffix!');
                 showError("Timestamp mode should not include prefix or suffix.");
                 return;
             }
 
             if (!isValidImageDimension(minWidth, minHeight)) {
+                console.log('[Mass image downloader]: ❌ Minimum image dimensions must be between 1 and 10000!');
                 showError("Minimum image dimensions must be between 1 and 10000.");
                 return;
             }
 
             if (isNaN(pathSimilarityLevel) || pathSimilarityLevel < 50 || pathSimilarityLevel > 100) {
+                console.log('[Mass image downloader]: ❌ Path similarity must be between 50 and 100!');
                 showError("Path similarity must be between 50 and 100.");
                 return;
             }
 
-            console.log("[Mass image downloader]: 💾 Saving validated settings to storage...");
+            console.log("[Mass image downloader]: 💾 BEGIN: Saving validated settings to storage...");
 
+            // ✅ Save only relevant settings (removed preferHighRes)
             chrome.storage.sync.set({
                 downloadFolder: selectedFolder,
                 customFolderPath: folderPath,
@@ -297,8 +297,8 @@ function updateFilenameInputs() {
                 minWidth,
                 minHeight,
                 pathSimilarityLevel,
-                preferHighRes,
-                galleryMaxImages
+                galleryMaxImages,
+                allowJPG, allowJPEG, allowPNG, allowWEBP
             }, () => {
                 if (chrome.runtime.lastError) {
                     console.error("[Mass image downloader]: ❌ Failed to save settings:", chrome.runtime.lastError);
@@ -306,14 +306,16 @@ function updateFilenameInputs() {
                     return;
                 }
 
-                console.log("[Mass image downloader]: ✅ Settings saved successfully.");
+                console.log("[Mass image downloader]: ✅ END: Settings saved successfully.");
                 showSuccess("Settings Saved!");
             });
+
         } catch (err) {
             console.error("[Mass image downloader]: ❌ Unexpected error during save:", err);
             showError("Unexpected error occurred while saving.");
         }
     });
+
 
     /**
      * Show success message popup
@@ -355,7 +357,7 @@ function updateFilenameInputs() {
         }, 3000);
     }
 
-    /** Close options window */
+    // 🔚 Close button handler
     closeButton.addEventListener("click", () => {
         console.log("[Mass image downloader]: 🔚 Options window closed by user.");
         window.close();
