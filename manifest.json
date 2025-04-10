@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Mass image downloader",
-  "version": "2.06.49",
-  "description": "Download images automatically from tabs with direct image URLs. (Solving bugs with Extract Gallery Images Functionality)",
+  "version": "2.06.63",
+  "description": "Download images automatically from tabs with direct image URLs. (Solving bugs with Gallerys)",
   "icons": {
     "16": "ico/icons8_image_16.png",
     "32": "ico/icons8_image_32.png",
