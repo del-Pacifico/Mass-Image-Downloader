@@ -9,7 +9,7 @@ We take the security of this project seriously and want to ensure users can repo
 If you discover a potential security issue or vulnerability:
 
 1. **Do not create a public issue.**
-2. Contact the maintainer privately via email: `your.email@example.com`
+2. Contact the maintainer privately via email: `spalmah@proton.me`
 3. Provide:
    - A detailed description of the vulnerability
    - Steps to reproduce
