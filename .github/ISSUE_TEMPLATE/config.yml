@@ -1,0 +1,19 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Wiki Documentation
+    url: https://github.com/sergiopalmah/mass-image-downloader/wiki
+    about: Full architecture, usage modes, configuration, and roadmap
+  - name: 💬 Discussions
+    url: https://github.com/sergiopalmah/mass-image-downloader/discussions
+    about: Ask questions, share feedback, or propose ideas
+
+issue_templates:
+  - name: 🐞 Bug Report
+    description: Report a reproducible problem with the extension
+    labels: [bug]
+    file: bug_report.md
+  - name: 🌟 Feature Request
+    description: Suggest a new feature or enhancement
+    labels: [enhancement]
+    file: feature_request.md
+
