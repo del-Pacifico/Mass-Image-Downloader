@@ -6,6 +6,32 @@
 ![Platform](https://img.shields.io/badge/platform-Chromium%2090%2B-orange?style=flat-square&logo=googlechrome)
 ![GitHub community standards](https://img.shields.io/badge/community%20standards-100%25-brightgreen?style=flat-square&logo=github)
 
+![Made with JavaScript](https://img.shields.io/badge/Made%20with-JavaScript-yellow?style=flat-square&logo=javascript)
+![No Tracking](https://img.shields.io/badge/Privacy-No%20tracking-blueviolet?style=flat-square&logo=shield)
+![Lightweight](https://img.shields.io/badge/Built-lightweight-lightgrey?style=flat-square)
+![Modular Design](https://img.shields.io/badge/Architecture-Modular-informational?style=flat-square)
+![ES Modules](https://img.shields.io/badge/ESM-Enabled-success?style=flat-square&logo=javascript)
+![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen?style=flat-square&logo=github)
+![Cross Platform](https://img.shields.io/badge/Compatible-Chromium%2090%2B-important?style=flat-square&logo=googlechrome)
+---
+
+## 📚 Table of Contents
+
+- [🚀 Features](#-features)
+- [🧩 How It Works](#-how-it-works)
+- [⚙️ Options Available](#️-options-available)
+- [🧠 Technical Design](#-technical-design)
+- [💾 Installation](#-installation)
+- [🔒 Privacy](#-privacy)
+- [📄 License](#-license)
+- [📜 Changelog](#-changelog)
+- [💡 Use Cases](#-use-cases)
+- [⚠️ Edge Cases & Warnings](#️-edge-cases--warnings)
+- [🙌 Contributions](#-contributions)
+
+---
+
+
 **Mass Image Downloader** is a fast, lightweight, and privacy-respecting browser extension designed to simplify the process of bulk image collection. Built with performance and precision in mind, it enables you to detect, group, and download high-quality images from open tabs or galleries—quickly and efficiently.
 
 Compatible with Chromium-based browsers like **Brave**, **Edge**, and **Chrome**, this tool is ideal for researchers, designers, archivists, and everyday users who need speed, control, and accuracy.
@@ -245,6 +271,12 @@ Mass Image Downloader is not yet available in the Chrome Web Store. In the meant
 
 ---
 
+## 🔒 Privacy
+
+This extension is fully local. It does **not track, collect, or transmit** any user data. All image processing and download operations are performed **within your browser**, with no external API calls or telemetry.
+
+---
+
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
@@ -275,6 +307,19 @@ Capture images from e-commerce galleries for product comparison or documentation
 
 ### 📁 Bulk Curation
 Streamline the process of selecting and downloading specific types of images across many tabs or search results pages.
+
+---
+
+## ⚠️ Edge Cases & Warnings
+
+While Mass Image Downloader is highly reliable, a few edge cases should be considered:
+
+- **Sites using anti-download mechanisms** (e.g., CSP, lazy loading, or JavaScript-driven blobs) may prevent direct image access.
+- **Images embedded via CSS or Base64** are not detected.
+- If the browser’s setting “Ask where to save each file before downloading” is **enabled**, the extension **will not function**.
+- In gallery mode, if `<a>` tags do not link to image files directly, they will be ignored.
+- Very large galleries (100+ images) may briefly slow down tab rendering or UI feedback.
+- The extension only processes tabs in the **same window** as the active tab.
 
 ---
 
