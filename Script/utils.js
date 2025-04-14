@@ -22,6 +22,16 @@
             }
         });
     }
+    
+    /**
+    * Verifies if a URL points to a direct image (not a page or gallery).
+    * Supports JPG, JPEG, PNG, and WEBP formats.
+    * @param {string} url
+    * @returns {boolean}
+    */
+    function isDirectImageUrl(url) {
+        return /\.(jpe?g|png|webp)$/i.test(url);
+    }
 
     /**
      * Updates the badge icon to reflect the current process status.
@@ -151,6 +161,7 @@
                 chrome.storage.sync.get(["allowJPG", "allowJPEG", "allowPNG", "allowWEBP"], resolve)
             );
 
+            logDebug(`🛡️ Ckeck for allowed formats by user settings.`);
             const extension = new URL(url).pathname.toLowerCase().split('.').pop();
 
             if (extension === "jpg" && allowJPG) return true;
@@ -158,7 +169,7 @@
             if (extension === "png" && allowPNG) return true;
             if (extension === "webp" && allowWEBP) return true;
 
-            logDebug(`🧯 Blocked format: .${extension} is not allowed by user settings.`);
+            logDebug(`⛔ Blocked format: .${extension}.`);
             return false;
 
         } catch (err) {
@@ -173,31 +184,38 @@
      * Applies prefix, suffix or timestamp depending on settings.
      * @param {string} baseName - Original file name.
      * @param {string} extension - File extension with dot.
-     * @returns {string} - Final filename with formatting.
+     * @returns {Promise<string>} - Final filename with formatting.
      */
-    function generateFilename(baseName, extension) {
+    async function generateFilename(baseName, extension) {
         try {
-            chrome.storage.sync.get(["filenameMode", "prefix", "suffix"], (data) => {
-                let name = baseName;
+            const { filenameMode, prefix, suffix } = await new Promise((resolve) =>
+                chrome.storage.sync.get(["filenameMode", "prefix", "suffix"], resolve)
+            );
 
-                if (data.filenameMode === "prefix") {
-                    name = `${data.prefix}_${baseName}`;
-                } else if (data.filenameMode === "suffix") {
-                    name = `${baseName}_${data.suffix}`;
-                } else if (data.filenameMode === "both") {
-                    name = `${data.prefix}_${baseName}_${data.suffix}`;
-                } else if (data.filenameMode === "timestamp") {
-                    const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '').slice(2, 14);
-                    name = `${baseName}_${timestamp}`;
-                }
+            let name = baseName;
+            console.log(`[Mass image downloader]: 🧪 Original Name: ${baseName}`);
 
-                return `${name}${extension}`;
-            });
+            if (filenameMode === "prefix") {
+                name = `${prefix}_${baseName}`;
+            } else if (filenameMode === "suffix") {
+                name = `${baseName}_${suffix}`;
+            } else if (filenameMode === "both") {
+                name = `${prefix}_${baseName}_${suffix}`;
+            } else if (filenameMode === "timestamp") {
+                const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '').slice(2, 14);
+                name = `${baseName}_${timestamp}`;
+            }
+
+            console.log(`[Mass image downloader]: 🧪 Final name: ${name}`);
+            console.log('-----------------------------------------------');
+            return `${name}${extension}`;
         } catch (err) {
-            logDebug(`❌ Error generating filename: ${err.message}`);
+            console.log(`❌ Error generating filename: ${err.message}`);
+            console.log('-----------------------------------------------');
             return `${baseName}${extension}`;
         }
     }
+
 
     /**
      * Removes invalid characters from filename components.
@@ -216,13 +234,13 @@
     // Export shared utility functions
     export {
         closeTabSafely,
-        moveToNextTab,
         logDebug,
         updateBadge,
         calculatePathSimilarity,
         isHigherResolution,
         generateFilename,
         sanitizeFilenameComponent,
+        isDirectImageUrl,
         isAllowedImageFormat
     };
     
