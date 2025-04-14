@@ -125,6 +125,18 @@
         .footer strong {
             color: #007EE3;
         }
+
+        .inline-checkbox {
+            display: block;
+            font-weight: 500;
+            color: #768591;
+            margin-bottom: 6px;
+        }
+        .inline-checkbox input[type="checkbox"] {
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
     </style>
 </head>
 <body>
@@ -213,10 +225,19 @@
     <h2>📸 Bulk Image Download</h2>
     <p class="description">Configure how images are downloaded in bulk.</p>
     <div class="option-group">
-        <label for="bulkMaxDownloads">Max images per batch:</label>
-        <input type="number" id="bulkMaxDownloads" min="1" max="50" value="20">
+        <label for="maxBulkBatch">Max images per batch:</label>
+        <input type="number" id="maxBulkBatch" min="1" max="50" value="20">
         <p class="info-text">Number of images to download in each batch (1-50).</p>
-    </div>
+        <label for="continueFromLastBulkBatch" class="inline-checkbox">
+            <input type="checkbox" id="continueFromLastBulkBatch">
+            Continue from where it left off
+        </label>
+        <p class="info-text">
+            This setting controls how the batch limit behaves. The number entered in <strong>Max Images Per Batch</strong> defines how many images are processed in each round.<br>
+            If enabled, the process will repeat in batches of that size until all tabs are handled.<br>
+            If disabled, only one batch will be processed and remaining tabs will be ignored.
+        </p>
+    </div>   
 
     <hr>
 

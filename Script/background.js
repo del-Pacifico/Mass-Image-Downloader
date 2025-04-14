@@ -9,12 +9,12 @@ if (chrome.runtime.getManifest) {
 import {
     updateBadge,
     closeTabSafely,
-    moveToNextTab,
     logDebug,
     calculatePathSimilarity,
     isHigherResolution,
     generateFilename,
     sanitizeFilenameComponent,
+    isDirectImageUrl,
     isAllowedImageFormat
 } from "./utils.js";
 
@@ -31,6 +31,12 @@ let minWidth = 800;
 let minHeight = 600;
 let pathSimilarityLevel = 90;
 let galleryMaxImages = 3;
+let maxBulkBatch = 0;
+let continueBulkLoop = false;
+let allowJPG = false;
+let allowJPEG = false;
+let allowPNG = false;
+let allowWEBP = false;
 
     /**
      * ✅ Apply default settings when the extension is installed for the first time.
@@ -51,28 +57,37 @@ let galleryMaxImages = 3;
                 minWidth: 800,
                 minHeight: 600,
                 pathSimilarityLevel: 90,
-                galleryMaxImages: 3
+                galleryMaxImages: 3,
+                maxBulkBatch: 0,
+                continueFromLastBulkBatch: false,
+                prefix: "",
+                suffix: ""
             }, () => {
                 console.log('[Mass image downloader]: ✅ Default settings applied successfully.');
                 console.log('[Mass image downloader]: 🌍 Default values set:');
                 console.log('[Mass image downloader]:    📁 Download Folder: default');
-                console.log('[Mass image downloader]:    📂 Custom Folder Path: ""');
-                console.log('[Mass image downloader]:    📜 Filename Mode: none');
-                console.log('[Mass image downloader]:    🔤 Prefix: ""');
-                console.log('[Mass image downloader]:    🔡 Suffix: ""');
-                console.log('[Mass image downloader]:    📌 Download Limit: 1');
-                console.log('[Mass image downloader]:    🖼 Extract Gallery Mode: tab');
-                console.log('[Mass image downloader]:    📏 Minimum Image Width: 800');
-                console.log('[Mass image downloader]:    📐 Minimum Image Height: 600');
-                console.log('[Mass image downloader]:    🐛 Debug Logging Enabled: false');
-                console.log('[Mass image downloader]:    ⚡ Gallery Max Images/sec: 3');
-                console.log('[Mass image downloader]:    📝 Path Similarity Level: 90%');
-                console.log('[Mass image downloader]:    ⛅ Prefer Higher Resolution: true');
+                console.log('[Mass image downloader]:        📁 Stored download Folder: default');
+                console.log('[Mass image downloader]:        📂 Custom Folder Path: ');
                 console.log('[Mass image downloader]:    📄 Allowed Image Formats:');
                 console.log('[Mass image downloader]:       allowJPG:  true');
                 console.log('[Mass image downloader]:       allowJPEG: true');
                 console.log('[Mass image downloader]:       allowPNG:  true');
                 console.log('[Mass image downloader]:       allowWEBP: false');
+                console.log('[Mass image downloader]:    📜 Filename Mode: none');
+                console.log('[Mass image downloader]:        🔤 Prefix: ""');
+                console.log('[Mass image downloader]:        🔡 Suffix: ""');
+                console.log('[Mass image downloader]:    📌 Max Simultaneous Downloads: 1');
+                console.log('[Mass image downloader]:    🖼 Extract Gallery Mode: tab');
+                console.log('[Mass image downloader]:    📏 Minimum Image Width: 800');
+                console.log('[Mass image downloader]:    📐 Minimum Image Height: 600');
+                console.log('[Mass image downloader]:    🐛 Debug Logging Enabled: false');
+                console.log('[Mass image downloader]: 📸 Bulk Image Download functionality');
+                console.log('[Mass image downloader]:    📌 Max image per batch: 0');
+                console.log('[Mass image downloader]:    🔁 Continue bulk loop: false')
+                console.log('[Mass image downloader]: 🌄 Extract Gallery Images functionality');
+                console.log('[Mass image downloader]:    ⚡ Gallery Max Images/sec: 3');
+                console.log('[Mass image downloader]: 🔎 Gallery Finder functionality');
+                console.log('[Mass image downloader]:    📝 Path Similarity Level: 90%');
             });
         }
     });
@@ -86,7 +101,8 @@ let galleryMaxImages = 3;
             "filenameMode", "prefix", "suffix", "extractGalleryMode",
             "minWidth", "minHeight", "pathSimilarityLevel",
             "galleryMaxImages",
-            "allowJPG", "allowJPEG", "allowPNG", "allowWEBP" // ✅ Agregado para mostrar extensiones
+            "maxBulkBatch", "continueFromLastBulkBatch",
+            "allowJPG", "allowJPEG", "allowPNG", "allowWEBP"
         ], (data) => {
             if (chrome.runtime.lastError) {
                 console.log(`[Mass image downloader]: ❌ Failed to load settings: ${chrome.runtime.lastError.message}`);
@@ -105,6 +121,8 @@ let galleryMaxImages = 3;
             minHeight = data.minHeight || 600;
             pathSimilarityLevel = data.pathSimilarityLevel || 90;
             galleryMaxImages = (data.galleryMaxImages >= 1 && data.galleryMaxImages <= 10) ? data.galleryMaxImages : 3;
+            maxBulkBatch = (data.maxBulkBatch >= 0 && data.maxBulkBatch <= 100) ? data.maxBulkBatch : 0;
+            continueBulkLoop = data.continueFromLastBulkBatch || false;
 
             const allowJPG = data.allowJPG !== false;
             const allowJPEG = data.allowJPEG !== false;
@@ -118,21 +136,22 @@ let galleryMaxImages = 3;
             console.log('[Mass image downloader]:    📁 Download Folder');
             console.log(`[Mass image downloader]:    Stored Download Folder: ${downloadFolder}`);
             console.log(`[Mass image downloader]:    Custom Folder Path: ${customFolderPath}`);
-            console.log(`[Mass image downloader]:    📜 Filename Mode: ${filenameMode}`);
-            console.log(`[Mass image downloader]:       🔤 Prefix: ${prefix}`);
-            console.log(`[Mass image downloader]:       🔡 Suffix: ${suffix}`);
             console.log('[Mass image downloader]:    📄 Allowed Image Formats:');
             console.log(`[Mass image downloader]:       allow JPG?  ${allowJPG}`);
             console.log(`[Mass image downloader]:       allow JPEG? ${allowJPEG}`);
             console.log(`[Mass image downloader]:       allow PNG?  ${allowPNG}`);
             console.log(`[Mass image downloader]:       allow WEBP? ${allowWEBP}`);
-            console.log(`[Mass image downloader]:    📌 Download Limit: ${downloadLimit}`);
+            console.log(`[Mass image downloader]:    📜 Filename Mode: ${filenameMode}`);
+            console.log(`[Mass image downloader]:       🔤 Prefix: ${prefix}`);
+            console.log(`[Mass image downloader]:       🔡 Suffix: ${suffix}`);
+            console.log(`[Mass image downloader]:    📌 Max Simultaneous Downloads: ${downloadLimit}`);
             console.log(`[Mass image downloader]:    🖼 Extract Gallery Mode: ${extractGalleryMode}`);
             console.log(`[Mass image downloader]:    📏 Minimum Image Width: ${minWidth}`);
             console.log(`[Mass image downloader]:    📐 Minimum Image Height: ${minHeight}`);
             console.log(`[Mass image downloader]:    🐛 Debug Logging Enabled: ${debugLoggingEnabled}`);
             console.log('[Mass image downloader]: 📸 Bulk Image Download functionality');
-            // ???
+            console.log(`[Mass image downloader]:    📌 Max image per batch: ${maxBulkBatch}`);
+            console.log(`[Mass image downloader]:    🔁 Continue bulk loop: ${continueBulkLoop}`)
             console.log('[Mass image downloader]: 🌄 Extract Gallery Images functionality');
             console.log(`[Mass image downloader]:    ⚡ Gallery Max Images/sec: ${galleryMaxImages}`); 
             console.log('[Mass image downloader]: 🔎 Gallery Finder functionality');
@@ -169,6 +188,13 @@ chrome.storage.onChanged.addListener((changes) => {
             case "minHeight": minHeight = newValue; break;
             case "pathSimilarityLevel": pathSimilarityLevel = newValue; break;
             case "galleryMaxImages": galleryMaxImages = newValue; break;
+            case "maxBulkBatch": maxBulkBatch = newValue; break;
+            case "continueFromLastBulkBatch": continueBulkLoop = newValue; break;
+            case "allowJPG": allowJPG = newValue; break;
+            case "allowJPEG": allowJPEG = newValue; break;
+            case "allowPNG": allowPNG = newValue; break;
+            case "allowWEBP": allowWEBP = newValue; break;            
+                        
         }
         
         updatedDetails.push(`${key}: ${JSON.stringify(oldValue)} → ${JSON.stringify(newValue)}`);
@@ -234,54 +260,108 @@ async function handleStartDownload(message, sendResponse) {
     console.log('[Mass image downloader]: 📥 BEGIN: Download process started');
     console.log('[Mass image downloader]:');
 
-    let successfulDownloads = 0;
-    updateBadge(0);
-    const downloadProcessFinished = false;
     const validatedUrls = new Set();
+    let totalProcessed = 0;
+    let batchIndex = 0;
 
     chrome.tabs.query({ currentWindow: true }, async (tabs) => {
         const activeTabIndex = message.activeTabIndex;
         const filteredTabs = tabs.filter(tab => tab.index >= activeTabIndex);
         const validTabs = [];
-    
+
         console.log('[Mass image downloader]: 🔎 BEGIN: Filtering image tabs...');
-    
+
         for (const tab of filteredTabs) {
             try {
-                const isAllowed = await isAllowedImageFormat(tab.url); 
-    
-                console.log(`[Mass image downloader]: 🟡 Checking tab id: ${tab.id}`);
-                if (!isAllowed) {
-                    console.log(`[Mass image downloader]: ❌ Not a valid or allowed image: ${tab.url}`);
+                console.log(`[Mass image downloader]: 🕵 Checking tab id: ${tab.id}`);
+                console.log(`[Mass image downloader]: ⏳ Is a direct image URL?: ${tab.url}`);
+        
+                // ✅ Pre-filter: Only check URLs that appear to be direct images
+                if (!isDirectImageUrl(tab.url)) {
+                    console.log('[Mass image downloader]: ❌ Not a direct image URL.');
+                    console.log('[Mass image downloader]: ⏩ Skipping this tab...');
                     console.log('[Mass image downloader]:');
                     continue;
                 }
-    
-                console.log(`[Mass image downloader]: ✅ Valid image found: ${tab.url}`);
+        
+                const isAllowed = await isAllowedImageFormat(tab.url);
+        
+                if (!isAllowed) {
+                    console.log(`[Mass image downloader]: 😒 Not an allowed image format!`);
+                    console.log('[Mass image downloader]: ⏩ Skipping this tab...');
+                    console.log('[Mass image downloader]:');
+                    continue;
+                }
+        
+                console.log('[Mass image downloader]: ✅ Valid image found!');
                 console.log('[Mass image downloader]:');
                 validTabs.push(tab);
             } catch (err) {
-                console.log(`[Mass image downloader]: ❌ Error validating tab URL: ${tab.url} - ${err.message}`);
+                console.log(`[Mass image downloader]: ❌ Error validating tab URL: ${err.message}`);
             }
         }
-    
+        
+
         console.log(`[Mass image downloader]: 🔎 END: ${validTabs.length} valid image tabs found`);
         console.log('[Mass image downloader]: ------------------------------------');
         console.log('[Mass image downloader]:');
-    
-        processValidTabs(validTabs, sendResponse, validatedUrls);
+
+        // 🧪 Prepare batches
+        let remainingTabs = [...validTabs];
+
+        // 🧠 BEGIN: Batch cycle
+        function processNextBatch() {
+            if (remainingTabs.length === 0) {
+                console.log('[Mass image downloader]: 🛑 No remaining tabs. Ending process.');
+                updateBadge(totalProcessed, true); // 🔵 Final badge
+                respondSafe(sendResponse, { success: true, downloads: totalProcessed });
+                return;
+            }
+
+            const currentBatch = (maxBulkBatch > 0)
+                ? remainingTabs.slice(0, maxBulkBatch)
+                : [...remainingTabs];
+
+            remainingTabs = remainingTabs.slice(currentBatch.length);
+
+            console.log(`[Mass image downloader]: 🔄 BEGIN: Batch #${++batchIndex} | Processing ${currentBatch.length} image tab(s)...`);
+
+            processValidTabs(currentBatch, (downloadsInBatch) => {
+                totalProcessed += downloadsInBatch;
+                console.log(`[Mass image downloader]: 🔴 END: Batch #${batchIndex} complete. Downloads so far: ${totalProcessed}`);
+
+                if (continueBulkLoop && remainingTabs.length > 0) {
+                    console.log('[Mass image downloader]: 🔁 Continue enabled. Next batch queued...');
+                    processNextBatch();
+                } else {
+                    console.log('[Mass image downloader]: 🏁 All batches processed. Finalizing badge...');
+                    updateBadge(totalProcessed, true); // 🔵 Paint blue at the real end
+                    respondSafe(sendResponse, { success: true, downloads: totalProcessed });
+                }
+            }, validatedUrls, batchIndex === 1, totalProcessed);
+        }
+
+        processNextBatch();
     });
-    
 }
+
 
 /**
  * 🔄 Process valid tabs for downloading
+ * @param {Tab[]} validTabs - Direct image tabs to download
+ * @param {function} onComplete - Callback when batch finishes
+ * @param {Set} validatedUrls - Set of already processed URLs
+ * @param {boolean} resetBadge - If true, resets badge (only in first batch)
+ * @param {number} totalProcessed - Total images downloaded so far
  */
-function processValidTabs(validTabs, sendResponse, validatedUrls) {
+async function processValidTabs(validTabs, onComplete, validatedUrls, resetBadge = true, totalProcessed = 0) {
     let activeDownloads = 0;
     let completedTabs = 0;
     const totalTabs = validTabs.length;
     let successfulDownloads = 0;
+
+    // ✅ Reset badge ONLY if it's the very first batch
+    if (resetBadge && totalProcessed === 0) updateBadge(0);
 
     function processTab(tab) {
         try {
@@ -293,7 +373,7 @@ function processValidTabs(validTabs, sendResponse, validatedUrls) {
                 console.log(`[Mass image downloader]: 🛠️ END: Tab id ${tab.id}`);
                 console.log('[Mass image downloader]: ------------------------------------');
                 console.log('[Mass image downloader]:');
-                return onComplete();
+                return onCompleteDownload();
             }
 
             validatedUrls.add(url.href);
@@ -301,56 +381,55 @@ function processValidTabs(validTabs, sendResponse, validatedUrls) {
             fetch(url.href)
                 .then(response => response.blob())
                 .then(blob => createImageBitmap(blob))
-                .then(bitmap => {
+                .then(async (bitmap) => {
+                    console.log('[Mass image downloader]:');
                     console.log(`[Mass image downloader]: 📏 BEGIN: Validating image size (tab id ${tab.id})`);
 
                     if (bitmap.width < minWidth || bitmap.height < minHeight) {
                         console.log(`[Mass image downloader]: ⛔ Skipped: Image too small (${bitmap.width}x${bitmap.height})`);
                         console.log(`[Mass image downloader]: 🔎 Required minimum: ${minWidth}x${minHeight}`);
-                        console.log(`[Mass image downloader]: 📏 END: Validation failed`);
-                        console.log(`[Mass image downloader]: 🛠️ END: Tab id ${tab.id}`);
-                        console.log('[Mass image downloader]: ------------------------------------');
-                        console.log('[Mass image downloader]:');
-                        return onComplete();
+                    	console.log(`[Mass image downloader]: 📏 END: Validation failed`);
+                    	console.log(`[Mass image downloader]: 🛠️ END: Tab id ${tab.id}`);
+                    	console.log('[Mass image downloader]: ------------------------------------');
+                    	console.log('[Mass image downloader]:');
+                        return onCompleteDownload();
                     }
 
-                    // 🧱 Extract file name and extension
-                    let fileName = url.pathname.split('/').pop() || 'image'; // 🔄 Changed from const to let
+		            // 🧱 Extract file name and extension
+                    let fileName = url.pathname.split('/').pop() || 'image';
                     let extension = '';
                     if (fileName.includes('.')) {
                         const lastDot = fileName.lastIndexOf('.');
                         extension = fileName.slice(lastDot);
-                        fileName = fileName.slice(0, lastDot); // ✅ Now safe: reassignment allowed
+                        fileName = fileName.slice(0, lastDot);
                     }
 
-                    const finalName = generateFilename(fileName, extension);
+		            console.log(`[Mass image downloader]: 💾 BEGIN: Downloading`);
+                    const finalName = await generateFilename(fileName, extension);
                     const finalPath = (downloadFolder === 'custom' && customFolderPath)
                         ? `${customFolderPath.replace(/\\/g, '/')}/${finalName}`
                         : finalName;
 
-                    console.log(`[Mass image downloader]: 💾 BEGIN: Downloading "${finalName}"`);
-                    chrome.downloads.download({ 
-                        url: url.href, 
-                        filename: finalPath, 
-                        conflictAction: 'uniquify' 
+		            console.log(`[Mass image downloader]: 📁 Path + final File: ${finalPath}`);	
+                    chrome.downloads.download({
+                        url: url.href,
+                        filename: finalPath,
+                        conflictAction: 'uniquify'
                     }, (downloadId) => {
                         if (downloadId) {
-                            console.log(`[Mass image downloader]: 👍 Image name: ${finalName}`);
-                            console.log('[Mass image downloader]: 💾 Download success.');
+			                console.log('[Mass image downloader]: 💾 Download success.');
                             successfulDownloads++;
-                        
-                            // ✅ Update badge: counter and color green (#4CAF50)
-                            updateBadge(successfulDownloads, false);
-                        
-                            console.log(`[Mass image downloader]: 🆗 Downloaded images: ${successfulDownloads}`);
+                            updateBadge(successfulDownloads + totalProcessed); // ✅ Cumulative badge (green)
+			                console.log(`[Mass image downloader]: 🆗 Downloaded images: ${successfulDownloads}`);
                             closeTabSafely(tab.id);
                         } else {
                             console.log(`[Mass image downloader]: ❌ Failed to download: ${url.href}`);
                         }
+        
                         console.log(`[Mass image downloader]: 🛠️ END: Tab id ${tab.id}`);
                         console.log('[Mass image downloader]: ------------------------------------');
-                        console.log('[Mass image downloader]:');
-                        onComplete();
+                        console.log('[Mass image downloader]:');                        
+                        onCompleteDownload();		    
                     });
                 })
                 .catch(err => {
@@ -367,20 +446,19 @@ function processValidTabs(validTabs, sendResponse, validatedUrls) {
             console.log(`[Mass image downloader]: 🛠️ END: Tab id ${tab.id}`);
             console.log('[Mass image downloader]: ------------------------------------');
             console.log('[Mass image downloader]:');
-            onComplete();
+            onCompleteDownload();
         }
     }
 
-    function onComplete() {
+    function onCompleteDownload() {
         activeDownloads--;
         completedTabs++;
+
         if (completedTabs === totalTabs && activeDownloads === 0) {
-            console.log('[Mass image downloader]: ✅ All image tabs processed successfully');
-            console.log('[Mass image downloader]: 📥 END: Download process completed');
+            console.log('[Mass image downloader]: ✅ All image tabs processed in batch');
+            console.log('[Mass image downloader]: 📥 END: Batch download completed');
             console.log('[Mass image downloader]: ------------------------------------');
-            console.log('[Mass image downloader]:');
-            updateBadge(successfulDownloads, true);
-            respondSafe(sendResponse, { success: true, downloads: successfulDownloads });
+            onComplete(successfulDownloads); // ✅ Return number of downloads to main loop
         } else {
             processQueue();
         }
@@ -402,9 +480,9 @@ function processValidTabs(validTabs, sendResponse, validatedUrls) {
 
     // ✅ Pointer for managing current tab index in download queue
     let queueIndex = 0;
-
     processQueue();
 }
+
 
 /**
  * 🌄 Handle gallery images extraction
@@ -447,10 +525,11 @@ async function handleOpenGalleryImages(message, sendResponse) {
         try {
             console.log('[Mass image downloader]: --------------------------------------------------');
             console.log(`[Mass image downloader]: 🔍 BEGIN: Processing gallery image index ${index}`);
-            console.log(`[Mass image downloader]: 📷 Image URL: ${imageUrl}`);
+            console.log(`[Mass image downloader]: 📷 Is a direct image URL?: ${imageUrl}`);
 
-            if (!isValidImageUrl(imageUrl)) {
-                console.log(`[Mass image downloader]: 🚫 Invalid image URL (skipped): ${imageUrl}`);
+            // ✅ validate URL before processing
+            if (!isDirectImageUrl(imageUrl)) {
+                console.log('[Mass image downloader]: ⛔ Skipped (not valid image).');
                 console.log('[Mass image downloader]: --------------------------------------------------');
                 console.log('[Mass image downloader]:');
                 onGalleryProgress();
@@ -459,7 +538,7 @@ async function handleOpenGalleryImages(message, sendResponse) {
 
             const isAllowed = await isAllowedImageFormat(imageUrl);
             if (!isAllowed) {
-                console.log(`[Mass image downloader]: 🚫 Disallowed image format (skipped): ${imageUrl}`);
+                console.log('[Mass image downloader]: ⛔ Disallowed image format (skipped).');
                 console.log('[Mass image downloader]: --------------------------------------------------');
                 console.log('[Mass image downloader]:');
                 onGalleryProgress();
@@ -475,7 +554,7 @@ async function handleOpenGalleryImages(message, sendResponse) {
                 fileName = fileName.slice(0, lastDot);
             }
 
-            const finalName = generateFilename(fileName, extension);
+            const finalName = await generateFilename(fileName, extension);
             const finalPath = (downloadFolder === 'custom' && customFolderPath)
                 ? `${customFolderPath.replace(/\\/g, '/')}/${finalName}`
                 : finalName;
@@ -539,17 +618,22 @@ async function handleStartGalleryFinder(message, sendResponse) {
         const potential = [];
         const validationPromises = message.images.map(async (img, index) => {
             try {
-                const validUrl = isValidImageUrl(img.url);
+                console.log(`[Mass image downloader]: 🕵 Checking URL: ${img.src}`);
+                if (!isDirectImageUrl(img.src)) {
+                    console.log('[Mass image downloader]: ⛔ Invalid image skipped.');
+                    return;
+                }
+                
                 const allowed = await isAllowedImageFormat(img.url);
 
                 if (validUrl && allowed && img.width >= minWidth && img.height >= minHeight) {
                     potential.push(img);
-                    logDebug(`✅ [${index}] Passed: ${img.url}`);
+                    logDebug('[Mass image downloader]: ✅ Passed');
                 } else {
-                    logDebug(`⛔ [${index}] Rejected (invalid or size): ${img.url}`);
+                    logDebug('[Mass image downloader]: ⛔ Rejected (invalid or size)');
                 }
             } catch (e) {
-                console.log(`[Mass image downloader]: ❌ Error validating image [${index}]: ${img.url} → ${e.message}`);
+                console.log(`[Mass image downloader]: ❌ Error validating image: ${e.message}`);
             }
         });
 
@@ -620,7 +704,7 @@ async function processGalleryImages(galleryImages) {
             const file = url.split('/').pop() || 'image';
             const ext = file.includes('.') ? file.slice(file.lastIndexOf('.')) : '';
             const name = file.replace(ext, '');
-            const finalName = generateFilename(name, ext);
+            const finalName = await generateFilename(name, ext);
             const targetPath = (downloadFolder === 'custom' && customFolderPath)
                 ? `${customFolderPath.replace(/\\/g, '/')}/${finalName}`
                 : finalName;

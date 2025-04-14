@@ -65,6 +65,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const allowPNGCheckbox = document.getElementById("allowPNG");
     const allowWEBPCheckbox = document.getElementById("allowWEBP");
 
+    const maxBulkBatchInput = document.getElementById("maxBulkBatch");
+    const continueBulkLoopCheckbox = document.getElementById("continueFromLastBulkBatch");
 
     console.log(`[Mass image downloader]: 📦 Getting UI elements references.`);
 
@@ -89,6 +91,8 @@ document.addEventListener("DOMContentLoaded", () => {
     pasteSuffixButton.addEventListener("click", () => pasteFromClipboard(suffixInput, "Suffix"));
     clearSuffixButton.addEventListener("click", () => clearInput(suffixInput, "Suffix"));
 
+
+
     /**
      * Loads settings from chrome.storage.sync
      */
@@ -97,6 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "downloadFolder", "customFolderPath", "downloadLimit", "debugLogging",
             "filenameMode", "prefix", "suffix", "extractGalleryMode",
             "minWidth", "minHeight", "pathSimilarityLevel", "galleryMaxImages",
+            "maxBulkBatch", "continueFromLastBulkBatch",
             "allowJPG", "allowJPEG", "allowPNG", "allowWEBP"
         ], (data) => {
             console.log("[Mass image downloader]: 🔍 Settings loaded from storage.");
@@ -134,6 +139,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 allowJPEGCheckbox.checked  = data.allowJPEG  !== false;
                 allowPNGCheckbox.checked  = data.allowPNG  !== false;
                 allowWEBPCheckbox.checked  = data.allowWEBP  !== false;
+
+                maxBulkBatchInput.value = data.maxBulkBatch || 10;
+                continueBulkLoopCheckbox.checked = data.continueFromLastBulkBatch || false;
+
 
                 updateFilenameInputs();
             } catch (uiError) {
@@ -225,6 +234,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const allowPNG  = document.getElementById("allowPNG").checked;
             const allowWEBP = document.getElementById("allowWEBP").checked;
 
+            const maxBulkBatch = parseInt(maxBulkBatchInput.value, 10);
+            const continueFromLastBulkBatch = continueBulkLoopCheckbox.checked;
+            
+            if (isNaN(maxBulkBatch) || maxBulkBatch < 0 || maxBulkBatch > 100) {
+                console.log('[Mass image downloader]: ❌ Max images per batch must be between 0 and 100!');
+                showError("Max images per batch must be between 0 and 100.");
+                return;
+            }
+
             // ❌ Validations and constraint enforcement
             if (selectedFolder === "custom" && folderPath === "") {
                 console.log('[Mass image downloader]: ❌ Custom folder path cannot be empty!');
@@ -298,6 +316,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 minHeight,
                 pathSimilarityLevel,
                 galleryMaxImages,
+                maxBulkBatch,
+                continueFromLastBulkBatch,
                 allowJPG, allowJPEG, allowPNG, allowWEBP
             }, () => {
                 if (chrome.runtime.lastError) {
