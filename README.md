@@ -1,18 +1,11 @@
 # 🖼️ Mass Image Downloader
 
-![Version](https://img.shields.io/badge/version-2.06.63-blue?style=flat-square)
+![Version](https://img.shields.io/badge/version-2.06.64-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![Status](https://img.shields.io/badge/status-active-brightgreen?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Chromium%2090%2B-orange?style=flat-square&logo=googlechrome)
 ![GitHub community standards](https://img.shields.io/badge/community%20standards-100%25-brightgreen?style=flat-square&logo=github)
 
-![Made with JavaScript](https://img.shields.io/badge/Made%20with-JavaScript-yellow?style=flat-square&logo=javascript)
-![No Tracking](https://img.shields.io/badge/Privacy-No%20tracking-blueviolet?style=flat-square&logo=shield)
-![Lightweight](https://img.shields.io/badge/Built-lightweight-lightgrey?style=flat-square)
-![Modular Design](https://img.shields.io/badge/Architecture-Modular-informational?style=flat-square)
-![ES Modules](https://img.shields.io/badge/ESM-Enabled-success?style=flat-square&logo=javascript)
-![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen?style=flat-square&logo=github)
-![Cross Platform](https://img.shields.io/badge/Compatible-Chromium%2090%2B-important?style=flat-square&logo=googlechrome)
 ---
 
 ## 📚 Table of Contents
@@ -22,6 +15,7 @@
 - [⚙️ Options Available](#️-options-available)
 - [🧠 Technical Design](#-technical-design)
 - [💾 Installation](#-installation)
+- [💡 Recommended setup](#️-options-available)
 - [🔒 Privacy](#-privacy)
 - [📄 License](#-license)
 - [📜 Changelog](#-changelog)
@@ -30,8 +24,6 @@
 - [🙌 Contributions](#-contributions)
 
 ---
-
-
 **Mass Image Downloader** is a fast, lightweight, and privacy-respecting browser extension designed to simplify the process of bulk image collection. Built with performance and precision in mind, it enables you to detect, group, and download high-quality images from open tabs or galleries—quickly and efficiently.
 
 Compatible with Chromium-based browsers like **Brave**, **Edge**, and **Chrome**, this tool is ideal for researchers, designers, archivists, and everyday users who need speed, control, and accuracy.
@@ -52,11 +44,12 @@ Whether you’re collecting inspiration, preserving content, or building dataset
 ## 🚀 Features
 
 ### 📸 Bulk Image Download
-- Automatically detects tabs to the right of the current one containing direct image URLs.
-- Applies filters for image dimensions and user-allowed file formats.
-- Supports max simultaneous downloads (1–4), set in Options.
-- Each valid image is downloaded and its tab is automatically closed.
-- Badge counter increases per image, with green background (`#4CAF50`) during process and blue (`#1E90FF`) on completion.
+- Scans tabs to the right of the active one and filters for valid image URLs.
+- Applies format and resolution filters to each image before downloading.
+- Downloads images in batches, based on the `Max Images Per Batch` setting.
+- Supports optional looping to continue automatically until all images are processed.
+- Badge counter increments globally (green during active download, blue on final completion).
+- Tabs are automatically closed after each successful download.
 
 ### 🖼️ Extract Gallery Images
 - Detects image thumbnails that link to higher-resolution image files.
@@ -82,20 +75,25 @@ Whether you’re collecting inspiration, preserving content, or building dataset
 ## 🧩 How It Works
 
 ### 📸 Bulk Image Download
-This mode activates when the extension icon is clicked on a tab with a direct image. It processes all tabs to the right of the active tab in the current window.
+When activated, this mode starts from the current tab and scans rightward through all tabs in the same window. It collects all valid image URLs based on format and size, and begins processing them in batches.
+
+**How batching works:**
+- The user can set a maximum number of images to process per batch.
+- If the `Continue from where it left off` option is enabled, the extension automatically proceeds to the next batch until there are no remaining tabs.
+- The badge remains green while downloading and accumulates all completed downloads in real time.
+- The badge turns blue only once all valid images have been handled.
 
 **Steps and rules applied:**
-1. Filters each tab by checking if its URL points directly to an image.
-2. Validates that the image:
+1. Scans all subsequent tabs in the same window.
+2. Filters out tabs that do not contain direct image URLs.
+3. Validates that the image:
    - Has an allowed format (JPG, JPEG, PNG, WEBP).
    - Meets the minimum width and height defined in global options.
-3. Downloads the image with a dynamically generated filename (based on user-defined mode).
-4. Updates the badge with green color and counter.
-5. Closes the tab once the image has been processed.
-6. The process continues to the next tab until:
-   - No more tabs remain, or
-   - The max concurrent download limit (set by user) is reached.
-7. Upon completion, the badge turns blue.
+4. Downloads the image using a dynamically generated filename.
+5. Updates the badge with a running total (green while in progress).
+6. Closes the tab once the image is downloaded.
+7. If enabled, repeats in batches defined by the user (`Max Images Per Batch`) until all valid images are processed.
+8. When all downloads are complete, the badge turns blue.
 
 **Options that affect this mode:**
 - `downloadLimit`
@@ -146,6 +144,8 @@ This engine is invoked explicitly or used internally by Extract Gallery Images.
 
 All three modes honor global configuration to enforce deterministic filtering and uniform experience across bulk and gallery operations.
 
+---
+
 ## ⚙️ Options Available
 
 Configuration is available via the extension's Options page, accessible from the popup menu or browser extension settings. Settings are divided into **global options** and **mode-specific options**, each affecting different aspects of operation.
@@ -162,6 +162,8 @@ These settings apply across all modes:
 ### 📸 Bulk Image Download Options
 These settings influence direct-image downloads from tabs:
 - **Download Limit**: Controls how many images are downloaded in parallel (1–4).
+- **Max Images Per Batch**: Defines how many images are downloaded in each cycle.
+- **Continue from where it left off**: If enabled, the extension continues downloading in batches until all tabs are processed.
 
 ### 🖼️ Extract Gallery Images Options
 These settings define how gallery-linked images are handled:
@@ -173,6 +175,28 @@ These apply to grouping logic during gallery analysis:
 - **Path Similarity Level**: Defines how similar two image URLs must be (50%–100%) to be grouped together.
 
 All options are stored via `chrome.storage.sync` and persist across sessions, ensuring a consistent user experience.
+
+---
+
+## 💡 Recommended Configurations
+
+The following presets are designed to help users optimize image download performance according to their device's capabilities. You can manually apply them in the **Options** page.
+
+| Profile      | Max Simultaneous Downloads | Max Images Per Batch | Continue from where it left off | Ideal For                                   |
+|--------------|-----------------------------|----------------------|---------------------------------|---------------------------------------------|
+| 🟢 Low       | 1                           | 10                   | ❌ Disabled                     | Older computers, limited RAM, slow internet |
+| 🟡 Medium    | 2                           | 25                   | ✅ Enabled                      | Most modern laptops/desktops                |
+| 🔵 High      | 4                           | 50                   | ✅ Enabled                      | High-performance systems with fast SSD and bandwidth |
+
+### Notes:
+- A higher batch size allows faster completion but may cause visible lag or browser delays if your system is under heavy load.
+- Enabling "Continue from where it left off" ensures all images are eventually processed, even in batches.
+- Reducing the simultaneous download limit may help avoid failed downloads on unstable connections.
+
+### Notes:
+- A higher batch size allows faster completion but may cause visible lag or browser delays if your system is under heavy load.
+- Enabling "Continue from where it left off" ensures all images are eventually processed, even in batches.
+- Reducing the simultaneous download limit may help avoid failed downloads on unstable connections.
 
 ---
 
@@ -188,6 +212,7 @@ Mass Image Downloader follows a modular and scalable architecture, optimized for
 ### ⚙️ Runtime-optimized with native browser APIs
 - Uses `chrome.tabs`, `chrome.storage.sync`, `chrome.runtime`, and `chrome.downloads` to ensure tight integration and responsiveness.
 - Debounced and promise-aware flows manage async operations in tab processing and gallery extraction.
+- Batching logic is executed incrementally using async flows and accumulators to preserve state across cycles.
 
 ### 🧪 Pure JavaScript (ES Modules)
 - Entirely built with native JS features for compatibility across Chromium 90+ environments.
@@ -320,12 +345,21 @@ While Mass Image Downloader is highly reliable, a few edge cases should be consi
 - In gallery mode, if `<a>` tags do not link to image files directly, they will be ignored.
 - Very large galleries (100+ images) may briefly slow down tab rendering or UI feedback.
 - The extension only processes tabs in the **same window** as the active tab.
+- If batch processing is interrupted manually, the badge may not reflect final totals unless completed fully.
 
 ---
 
 ## 🙌 Contributions
 
 Contributions are welcome! Please open an issue or submit a pull request.
-
 For questions, suggestions, or feedback, feel free to reach out or open a GitHub discussion.
 
+---
+
+![Made with JavaScript](https://img.shields.io/badge/Made%20with-JavaScript-yellow?style=flat-square&logo=javascript)
+![No Tracking](https://img.shields.io/badge/Privacy-No%20tracking-blueviolet?style=flat-square&logo=shield)
+![Lightweight](https://img.shields.io/badge/Built-lightweight-lightgrey?style=flat-square)
+![Modular Design](https://img.shields.io/badge/Architecture-Modular-informational?style=flat-square)
+![ES Modules](https://img.shields.io/badge/ESM-Enabled-success?style=flat-square&logo=javascript)
+![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen?style=flat-square&logo=github)
+![Cross Platform](https://img.shields.io/badge/Compatible-Chromium%2090%2B-important?style=flat-square&logo=googlechrome)
