@@ -1,18 +1,30 @@
 {
   "manifest_version": 3,
   "name": "Mass image downloader",
-  "version": "2.06.64",
-  "description": "Download images automatically from tabs with direct image URLs. (Solving bugs: Bulk image download)",
+  "version": "2.07.139",
+  "short_name": "MID",
+  "description": "Automatically detects and downloads images from open tabs or galleries. Supports batch processing, format filters, filename customization, and concurrency control.",    
   "icons": {
-    "16": "ico/icons8_image_16.png",
-    "32": "ico/icons8_image_32.png",
-    "96": "ico/icons8_image_96.png"
+    "16": "ico/emoji_16x16.png",
+    "19": "ico/emoji_19x19.png",
+    "32": "ico/emoji_32x32.png",
+    "38": "ico/emoji_38x38.png",
+    "48": "ico/emoji_48x48.png",
+    "128": "ico/emoji_128x128.png"
   },
   "permissions": [
     "tabs",
-	"downloads",
-	"storage",
-	"scripting"
+	  "downloads",
+	  "storage",
+	  "scripting",
+    "clipboardRead"
+  ],
+  "content_scripts": [
+  {
+    "matches": ["<all_urls>"],
+    "js": ["script/clipboardHotkeys.js"],
+    "run_at": "document_idle"
+  }
   ],
   "host_permissions": [
     "<all_urls>"
@@ -23,9 +35,9 @@
   },
   "action": {
     "default_icon": {
-      "16": "ico/icons8_image_16.png",
-      "32": "ico/icons8_image_32.png",
-      "96": "ico/icons8_image_96.png"
+      "16": "ico/emoji_16x16.png",
+      "32": "ico/emoji_32x32.png",
+      "48": "ico/emoji_48x48.png"
     },
     "default_title": "Mass image downloader",
     "default_popup": "html/popup.html"
