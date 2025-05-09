@@ -1,7 +1,7 @@
 # 🖼️ Mass Image Downloader
 
-![Version](https://img.shields.io/badge/version-2.06.64-blue?style=flat-square)
-![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
+![Version](https://img.shields.io/badge/version-2.07.139-blue?style=flat-square)
+![License](https://img.shields.io/badge/license-MPL--2.0-green?style=flat-square)
 ![Status](https://img.shields.io/badge/status-active-brightgreen?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Chromium%2090%2B-orange?style=flat-square&logo=googlechrome)
 ![GitHub community standards](https://img.shields.io/badge/community%20standards-100%25-brightgreen?style=flat-square&logo=github)
@@ -11,348 +11,671 @@
 ## 📚 Table of Contents
 
 - [🚀 Features](#-features)
-- [🧩 How It Works](#-how-it-works)
 - [⚙️ Options Available](#️-options-available)
+- [🧩 How It Works](#-how-it-works)
 - [🧠 Technical Design](#-technical-design)
 - [💾 Installation](#-installation)
-- [💡 Recommended setup](#️-options-available)
+- [📌 Show Extension Icon in Toolbar](#-show-extension-icon-in-toolbar)
+- [💡 Recommended Setup](#-recommended-setup)
 - [🔒 Privacy](#-privacy)
 - [📄 License](#-license)
 - [📜 Changelog](#-changelog)
 - [💡 Use Cases](#-use-cases)
+- [🧠 Advanced Usage & Developer Tips](#-advanced-usage--developer-tips)
 - [⚠️ Edge Cases & Warnings](#️-edge-cases--warnings)
 - [🙌 Contributions](#-contributions)
 
 ---
-**Mass Image Downloader** is a fast, lightweight, and privacy-respecting browser extension designed to simplify the process of bulk image collection. Built with performance and precision in mind, it enables you to detect, group, and download high-quality images from open tabs or galleries—quickly and efficiently.
 
-Compatible with Chromium-based browsers like **Brave**, **Edge**, and **Chrome**, this tool is ideal for researchers, designers, archivists, and everyday users who need speed, control, and accuracy.
+**Mass Image Downloader** is a high-performance, privacy-first browser extension built to streamline the process of bulk image extraction and download. Whether you're a designer, researcher, archivist, or content curator, this tool gives you precision and control at scale.
 
-### 📸 Bulk Image Download
-Designed for speed and minimal interaction, this mode scans rightward tabs starting from the current one to identify and download direct image URLs. Ideal for processing open tabs quickly.
+Designed for Chromium-based browsers like **Chrome**, **Edge**, and **Brave**, it combines intelligent image grouping, customizable filtering, and a frictionless user experience—without sacrificing speed or transparency.
 
-### 🖼️ Extract Gallery Images
-Perfect for webpages with image thumbnails that link to full-size images. This mode finds the higher-resolution version of each image, filters them, and downloads them in bulk.
-
-### 🧭 Gallery Finder
-This internal engine groups candidate images based on path similarity and resolution, ensuring only the most relevant and highest-quality images are retained for processing or download.
-
-Whether you’re collecting inspiration, preserving content, or building datasets, Mass Image Downloader provides a clean, rule-based approach to efficient image capture.
+> 🚀 Modular. 🔍 Accurate. 🧠 Smart.  
+> Built for users who care about efficiency, clarity, and results.
 
 ---
 
 ## 🚀 Features
 
-### 📸 Bulk Image Download
-- Scans tabs to the right of the active one and filters for valid image URLs.
-- Applies format and resolution filters to each image before downloading.
-- Downloads images in batches, based on the `Max Images Per Batch` setting.
-- Supports optional looping to continue automatically until all images are processed.
-- Badge counter increments globally (green during active download, blue on final completion).
-- Tabs are automatically closed after each successful download.
-
-### 🖼️ Extract Gallery Images
-- Detects image thumbnails that link to higher-resolution image files.
-- Filters linked images by extension, resolution, and minimum size.
-- Groups images with similar URL paths (based on similarity threshold).
-- Downloads grouped high-resolution images automatically or opens them in background tabs.
-- All filtering rules and limits (like gallery max images/sec) are user-configurable.
-
-### 🧭 Gallery Finder (Grouping Engine)
-- Analyzes thumbnails and discovers groups of images based on path similarity.
-- Applies resolution-based comparison to retain only the highest-quality instance.
-- Operates independently or as a preprocessing stage for Extract Gallery Images.
-
-### 🔧 Additional Functionalities
-- 🔍 Auto-detects valid images from open tabs or galleries.
-- 🧠 Smart filters by format (`.jpg`, `.jpeg`, `.png`, `.webp`), dimensions, and similarity.
-- 📝 User-defined filename modes (prefix, suffix, both, timestamp).
-- ⚙️ Options UI uses `chrome.storage.sync` to persist all user settings.
-- 📊 Badge counter provides visual feedback on download progress.
-
----
-
-## 🧩 How It Works
-
-### 📸 Bulk Image Download
-When activated, this mode starts from the current tab and scans rightward through all tabs in the same window. It collects all valid image URLs based on format and size, and begins processing them in batches.
-
-**How batching works:**
-- The user can set a maximum number of images to process per batch.
-- If the `Continue from where it left off` option is enabled, the extension automatically proceeds to the next batch until there are no remaining tabs.
-- The badge remains green while downloading and accumulates all completed downloads in real time.
-- The badge turns blue only once all valid images have been handled.
-
-**Steps and rules applied:**
-1. Scans all subsequent tabs in the same window.
-2. Filters out tabs that do not contain direct image URLs.
-3. Validates that the image:
-   - Has an allowed format (JPG, JPEG, PNG, WEBP).
-   - Meets the minimum width and height defined in global options.
-4. Downloads the image using a dynamically generated filename.
-5. Updates the badge with a running total (green while in progress).
-6. Closes the tab once the image is downloaded.
-7. If enabled, repeats in batches defined by the user (`Max Images Per Batch`) until all valid images are processed.
-8. When all downloads are complete, the badge turns blue.
-
-**Options that affect this mode:**
-- `downloadLimit`
-- `minWidth`, `minHeight`
-- `filenameMode`, `prefix`, `suffix`
-- `allowJPG`, `allowJPEG`, `allowPNG`, `allowWEBP`
-
----
-
-### 🖼️ Extract Gallery Images
-Used to process image thumbnails that link to higher-resolution images within a gallery.
-
-**Steps and rules applied:**
-1. Scans the current page for `<img>` elements.
-2. Detects if the image has an anchor link that leads directly to a valid image URL.
-3. Validates linked images by:
-   - Allowed file format.
-   - Minimum width and height (after loading remotely).
-   - Resolution being higher than the thumbnail.
-4. Groups images if their URL paths share a minimum similarity (based on `pathSimilarityLevel`).
-5. Each group yields the highest resolution variant (deduplicated).
-6. Downloads the images (or optionally opens in tabs) based on mode.
-7. Badge counter updates throughout the process.
-
-**Options that affect this mode:**
-- `minWidth`, `minHeight`
-- `galleryMaxImages`
-- `pathSimilarityLevel`
-- `extractGalleryMode` (immediate vs. tab)
-- File format restrictions (same as bulk)
-
----
-
-### 🧭 Gallery Finder
-This engine is invoked explicitly or used internally by Extract Gallery Images.
-
-**Steps and rules applied:**
-1. Takes a list of candidate images (usually thumbnails).
-2. Validates each by minimum size and allowed format.
-3. Calculates pairwise path similarity.
-4. Groups images when similarity threshold is met.
-5. From each pair/group, selects the highest-resolution image.
-6. Returns list of grouped image URLs for further download or preview.
-
-**Options that affect this mode:**
-- `minWidth`, `minHeight`
-- `pathSimilarityLevel`
-
-All three modes honor global configuration to enforce deterministic filtering and uniform experience across bulk and gallery operations.
+- 📸 Download images from open tabs directly.
+- 🌄 Extract high-res images from galleries with direct image links.
+- 🖼️ Extract gallery images visually without links, using DOM analysis.
+- 🔗 Extract images from web-linked pages (`<a href="page.html"><img>`).
+- 📋 Use keyboard shortcuts to set filename prefix/suffix via clipboard.
+- 🧠 Smart and fallback grouping by path similarity.
+- 📐 Customizable filters by image format, size, and resolution.
+- 🎯 Configurable download paths and filename strategies.
+- 🧪 Visual feedback via badges and toast messages.
+- 💬 Rich logs for developers via `chrome.storage.sync` debug level.
 
 ---
 
 ## ⚙️ Options Available
 
-Configuration is available via the extension's Options page, accessible from the popup menu or browser extension settings. Settings are divided into **global options** and **mode-specific options**, each affecting different aspects of operation.
-
-### 🌐 Global Options
-These settings apply across all modes:
-- **Download Folder**: Choose between the system default or a custom folder.
-- **Allowed Formats**: Enable/disable file types: `.jpg`, `.jpeg`, `.png` or `.webp`.
-- **Minimum Image Dimensions**: Only images larger than these values are processed.
-- **Filename Mode**: Format downloaded filenames with prefix, suffix, both, or timestamp.
-- **Prefix / Suffix**: Custom text added to filenames (based on mode).
-- **Debug Logging**: Enable console logs for development and troubleshooting.
-
-### 📸 Bulk Image Download Options
-These settings influence direct-image downloads from tabs:
-- **Download Limit**: Controls how many images are downloaded in parallel (1–4).
-- **Max Images Per Batch**: Defines how many images are downloaded in each cycle.
-- **Continue from where it left off**: If enabled, the extension continues downloading in batches until all tabs are processed.
-
-### 🖼️ Extract Gallery Images Options
-These settings define how gallery-linked images are handled:
-- **Extract Mode**: Choose between `immediate` download or opening each image in a background tab.
-- **Gallery Max Images**: Limits the number of images processed per second (1–10).
-
-### 🧭 Gallery Finder Options
-These apply to grouping logic during gallery analysis:
-- **Path Similarity Level**: Defines how similar two image URLs must be (50%–100%) to be grouped together.
-
-All options are stored via `chrome.storage.sync` and persist across sessions, ensuring a consistent user experience.
+Mass Image Downloader offers a wide range of customizable settings. Options are persisted using `chrome.storage.sync`, meaning your preferences are retained across sessions and devices (if signed in).
 
 ---
 
-## 💡 Recommended Configurations
+### 🌐 Global Options
 
-The following presets are designed to help users optimize image download performance according to their device's capabilities. You can manually apply them in the **Options** page.
+These options apply across all modes of operation.
 
-| Profile      | Max Simultaneous Downloads | Max Images Per Batch | Continue from where it left off | Ideal For                                   |
-|--------------|-----------------------------|----------------------|---------------------------------|---------------------------------------------|
-| 🟢 Low       | 1                           | 10                   | ❌ Disabled                     | Older computers, limited RAM, slow internet |
-| 🟡 Medium    | 2                           | 25                   | ✅ Enabled                      | Most modern laptops/desktops                |
-| 🔵 High      | 4                           | 50                   | ✅ Enabled                      | High-performance systems with fast SSD and bandwidth |
+- **Download Folder**  
+  Choose between:
+  - `Default`: Uses the system's default downloads folder.
+  - `Custom`: Allows you to specify a valid absolute path. Used only if supported by your OS and browser.
+  
+  > 📁 If "Custom" is selected, a sanitized folder path is applied.
 
-### Notes:
-- A higher batch size allows faster completion but may cause visible lag or browser delays if your system is under heavy load.
-- Enabling "Continue from where it left off" ensures all images are eventually processed, even in batches.
-- Reducing the simultaneous download limit may help avoid failed downloads on unstable connections.
+- **Allowed Formats**  
+  Enable or disable which image types are considered valid:
+  - `.jpg`, `.jpeg`, `.png`, `.webp`
+  
+  > 🧪 Only these formats are evaluated during extraction and validation.
 
-### Notes:
-- A higher batch size allows faster completion but may cause visible lag or browser delays if your system is under heavy load.
-- Enabling "Continue from where it left off" ensures all images are eventually processed, even in batches.
-- Reducing the simultaneous download limit may help avoid failed downloads on unstable connections.
+- **Minimum Image Dimensions**  
+  Set a threshold to avoid downloading small or low-quality images:
+  - Width and height must both be met.
+  
+  > 📐 Typical values: `300x500`, `800x600`. Applies to all flows.
+
+- **Filename Mode**  
+  Determines how filenames are generated before saving:
+  - `None`: Leaves the original filename untouched.
+  - `Prefix`: Adds custom text before the filename.
+  - `Suffix`: Adds custom text after the filename (before the extension).
+  - `Both`: Adds both prefix and suffix.
+  - `Timestamp`: Adds a UTC timestamp after the base filename.
+
+- **Prefix / Suffix**  
+  Custom text used in the naming logic. Input is sanitized to avoid invalid characters. Stored globally.
+
+- **Clipboard Hotkeys**  
+  Enable or disable keyboard shortcuts to set prefix/suffix via clipboard content:
+  - `Ctrl + Alt + P`: Sets the clipboard text as prefix.
+  - `Ctrl + Alt + S`: Sets the clipboard text as suffix.
+  
+  > 🔐 Clipboard input is trimmed, validated (alphanumeric), and saved.
+
+- **User Feedback Messages**  
+  Toggle whether visual messages appear on screen:
+  - Success or progress messages: shown for 5 seconds.
+  - Errors: shown for 10 seconds.
+  
+  > 💬 Messages appear as small, non-intrusive overlays.
+
+- **Debug Log Level**  
+  Controls verbosity of developer logs printed to the console:
+  - `0`: Silent
+  - `1`: Basic
+  - `2`: Verbose
+  - `3`: Detailed with stack traces and grouping
+  
+  > 🐞 Useful for troubleshooting or development.
+
+---
+
+### 📸 Options: Download Images in Open Tabs
+
+These settings control the behavior of the tab-scanning download flow.
+
+- **Download Limit**  
+  Maximum number of simultaneous downloads at any time.
+  - Allowed range: `1–4`
+  
+  > ⚖️ Higher values may increase speed but also memory usage.
+
+- **Max Images Per Batch**  
+  How many image tabs are processed in each batch. Affects badge counting and flow pacing.
+  
+- **Continue from Last Batch**  
+  When enabled, the extension will continue processing subsequent batches automatically until no valid image tabs remain.
+
+> 🧪 Badge turns green during download, and blue when all batches are complete.
+
+---
+
+### 🌄 Options: Extract Gallery (with links)
+
+Settings for galleries where `<a>` links point directly to image files (e.g., thumbnails linking to high-res versions).
+
+- **Extract Mode**  
+  - `immediate`: Downloads begin directly in the background.
+  - `tab`: Opens each image in a hidden tab (useful for preview-based workflows).
+
+- **Gallery Max Images**  
+  Limits the number of images processed per second to avoid overload. Typical range: `1–10`.
+
+> ⚡ Controls the flow rate of extraction to prevent performance issues.
+
+---
+
+### 🖼️ Options: Extract Gallery (without links)
+
+Same as above, but also includes grouping logic.
+
+- **Enable Smart Grouping**  
+  Automatically clusters related images based on URL path similarity.
+  
+- **Similarity Threshold (`gallerySimilarityLevel`)**  
+  A percentage (e.g., `70`) used to determine grouping strength.
+  
+- **Enable Fallback Grouping**  
+  If Smart Grouping fails to find a dominant group, retries with a lower threshold (down to `30%`).
+
+- **Minimum Group Size (`galleryMinGroupSize`)**  
+  Rejects any group with fewer than X images to avoid irrelevant results.
+
+> 🧠 Designed to isolate coherent sets from noisy image collections.
+
+---
+
+### 🔗 Options: Web-Linked Galleries
+
+Specialized options for when `<a>` tags link to another page instead of a direct image.
+
+- **Extract Mode**  
+  Behaves just like the other extract modes:
+  - `immediate`: Begins download upon entry.
+  - `tab`: Opens target pages and allows user to pick with injected download icons.
+
+- **Batch Opening Limit**  
+  Limits how many target pages are opened in parallel.
+  - Respects system/browser limitations.
+
+> 🧩 Pages are scanned using `injectSaveIcon.js`, which places a clickable icon over each valid image.
+> 🖱️ Clicking the icon downloads the image using your configured filename options.
+> 🔗 Ideal for photo series spread across paginated content (e.g., blog-style image sets).
+> 🖼️ The icon is only shown for images that:
+  - Are visible in the viewport
+  - Meet the minimum size (e.g., `300x500`)
+  - Have an allowed format (`.jpg`, `.jpeg`, `.png`, `.webp`)
+
+> 🖱️ Clicking the icon immediately downloads the image using your configured filename options.
+
+---
+
+### 📋 Clipboard Hotkeys Overview
+
+These hotkeys let you assign filename elements using clipboard content.
+
+- `Ctrl + Alt + P`: Assign clipboard as prefix.
+- `Ctrl + Alt + S`: Assign clipboard as suffix.
+- Clipboard input is sanitized (alphanumeric only).
+- Applies across all download flows.
+
+> ✂️ Helpful for labeling sets without needing to open the Options page.
+> 🔑 Hotkeys are global and work even when the extension popup is closed.
+> 🖱️ Clipboard content is trimmed and validated before use.
+> 🧠 Use these shortcuts to quickly set up filenames before starting a download.
+> 🧩 This feature is part of the internal flow and does not require manual activation. It allows the user to pick specific images visually without triggering full automation.
+> 🔗 Ideal for photo series spread across paginated content (e.g., blog-style image sets).
+> 🧠 Use this when dealing with Pinterest-like pages, or lazy-loaded image walls.
+
+---
+
+## 🧩 How It Works
+
+This extension offers multiple ways to detect, group, and download images depending on how the target page is structured. Below are all supported modes, what they do, and how they behave in different scenarios:
+
+---
+
+### 📸 Download Images in Open Tabs
+
+This mode scans tabs to the right of the currently active one and looks for direct image URLs (e.g., ending in `.jpg`, `.png`, etc.).
+
+**Steps:**
+
+1. Identifies all open tabs in the same window starting from the current one.
+2. Filters for valid image URLs based on format and dimension rules.
+3. Downloads each image using your configured filename mode (prefix, suffix, etc.).
+4. Closes the tab once the image is downloaded successfully.
+5. Continues through batches, respecting the max per batch and download limit options.
+6. Updates a badge counter (green while active, blue when done).
+
+> 💡 Best for downloading images already open in multiple tabs — ideal for batch capture from Google Images, Reddit, or gallery views.
+
+---
+
+### 🌄 Extract Galleries (with direct links)
+
+This mode targets image thumbnails that are wrapped in an anchor (`<a>`) element, where the `href` leads directly to an image file.
+
+**Steps:**
+
+1. Scans the current page for `<a><img></a>` patterns.
+2. Extracts the `href` URL and validates it against user settings (format, resolution).
+3. Applies path-based grouping logic (if enabled), using similarity thresholds.
+4. Downloads images directly or opens them in background tabs, depending on your `Extract Mode` setting (`immediate` or `tab`).
+5. Updates the badge counter and displays progress messages.
+
+> 🔍 Ideal for structured galleries where clicking a thumbnail loads a high-res image.
+
+---
+
+### 🖼️ Extract Galleries (without links)
+
+This mode works on pages where images are not linked, but are presented directly within the page's DOM (e.g., `<img>` without a parent `<a>`). It's useful for modern galleries using JavaScript rendering.
+
+**Steps:**
+
+1. Scans the DOM for `<img>` tags that aren't inside clickable anchors.
+2. Validates the source URL format and visible image dimensions.
+3. Groups related images by comparing the similarity of their paths.
+4. If Smart Grouping is enabled, it finds the largest cohesive set (dominant group).
+5. If the group is too small, Fallback Mode retries grouping with a lower threshold.
+6. Processes the final group either via tab opening or immediate download.
+7. Badge counter and logs reflect progress.
+
+> 🧠 Use this when dealing with Pinterest-like pages, or lazy-loaded image walls.
+
+---
+
+### 🔗 Extract Web-Linked Galleries
+
+This advanced mode detects when a thumbnail is wrapped in a link to another page (not an image), e.g., `<a href="gallery1.html"><img src="thumb.jpg" />`.
+
+**Steps:**
+
+1. Identifies all `<a><img></a>` combinations where the `href` points to a webpage.
+2. Opens each linked page in a background tab (respecting concurrency limits).
+3. Once loaded, those pages are scanned using the same image extraction logic.
+4. Final images are downloaded or opened, just like in other modes.
+5. Each step is logged for debugging, and the badge reflects cumulative progress.
+
+#### 🖱️ On-Page Download Button (Injected Icon)
+
+When using **Web-Linked Galleries**, the extension opens each gallery page in a background tab. Once those pages are fully loaded, a floating download icon is injected over each valid image that meets the minimum resolution and format criteria.
+
+**Behavior:**
+
+- The icon 💾 is positioned in the top-right corner of each qualifying image.
+- Clicking the icon immediately downloads the image using your configured filename options.
+- Downloaded files follow the same naming rules (prefix/suffix/timestamp).
+- The icon is only shown for images that:
+  - Are visible in the viewport
+  - Meet the minimum size (e.g., 300x500)
+  - Have an allowed format (`.jpg`, `.jpeg`, `.png`, `.webp`)
+
+> 🧩 This feature is part of the internal flow and does not require manual activation. It allows the user to pick specific images visually without triggering full automation.
+> 🔗 Ideal for photo series spread across paginated content (e.g., blog-style image sets).
+
+---
+
+### 📋 Clipboard Hotkeys
+
+This utility mode lets you assign the current clipboard text as a filename **prefix** or **suffix** using keyboard shortcuts.
+
+**Key Combos:**
+
+- `Ctrl + Alt + P`: Assigns clipboard content as **prefix**.
+- `Ctrl + Alt + S`: Assigns clipboard content as **suffix**.
+
+**Behavior:**
+
+1. Validates the clipboard input (alphanumeric only, trimmed, max length).
+2. Saves it to extension settings (persisted via `chrome.storage.sync`).
+3. Shows a toast message confirming success or explaining the error.
+
+> ✂️ Great for naming groups of images consistently before triggering a download.
+
+Each of these flows is independent, and can be used as needed based on the structure of the page you're browsing. You can launch them from the extension's popup window using the respective buttons.
 
 ---
 
 ## 🧠 Technical Design
 
-Mass Image Downloader follows a modular and scalable architecture, optimized for performance, reliability, and developer maintainability. The extension is structured to meet real-world constraints around browser security, user configurability, and runtime efficiency.
+Mass Image Downloader follows a modular, resilient, and scalable architecture designed for performance, privacy, and maintainability.
 
-### 🧩 Modular architecture
-- `background.js`: Orchestrates message handling, download flow, settings retrieval, and tab control.
-- `extractGallery.js`: Encapsulates gallery logic, including resolution comparison and similarity grouping.
-- `utils.js`: Houses all reusable utilities, including badge updates, format validation, and safe tab closure.
+### 🧩 Modular Architecture
 
-### ⚙️ Runtime-optimized with native browser APIs
-- Uses `chrome.tabs`, `chrome.storage.sync`, `chrome.runtime`, and `chrome.downloads` to ensure tight integration and responsiveness.
-- Debounced and promise-aware flows manage async operations in tab processing and gallery extraction.
-- Batching logic is executed incrementally using async flows and accumulators to preserve state across cycles.
+| File                    | Purpose                                                                 |
+|-------------------------|-------------------------------------------------------------------------|
+| `background.js`         | Orchestrates core logic: downloading, grouping, messaging, state        |
+| `popup.js`              | Triggers flows via buttons and injects scripts                          |
+| `options.js / .html`    | Loads, displays, validates and saves settings                           |
+| `extract*.js`           | Each handles a different extraction mode (linked, visual, web-linked)   |
+| `clipboardHotkeys.js`   | Manages global hotkeys for setting prefix/suffix                        |
+| `utils.js`              | Logging, badge updates, validation, filename generation, messages       |
 
-### 🧪 Pure JavaScript (ES Modules)
-- Entirely built with native JS features for compatibility across Chromium 90+ environments.
-- Avoids bundlers and libraries to reduce size and improve debuggability.
+### ⚙️ Browser-native APIs
 
-### 🔐 Strict permission model
-- The `manifest.json` is tightly scoped.
-- Permissions are granted only for tabs and downloads, limiting attack surface and respecting user privacy.
+- Uses `chrome.storage.sync`, `chrome.tabs`, `chrome.downloads`, `chrome.runtime`, and `chrome.scripting`.
+- No external libraries or network requests.
+- Asynchronous logic with error handling, fallback modes, and dynamic concurrency.
 
-### 🎯 Deterministic rule-based filtering engine
-- Filters images based on user-defined rules:
-  - Minimum resolution (width x height)
-  - File format inclusion (`.jpg`, `.jpeg`, `.png`, `.webp`)
-  - Path similarity (%) for gallery detection
+### 🎛 Runtime Flexibility
 
-### ♻️ Stateful and recoverable execution
-- User preferences are stored and restored via `chrome.storage.sync`.
-- Default fallbacks ensure consistent behavior even if data is unavailable or corrupted.
+- Smart filtering by:
+  - File extension (`.jpg`, `.jpeg`, `.png`, `.webp`)
+  - Minimum resolution (width/height)
+  - Path similarity threshold (for grouping)
+- Switches between `immediate` download and background `tab` mode.
 
-### 👁️ Non-intrusive visual feedback system
-- Badge displays live download count with green background (`#4CAF50`) while active, and switches to blue (`#1E90FF`) on completion.
-- Minimal UI avoids dialogs or overlays.
+### 🧪 Logging and Diagnostics
 
-### 🧱 Safe and deduplicated tab management
-- `closeTabSafely` ensures idempotent and error-tolerant tab closure, preventing double deletions or race conditions.
+- Configurable log levels (0–3) from options page.
+- Logs every step with emoji-based indicators:
+  - `✅` Success
+  - `❌` Error
+  - `🔄` Iteration
+  - `⚠️` Warning
 
-### 🛠️ Diagnostics-first development philosophy
-- Logs use standardized messages with emojis and phase indicators.
-- Errors and edge cases are fully captured with console stack traces and guards.
+### 🔒 Safe, Non-Intrusive Design
+
+- Fully local: no telemetry, tracking, or analytics.
+- Failsafe tab closing logic with deduplication.
+- Robust image validation (via `HEAD` + `ImageBitmap`).
+
+### 📦 File-Naming Strategy
+
+- Dynamic names using `prefix`, `suffix`, `timestamp`, or base name.
+- Prevents overwrites using `conflictAction: 'uniquify'`.
 
 ---
 
 ## 💾 Installation
 
-Mass Image Downloader is not yet available in the Chrome Web Store. In the meantime, you can install it manually from source code by following the instructions below, based on your experience level.
+Mass Image Downloader is not yet published in the Chrome Web Store.  
+You can install it manually using the source code provided in the GitHub repository.
 
-### 👤 For Regular Users (No Technical Skills Required)
+---
 
-1. Download the latest release as a ZIP file from the official GitHub repository.
-2. Extract the ZIP file to a folder on your desktop or downloads directory.
-3. Open Google Chrome or any Chromium-based browser.
-4. Go to the Extensions page by typing `chrome://extensions/` in the address bar.
-5. Enable **Developer Mode** using the toggle switch at the top right.
-6. Click **Load unpacked** and select the folder where you extracted the ZIP file.
-7. The extension icon should now appear in your browser toolbar. You're ready to use it!
+### 👤 For Regular Users (No technical skills required)
 
-### 🧠 For Advanced Users (Developers & Power Users)
+1. Visit the [GitHub repository](https://github.com/sergiopalmah/Mass-Image-Downloader).
+2. Click on the green **`Code`** button and select **`Download ZIP`**.
+3. Extract the ZIP file to a folder on your desktop or preferred location.
+4. Open your browser and navigate to:
 
-#### 🐧 Unix-based Systems (Linux/macOS)
-
-1. Clone the repository using Git:
-   ```bash
-   git clone https://github.com/sergiopalmah/mass-image-downloader.git
    ```
-2. Navigate to the root directory:
-   ```bash
-   cd mass-image-downloader
+   chrome://extensions/
    ```
-3. Open `chrome://extensions/` in your browser.
-4. Enable **Developer Mode** (top right).
-5. Click **Load unpacked** and choose the root project folder.
-6. Optionally, make live edits to the source files (JavaScript, HTML, CSS) and reload the extension via the browser.
+
+5. Enable **Developer Mode** by toggling the switch in the top-right corner.
+6. Click **Load unpacked** and select the folder you just extracted.
+
+> ✅ **The extension icon should now appear in your browser toolbar.**  
+> 🔒 **Important:** Make sure to disable  
+> **“Ask where to save each file before downloading”** in your browser settings.
+
+---
+
+### 🧠 For Advanced Users (Git & Dev Tools)
+
+You can clone the repository and work directly with the source files.
+
+#### 🐧 Linux / macOS
+
+```bash
+git clone https://github.com/sergiopalmah/Mass-Image-Downloader.git
+cd Mass-Image-Downloader
+```
+
+Then:
+
+1. Open your browser and go to:
+
+   ```
+   chrome://extensions/
+   ```
+
+2. Enable **Developer Mode**.
+3. Click **Load unpacked** and select the cloned folder.
+
+> 🧪 You can now edit `.js`, `.html`, and `.css` files freely. Reload the extension after changes to test them.
+
+---
 
 #### 🪟 Windows Systems
 
-1. Open a command prompt and run:
-   ```cmd
-   git clone https://github.com/sergiopalmah/mass-image-downloader.git
-   ```
-2. Change to the cloned directory:
-   ```cmd
-   cd mass-image-downloader
-   ```
-3. Open Google Chrome or any Chromium-based browser.
-4. Go to `chrome://extensions/`.
-5. Enable **Developer Mode** (top right).
-6. Click **Load unpacked** and select the `mass-image-downloader` folder.
-7. You can now test or modify the extension files directly.
+```cmd
+git clone https://github.com/sergiopalmah/Mass-Image-Downloader.git
+cd Mass-Image-Downloader
+```
 
-> **Note:** Make sure you **disable** "Ask where to save each file before downloading" in your browser's download settings to allow automatic downloads.
+Then:
+
+1. Open **Chrome** or **Edge** and go to:
+
+   ```
+   chrome://extensions/
+   ```
+
+2. Enable **Developer Mode**.
+3. Click **Load unpacked** and select the cloned folder.
+
+> 🛠 Use a code editor like [Visual Studio Code](https://code.visualstudio.com/) or [Notepad++](https://notepad-plus-plus.org/) to modify and test the extension files locally.
+
+---
+
+## 📌 Show Extension Icon in Toolbar
+
+After installing the extension in **Brave**, **Chrome**, or **Edge**, the icon may not appear automatically in the toolbar. To pin it:
+
+1. Click the puzzle piece icon (🧩) on the top-right of the browser.
+2. Find **Mass Image Downloader** in the list of installed extensions.
+3. Click the **📌 pin icon** next to it to keep it visible at all times.
+
+> ✅ This ensures quick access to popup features, including direct downloads and gallery extraction.
+
+---
+
+## 💡 Recommended Setup
+
+| Profile    | Simultaneous Downloads | Batch Size | Loop Enabled | Best For                      |
+|------------|------------------------|------------|---------------|-------------------------------|
+| 🟢 Low     | 1                      | 10         | ❌             | Old PCs, slow connections     |
+| 🟡 Medium  | 2                      | 25         | ✅             | Most modern users             |
+| 🔵 High    | 4                      | 50         | ✅             | High-spec machines            |
+
+### 🕵 Usage Recommendations
+
+To ensure smooth performance and optimal results when using Mass Image Downloader, we recommend adjusting the extension's options based on your system resources and workflow. Below are some common usage profiles and tips:
+
+---
+
+#### 🟢 Low-Spec Machines (older PCs or limited resources)
+
+- **Simultaneous Downloads**: `1`
+- **Max Images Per Batch**: `5–10`
+- **Continue from Last Batch**: `Disabled`
+- **Gallery Max Images/sec**: `1–2`
+- **Disable Smart Grouping** to reduce memory overhead.
+- **Avoid opening multiple extraction flows at once**.
+
+> 🔒 Tip: Start with small galleries or image sets and increase gradually.
+
+---
+
+#### 🟡 Medium-Spec Machines (standard laptops or desktops)
+
+- **Simultaneous Downloads**: `2`
+- **Max Images Per Batch**: `25`
+- **Continue from Last Batch**: `Enabled`
+- **Gallery Max Images/sec**: `3–5`
+- **Enable Smart Grouping** if using visual galleries.
+- Use **Prefix/Suffix** to organize files better.
+
+> ✅ Best balance between performance and download speed.
+
+---
+
+#### 🔵 High-Performance Systems (modern PCs with SSDs, strong bandwidth)
+
+- **Simultaneous Downloads**: `4`
+- **Max Images Per Batch**: `50` or more
+- **Continue from Last Batch**: `Enabled`
+- **Gallery Max Images/sec**: `5–10`
+- **Enable Smart Grouping** and **Fallback Mode** for high-precision clustering.
+- Activate **Clipboard Hotkeys** for quick prefix/suffix setting.
+
+> ⚡ Great for mass downloading and high-resolution archives.
+
+---
+
+#### 🔎 General Optimization Tips
+
+- **Set minimum dimensions** (e.g., `minWidth: 300`, `minHeight: 500`) to avoid low-quality images.
+- **Use gallery similarity threshold** (`gallerySimilarityLevel`) around `70–80%` for relevant grouping.
+- **Enable "immediate" mode** for direct download, or **"tab" mode** for visual preview before saving.
+- Keep **Developer Tools console open** to monitor logs if debugging or diagnosing issues.
+- **Avoid overlapping extraction modes** (e.g., don’t trigger both linked and visual galleries at once).
+
+> 🧠 Adjust options progressively based on the type of site and image layout you're working with.
+
+#### Notes
+
+- A higher batch size allows faster completion but may cause visible lag or browser delays if your system is under heavy load.
+- Enabling "Continue from where it left off" ensures all images are eventually processed, even in batches.
+- Reducing the simultaneous download limit may help avoid failed downloads on unstable connections.
 
 ---
 
 ## 🔒 Privacy
 
-This extension is fully local. It does **not track, collect, or transmit** any user data. All image processing and download operations are performed **within your browser**, with no external API calls or telemetry.
+This extension is fully local. No data is collected or transmitted.  
+No external APIs are used. Settings are stored via `chrome.storage.sync`.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [Mozilla Public License v. 2.0](https://www.mozilla.org/MPL/2.0/).
 
 ---
 
 ## 📜 Changelog
 
-See [CHANGELOG.md](./CHANGELOG.md) for details on recent updates.
+See [CHANGELOG.md](./CHANGELOG.md) for full release history.
 
 ---
 
 ## 💡 Use Cases
 
-Here are a few examples of how Mass Image Downloader can be used in real-world workflows:
+- 📚 Academic scraping for diagrams or charts.
+- 🎨 Visual collection from design portfolios.
+- 🗞️ Archiving high-res media images.
+- 🛍️ Product scraping for comparisons (ethically).
+- 📁 Image curation from multiple search results.
 
-### 🎨 Design Research
-Quickly collect visual inspiration, UI samples, or creative assets from design showcases or portfolios by downloading only high-resolution images.
+---
 
-### 📰 Media Archiving
-Preserve full-quality media content from news galleries or image feeds, especially where thumbnails link to larger versions.
+## 🧠 Advanced Usage & Developer Tips
 
-### 📚 Academic Research
-Extract datasets of visual references or example diagrams from scientific publications or academic image collections.
+Mass Image Downloader includes several diagnostic and debug tools for advanced users and contributors. Below are some tips and features available when working under the hood:
 
-### 🛍️ Product Scraping (Ethical Use)
-Capture images from e-commerce galleries for product comparison or documentation purposes, respecting terms of service.
+---
 
-### 📁 Bulk Curation
-Streamline the process of selecting and downloading specific types of images across many tabs or search results pages.
+### 🐞 Enable Console Debug Logging
+
+You can control how much information the extension logs to the console via the **Debug Log Level** option in the settings panel:
+
+| Level | Description                      |
+|-------|----------------------------------|
+| 0     | Silent (no logs)                 |
+| 1     | Basic flow logs                  |
+| 2     | Verbose (warnings, milestones)   |
+| 3     | Detailed logs with stack traces  |
+
+> 🔍 Logs will appear in the **Developer Tools console** (`Ctrl+Shift+I` → Console tab) under `[Mass image downloader]:`.
+
+---
+
+### 🧪 View Live Flow Details
+
+Most actions log internal steps with emojis:
+
+- `✅` Success indicators
+- `❌` Errors and exceptions
+- `🔄` Loops and iteration state
+- `📦` Batch status
+- `🧠` Grouping calculations
+- `⚠️` Warnings or validation skips
+
+This helps track:
+
+- Why an image was skipped
+- When grouping fails
+- When fallback modes are triggered
+
+---
+
+### 🖼️ Test Image Thresholds
+
+To test size validation, try adjusting:
+
+- **Min Width** / **Min Height**
+- Use pages with mixed image resolutions (e.g., Unsplash thumbnails vs originals)
+- Watch for messages like: `⛔ Skipped (too small - 240x180)`
+
+---
+
+### 🧬 Simulate Gallery Extraction Failures
+
+To force fallback grouping and test robustness:
+
+1. Set **Smart Grouping = Enabled**
+2. Set **Similarity Threshold = 90%**
+3. Use a gallery with inconsistent URL patterns
+4. Observe fallback logic activating (`🛟 Retrying with fallback threshold...`)
+
+---
+
+### 📦 Inspect Badge Behavior
+
+The badge updates:
+
+- 🟢 Green: Active downloads
+- 🔵 Blue: Completed
+- Hidden: When idle
+
+Open the console and track:
+
+```plaintext
+✅ Badge updated successfully.
+🔄 Images processed so far: 7
+👌 Finished processing. Total images processed: 14
+```
+
+---
+
+### 💻 Contribute or Extend
+
+To explore the source code:
+
+```bash
+git clone https://github.com/sergiopalmah/Mass-Image-Downloader.git
+cd Mass-Image-Downloader
+```
+
+You can modify:
+- UI: `popup.html`, `options.html`
+- Logic: `background.js`, `extract*.js`
+- Utilities: `utils.js`
+- Logging: `logDebug(...)` in `utils.js`
+
+Then reload the extension via `chrome://extensions/` → **Reload**.
+
+> 🧠 All files are ES Modules. No bundler or transpiler is required.
 
 ---
 
 ## ⚠️ Edge Cases & Warnings
 
-While Mass Image Downloader is highly reliable, a few edge cases should be considered:
-
-- **Sites using anti-download mechanisms** (e.g., CSP, lazy loading, or JavaScript-driven blobs) may prevent direct image access.
-- **Images embedded via CSS or Base64** are not detected.
-- If the browser’s setting “Ask where to save each file before downloading” is **enabled**, the extension **will not function**.
-- In gallery mode, if `<a>` tags do not link to image files directly, they will be ignored.
-- Very large galleries (100+ images) may briefly slow down tab rendering or UI feedback.
-- The extension only processes tabs in the **same window** as the active tab.
-- If batch processing is interrupted manually, the badge may not reflect final totals unless completed fully.
+- CSP or lazy-loading sites may prevent downloads.
+- Base64/CSS images not supported.
+- "Ask where to save" must be disabled in browser.
+- Some galleries need proper `<a>` links to be detected.
+- Massive galleries may slow down page briefly.
+- Only works in same window where extension is triggered.
 
 ---
 
 ## 🙌 Contributions
 
-Contributions are welcome! Please open an issue or submit a pull request.
-For questions, suggestions, or feedback, feel free to reach out or open a GitHub discussion.
+New feaures? Issues? Throubleshooting? PRs welcome. Open an issue or discussion for feedback.
 
 ---
 
@@ -361,5 +684,5 @@ For questions, suggestions, or feedback, feel free to reach out or open a GitHub
 ![Lightweight](https://img.shields.io/badge/Built-lightweight-lightgrey?style=flat-square)
 ![Modular Design](https://img.shields.io/badge/Architecture-Modular-informational?style=flat-square)
 ![ES Modules](https://img.shields.io/badge/ESM-Enabled-success?style=flat-square&logo=javascript)
-![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen?style=flat-square&logo=github)
 ![Cross Platform](https://img.shields.io/badge/Compatible-Chromium%2090%2B-important?style=flat-square&logo=googlechrome)
+![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen?style=flat-square&logo=github)
