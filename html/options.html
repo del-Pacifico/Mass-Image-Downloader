@@ -1,3 +1,12 @@
+<!-- 
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+# If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+#
+# Original Author: Sergio Palma Hidalgo
+# Project URL: https://github.com/sergiopalmah/Mass-Image-Downloader
+# Copyright (c) 2025 Sergio Palma Hidalgo
+# All rights reserved.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,13 +14,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mass Image Downloader - Options</title>
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background-color: #FFFFFF;
             color: #768591;
             margin: 0;
             padding: 15px;
-            width: 360px;
+            width: 400px;
             position: relative;
         }
 
@@ -37,10 +50,25 @@
         .option-group {
             margin-bottom: 12px;
             padding: 10px;
-            background: #EDEEDF1;
+            background-color: #F8F8F8;
+            border: 1px solid #D0D0D0;
             border-radius: 6px;
             width: 100%;
+            max-width: 100%;
+            overflow-wrap: break-word;
+            word-break: break-word;            
             box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .global-options-wrapper {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            background-color: #F8F8F8;
+            border: 1px solid #D0D0D0;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         label {
@@ -126,6 +154,17 @@
             color: #007EE3;
         }
 
+        .footer a {
+            color: #007EE3;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .footer a:hover {
+            opacity: 0.95;
+        }
+
         .inline-checkbox {
             display: block;
             font-weight: 500;
@@ -137,139 +176,267 @@
             vertical-align: middle;
         }
 
+        .title-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        }
+
+        .title-header h1 {
+        margin: 0;
+        font-size: 16px;
+        color: #007EE3;
+        }
+
     </style>
 </head>
 <body>
+
+    <div class="title-header">
+    <img src="../ico/emoji_32x32.png" alt="Extension Icon" width="24" height="24">
     <h1>Mass Image Downloader - Options</h1>
+    </div>
+    <p>Take control of how you store your images, names, supported formats, and more!</p>
 
     <!-- 🌍 Global Settings -->
     <h2>🌍 Global Settings</h2>
     <p class="description">These settings apply to all image extraction features.</p>
 
+    <!-- options.html - Mass Image Downloader (restructured with global sections) -->
+    <div class="global-options-wrapper">
+
+    <!-- 📁 Global Settings: File system -->
+    <h2>📁 File system</h2>
+    <p class="description">Configure how and where images are stored on your system, including folder selection and supported formats.</p>
     <div class="option-group">
         <label>Choose Download Folder:</label>
         <input type="radio" name="downloadFolder" id="defaultFolder" checked> Default system folder<br>
         <input type="radio" name="downloadFolder" id="customFolder"> Custom folder
         <input type="text" id="folderPath" placeholder="Enter folder path" disabled>
-        <p class="info-text">This folder must exist within the default download folder, otherwise it will be generated.</p>
+        <p class="info-text">Default system folder: Will download images to this folder (this option is default).<br>
+            Custom folder: Will use the user defined folder.</p>
+        <p class="info-text">When select Custom folder, this folder must exist within your default download directory or will be auto-created.</p>        
     </div>
-
     <div class="option-group">
         <label>Allowed Image Formats:</label>
         <input type="checkbox" id="allowJPG" checked> JPG
         <input type="checkbox" id="allowJPEG" checked> JPEG
         <input type="checkbox" id="allowPNG" checked> PNG
         <input type="checkbox" id="allowWEBP" checked> WEBP
-        <p class="info-text">Select the formats to download.</p>
+        <p class="info-text">Only selected formats will be considered during processing.</p>
     </div>
-
     <div class="option-group">
         <label>Filename Customization:</label>
-        <select id="filenameMode" aria-label="Filename Customization Mode">
+        <select id="filenameMode">
             <option value="none">None</option>
-            <option value="prefix">Prefix</option>
-            <option value="suffix">Suffix</option>
-            <option value="both">Both</option>
-            <option value="timestamp">Timestamp (suffix)</option>
+            <option value="prefix">Prefix (adds a prefix to the image name)</option>
+            <option value="suffix">Suffix (adds suffix to image name)</option>
+            <option value="both">Both (add prefix and suffix to image name)</option>
+            <option value="timestamp">Timestamp (add timestamp suffix to image name)</option>
         </select>
-        <p class="info-text">Select how to customize the filename when saving images.</p>
         <div class="input-group">
-            <input type="text" id="prefix" placeholder="Enter filename prefix" disabled>
+            <input type="text" id="prefix" placeholder="Prefix" disabled>
             <span class="icon" id="pastePrefix">📋</span>
             <span class="icon" id="clearPrefix">❌</span>
         </div>
-        <p class="info-text">Prefix: Alphanumeric, up to 30 characters.</p>
         <div class="input-group">
-            <input type="text" id="suffix" placeholder="Enter filename suffix" disabled>
+            <input type="text" id="suffix" placeholder="Suffix" disabled>
             <span class="icon" id="pasteSuffix">📋</span>
             <span class="icon" id="clearSuffix">❌</span>
         </div>
-        <p class="info-text">Suffix: Alphanumeric, up to 15 characters.</p>
+        <p class="info-text">Define how filenames are modified when saving (optional).</p>
+        <p class="info-text">Allows you to prepend or append a string to filenames (e.g., prefix_001.jpg or 001_suffix.jpg). You can also use timestamp mode for unique naming. Default: None.</p>
     </div>
-
+    
+    <!-- 📋 Global Settings: Clipboard Hotkeys (NEW) -->
+    <h2>📋 Clipboard Hotkeys</h2>
+    <p class="description">Quickly set prefix or suffix from clipboard using keyboard shortcuts:</p>
     <div class="option-group">
-        <label>Max Simultaneous Downloads:</label>
-        <input type="number" id="downloadLimit" min="1" max="15" value="2">
-        <p class="info-text">Number of images to download simultaneously (1-15).</p>
+        <input type="checkbox" id="enableClipboardHotkeys">
+        <label for="enableClipboardHotkeys">Enable clipboard shortcuts for prefix/suffix</label>
+        <p class="info-text">Use Ctrl+Shift+P to set new prefix. Only if prefix. Is available.<br>
+            Use Ctrl+Shift+S to set new suffix. Only if suffix. Is available.<br>
+            Only on active tabs.</p>
     </div>
 
+    <!-- 🖼️ Global Settings: Galleries -->
+    <h2>🖼️ Galleries</h2>
+    <p class="description">Options to apply to all galley features:</p>
+    <div class="option-group">
+        <label for="gallerySimilarityLevel">Gallery Similarity Level (%):</label>
+        <input type="number" id="gallerySimilarityLevel" min="30" max="100" value="70">
+        <p class="info-text">Minimum required similarity between image paths to consider them part of the same gallery.</p>
+        <p class="info-text">Set similarity threshold between image URLs (30%..100%). Default: 70%. Used to group related images as galleries..</p>
+    </div>
+    <div class="option-group">
+        <label for="galleryMinGroupSize">Minimum Group Size:</label>
+        <input type="number" id="galleryMinGroupSize" min="2" max="50" value="3">
+        <p class="info-text">Defines how many images must match to form a gallery group (2..50). Default: 3. Used in grouping logic for galleries.</p>
+    </div>
+    <div class="option-group">
+        <input type="checkbox" id="galleryEnableSmartGrouping">
+        <label for="galleryEnableSmartGrouping">Enable smart similarity grouping</label>
+        <p class="info-text">When enabled, groups images by URL similarity before processing.</p>
+        <p class="info-text">Activates advanced path similarity logic before selecting images. This helps group visually-related thumbnails (e.g., image01.jpg, image02.jpg) into cohesive sets for gallery processing.</p>
+    </div>
+    <div class="option-group">
+        <input type="checkbox" id="galleryEnableFallback">
+        <label for="galleryEnableFallback">Enable fallback grouping</label>
+        <p class="info-text">If no dominant group is found, retry grouping with a more permissive threshold.</p>
+        <p class="info-text">If no main group is detected under current similarity level, a secondary attempt is made using a fallback level (10% lower). Useful for galleries with minor variations in image paths.</p>
+    </div>
     <div class="option-group">
         <label for="extractGalleryMode">Gallery Image Handling:</label>
         <select id="extractGalleryMode">
-            <option value="immediate" selected>Download immediately</option>
+            <option value="immediate">Download immediately</option>
             <option value="tab">Open in new tab before downloading</option>
         </select>
-        <p class="info-text">Choose whether to download gallery images directly or open them in a new tab first.</p>
+        <p class="info-text">Control how gallery images are handled after grouping.</p>
+        <p class="info-text">Choose what happens after gallery grouping: <br>
+            "Download immediately" will save images in background.<br>
+            "Open in new tab" loads each image in a tab and applies filtering or icon injection before downloading.</p>
     </div>
-
-    <div class="option-group">
-        <label>Minimum Image Width (px):</label>
-        <input type="number" id="minWidth" min="1" max="10000" value="800">
-        <p class="info-text">Specify the minimum width for images to be processed globally.</p>
-    </div>
-
-    <div class="option-group">
-        <label>Minimum Image Height (px):</label>
-        <input type="number" id="minHeight" min="1" max="10000" value="600">
-        <p class="info-text">Specify the minimum height for images to be processed globally.</p>
-    </div>
-
-    <div class="option-group">
-        <label for="debugLogging">🐛 Developer Debugging:</label>
-        <input type="checkbox" id="debugLogging"> Enable debug logs in console
-    </div>
-
-    <hr>
-
-    <!-- 📸 Bulk Image Download -->
-    <h2>📸 Bulk Image Download</h2>
-    <p class="description">Configure how images are downloaded in bulk.</p>
-    <div class="option-group">
-        <label for="maxBulkBatch">Max images per batch:</label>
-        <input type="number" id="maxBulkBatch" min="1" max="50" value="20">
-        <p class="info-text">Number of images to download in each batch (1-50).</p>
-        <label for="continueFromLastBulkBatch" class="inline-checkbox">
-            <input type="checkbox" id="continueFromLastBulkBatch">
-            Continue from where it left off
-        </label>
-        <p class="info-text">
-            This setting controls how the batch limit behaves. The number entered in <strong>Max Images Per Batch</strong> defines how many images are processed in each round.<br>
-            If enabled, the process will repeat in batches of that size until all tabs are handled.<br>
-            If disabled, only one batch will be processed and remaining tabs will be ignored.
-        </p>
-    </div>   
-
-    <hr>
-
-    <!-- 🌄 Extract Gallery Images -->
-    <h2>🌄 Extract Gallery Images</h2>
-    <p class="description">Adjust settings for extracting images from galleries.</p>
     <div class="option-group">
         <label for="galleryMaxImages">Max images per second:</label>
         <input type="number" id="galleryMaxImages" min="1" max="10" value="3">
-        <p class="info-text">Set the maximum number of images to extract per second (1-10).</p>
+        <p class="info-text">Set the maximum number of images processed per second (1..10). Default: 3.</p>
+        <p class="info-text">Limits how many gallery images are processed per second during extraction. 
+            Set between 1 and 10. Higher values may speed up downloads but can increase load. Default: 3.</p>
     </div>
 
-    <hr>
-
-    <!-- 🔎 Gallery Finder Options -->
-    <h2>🔎 Gallery Finder Options</h2>
-    <p class="description">Configure settings for gallery detection and extraction.</p>
+    <!-- 🌍 Global Settings: Image size -->
+    <h2>📐 Image size</h2>
+    <p class="description">Set minimum and maximum for image processing:</p>
     <div class="option-group">
-        <label for="pathSimilarityLevel">Path Similarity Level (%):</label>
-        <input type="number" id="pathSimilarityLevel" min="50" max="100" value="80">
-        <p class="info-text">Set the similarity threshold for image paths to group them as a gallery (50-100%).</p>
+        <label for="minWidth">Minimum Image Width (px):</label>
+        <input type="number" id="minWidth" min="1" max="10000" value="800">
+        <p class="info-text">Minimum allowed image width in pixels (1–10000). Default: 800. Applies to all extraction flows.</p>
+    </div>
+    <div class="option-group">
+        <label for="minHeight">Minimum Image Height (px):</label>
+        <input type="number" id="minHeight" min="1" max="10000" value="600">
+        <p class="info-text">Minimum allowed image height in pixels (1–10000). Default: 600. Applies to all extraction flows.</p>
+    </div>
+
+    <!-- 📢 Global Settings: Notifications -->
+    <h2>📢 Notifications</h2>
+    <p class="description">Enable or disable notifications.</p>
+    <div class="option-group">
+        <label for="showUserFeedbackMessages">Show user feedback messages:</label>
+        <input type="checkbox" id="showUserFeedbackMessages">
+        <p class="info-text">Toggle on to receive visual feedback during operations (success, progress, and errors).</p>
+    </div>
+    
+    <!-- 🌍 Global Settings: Debugging -->
+    <h2>🐛 Debugging</h2>
+    <p class="description">Diagnostic settings for developers and testers.</p>
+    <div class="option-group">
+        <label for="debugLogLevel">Console log level:</label>
+        <select id="debugLogLevel">
+          <option value="0">0 - Disabled (debug logging disabled)</option>
+          <option value="1">1 - Basic (key events)</option>
+          <option value="2">2 - Verbose (includes intermediate flow)</option>
+          <option value="3">3 - Detailed (exhaustive debugging)</option>
+        </select>
+        <p class="info-text">Choose how much detail you want in browser console logs.</p>
+        <p class="info-text">Set the amount of debug information shown in the console.<br> 
+            Level: <br>
+            0 disables logging<br>
+            1 shows key events<br> 
+            2 includes intermediate steps<br> 
+            3 logs detailed flow with all variables<br> 
+        Default: 1.</p>
+    </div>
     </div>
 
     <hr>
 
-    <button id="saveOptions">💾 Save Settings</button>
-    <button id="closeOptions">🗙 Close Settings</button>
+    <!-- 📸 Download images directly in tabs -->
+    <h2>📸 Download images directly in tabs Settings</h2>
+    <p>These settings only apply to this functionality</p>
+    <div class="global-options-wrapper">
+    <p class="description">Configure how images are handled in batch operations.</p>
+    <div class="option-group">
+        <label for="maxBulkBatch">Max images per batch:</label>
+        <input type="number" id="maxBulkBatch" min="1" max="50" value="20">
+        <p class="info-text">Controls how many tabs are processed at once (1–50). Default: 20. Higher values speed up processing but may affect browser performance on slower machines.</p>
+    </div>
+    <div class="option-group">
+        <label>
+            <input type="checkbox" id="continueFromLastBulkBatch">
+            Continue from where it left off
+        </label>
+        <p class="info-text">If enabled, resumes the bulk download from the last skipped or failed tab batch. Useful when dealing with large galleries or interrupted sessions.</p>
+    </div>
+    </div>
 
-    <!-- Footer with version and creator -->
+    <hr>
+
+    <!-- 🔗 Extract Web-Linked Gallery -->
+    <h2>🔗 Web-Linked Gallery Settings</h2>
+    <p>These settings only apply to this functionality</p>
+    <div class="global-options-wrapper">
+    <p class="description">Set how many linked pages can be opened at the same time.</p>
+    <div class="option-group">
+        <label for="maxOpenTabs">Max open tabs per gallery:</label>
+        <input type="number" id="maxOpenTabs" min="1" max="10" value="5">
+        <p class="info-text">Max number of gallery pages opened in parallel tabs (1–10). Default: 5.</p>
+        <p class="info-text">This setting is only available when the "Extract Web-Linked Gallery" option is selected.</p>
+    </div>
+
+    <div class="option-group">
+        <label for="webLinkedGalleryDelay">Delay between tab openings (ms):</label>
+        <input type="number" id="webLinkedGalleryDelay" min="100" max="3000" value="500">
+        <p class="info-text">Controls the time delay between each tab opened during a Web-Linked Gallery extraction (100–3000 ms). Lower values speed up processing but may trigger site restrictions. Default: 500.</p>
+        <p class="info-text">This setting is only available when the "Extract Web-Linked Gallery" option is selected.</p>
+    </div>
+
+    </div>
+
+    <hr>
+
+    <!-- 📘 User Guide (Quick Reference) -->
+    <h2>📘 How to Use & Optimize</h2>
+    <p class="description">Quick tips to help you get the best out of Mass Image Downloader.</p>
+    <div class="option-group">
+        <p class="info-text"><strong>What it does:</strong><br>
+        ☕ This extension allows you to extract and download images in bulk, either from open tabs or grouped galleries. It supports automatic filtering, customizable filenames, batch control, and clipboard shortcuts.</p>
+
+        <p class="info-text"><strong>🧰 Feature overview:</strong><br>
+        📸 <strong>Download images directly in tabs</strong>: Download open images in tabs filtering and downloading valid images (currently open in the browser window).<br>
+        🌄 <strong>Extract images from galleries (with direct links)</strong>: Extract images from galleries with direct image links (via HTML anchor tags).<br>
+        🖼️ <strong>Extract visual galleries</strong>: Extracts images from galleries (without link), detecting by grouping and similarity of paths.<br>
+        🔗 <strong>Extract Web-Linked Galleries</strong>: Analyzes images from linked galleries (to web pages), opening associated web pages, selecting the high resolution image found on each page (adding icon for download).<br>
+        📋 <strong>Clipboard hotkeys</strong>: Press Ctrl+Shift+P or Ctrl+Shift+S to paste and set new prefix/suffix quickly from clipboard.</p>
+
+        <p class="info-text"><strong>🚀 Performance tips:</strong><br>
+        🔴 <u>Low-end PCs</u>: Set <code>Max images per batch</code> = 1 or 2, avoid auto-closing tabs.<br>
+        🟡 <u>Mid-range PCs</u>: Use batching (2–3), smart grouping, and keep visual filters enabled.<br>
+        🟢 <u>High-end PCs</u>: Enable fallback grouping, open tabs concurrently (max 5–10), and allow all formats.</p>        
+
+        <p class="info-text"><strong>🔧 Troubleshooting:</strong><br>
+        • Ensure gallery images are large enough (check min width/height).<br>
+        • Confirm image formats (JPG/PNG/WEBP) are enabled in File system section.<br>
+        • Logs can be enabled under Debugging (choose log level).<br>
+        • Reload the extension if options are not applied correctly.</p>
+
+        <p class="info-text">📚 For technical details, advanced use, usage examples, troubleshooting, or to contribute: visit the <a href="https://github.com/sergiopalmah?tab=repositories" target="_blank">GitHub project page</a>.</p>        
+    </div>
+
+    <hr>
+
+    <!-- Buttons -->
+    <button id="saveOptions">💾 Save Settings</button>
+    <button id="closeOptions">🗙 Close</button>
+
+    <!-- Footer -->
     <div class="footer">
         <p>Version: <strong id="extension-version">Loading...</strong></p>
-        <p>Concept & Development by  :::<strong> saph </strong>::: </p>
+        <p>Concept & Development by <strong>💻 Sergio Palma Hidalgo</strong></p>
+        <p>Powered by AI: 🤖 Copilot, ChatGPT, Gemini & DeepSeek</p>
+        <p>View source on GitHub: <a href="https://github.com/sergiopalmah?tab=repositories" target="_blank" rel="noopener">🔗 Repositories</a></p>
     </div>
 
     <script src="../script/options.js"></script>
