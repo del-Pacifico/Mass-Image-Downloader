@@ -62,6 +62,6 @@ We support responsible and transparent use of AI to accelerate development, with
 
 ## 💬 Need Help?
 
-Feel free to **[start a discussion](https://github.com/del-Pacifico/mass-image-downloader/discussions)** or open an issue with your question. We’re happy to assist!
+Feel free to [start a discussion](https://github.com/del-Pacifico/mass-image-downloader/discussions) or open an issue with your question. We’re happy to assist!
 
 > Contributions of all kinds are welcome — from typo fixes to major features. Let’s build something great together! 🚀
