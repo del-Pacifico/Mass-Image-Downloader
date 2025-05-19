@@ -5,6 +5,24 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## 🛠 Pull Request: Add CODEOWNERS file
+
+### 🗂 CODEOWNERS Overview
+
+This update introduces a `.github/CODEOWNERS` file that assigns `@sergiopalmah` as the designated Code Owner for the entire repository.
+
+This change ensures that Pull Requests can be self-approved when necessary, while keeping branch protection rules active and compliant with GitHub's organizational workflows.
+
+---
+
+### 🛠 Maintenance
+
+- **Added `.github/CODEOWNERS` file**  
+  Declares `@sergiopalmah` as the repository's sole Code Owner.  
+  Enables self-approval of Pull Requests under branch protection rules, while maintaining audit and control policies.
+
+---
+
 ## [2.07.159] - 2025-05-18
 
 ### 🗂 Overview
