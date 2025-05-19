@@ -1,9 +1,8 @@
- 
 // # This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 // # If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
 // #
 // # Original Author: Sergio Palma Hidalgo
-// # Project URL: https://github.com/sergiopalmah/Mass-Image-Downloader
+// # Project URL: https://github.com/del-Pacifico/Mass-Image-Downloader
 // # Copyright (c) 2025 Sergio Palma Hidalgo
 // # All rights reserved.
 
@@ -47,6 +46,24 @@
 
     logDebug(1, '⚡ Utility script loaded.');
 
+    // 🧠 Listen to live updates to keep configCache in sync with changes from clipboardHotkeys.js
+    if (chrome?.storage?.onChanged) {
+        chrome.storage.onChanged.addListener((changes) => {
+            if (changes.prefix) {
+                configCache.prefix = changes.prefix.newValue ?? '';
+                logDebug(2, `🔄 Prefix updated in cache: "${configCache.prefix}"`);
+            }
+            if (changes.suffix) {
+                configCache.suffix = changes.suffix.newValue ?? '';
+                logDebug(2, `🔄 Suffix updated in cache: "${configCache.suffix}"`);
+            }
+            if (changes.debugLogLevel) {
+                const oldLevel = configCache.debugLogLevel;
+                configCache.debugLogLevel = parseInt(changes.debugLogLevel.newValue ?? 1);
+                logDebug(1, `🪵 Debug level changed: ${oldLevel} → ${configCache.debugLogLevel}`);
+            }
+        });
+    }
 
     /**
      * Logs debug messages based on user-defined log level.
@@ -244,7 +261,7 @@
 
             // ✅ Validate extension against allowed formats
             const isValid = allowedExts.some(ext => filename.endsWith(ext));
-            logDebug(3, `🧪 Validating "${filename}" against allowed formats: ${isValid}`);
+            logDebug(3, `✨ "${filename}" ends with a valid image URL!`);
             return isValid;
         } catch (err) {
             logDebug(1, `⚠️ Error in isDirectImageUrl: ${err.message}`);
@@ -267,41 +284,43 @@
 
             let name = baseName;
             
-            logDebug(3, `🧪 Prefix mode: ${filenameMode}`);
-            logDebug(3, `🧪 Original Name: ${baseName}`);
+            logDebug(3, `🧪 File name mode: ${filenameMode}`);
+            logDebug(3, `📄 Original Name: ${baseName}`);
 
             if (filenameMode === "prefix") {
                 name = `${prefix}_${baseName}`;
+                logDebug(3, `🧼 Using Prefix`);
             } else if (filenameMode === "suffix") {
                 name = `${baseName}_${suffix}`;
+                logDebug(3, `🧼 Using Suffix`);
             } else if (filenameMode === "both") {
                 name = `${prefix}_${baseName}_${suffix}`;
+                logDebug(3, `🧼 Using Both`);
             } else if (filenameMode === "timestamp") {
                 const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '').slice(2, 14);
                 name = `${baseName}_${timestamp}`;
+                logDebug(3, `🧼 Using TimeStamp`);
             }
 
-            logDebug(3, `🧪 Final name: ${name}`);
+            logDebug(3, `✍🏻 Final name: ${name}`);
             return `${name}${extension}`;
         } catch (err) {
             logDebug(1, `❌ Error generating filename: ${err.message}`);
-            logDebug(2, '-----------------------------------------------');
+            logDebug(3, '-----------------------------------------------');
             return `${baseName}${extension}`;
         }
     }
 
-
     /**
      * Removes invalid characters from filename components.
-     * @param {string} text - User input for prefix/suffix.
-     * @returns {string} - Sanitized text.
-     * @description This function sanitizes the input text by removing invalid characters and trimming whitespace.
-     * It uses a regular expression to replace any character that is not alphanumeric or a space with an empty string.
-     * If an error occurs during the process, it logs the error message and returns an empty string.
+     * @param {string} text - Raw input for prefix/suffix.
+     * @param {number} maxLen - Max length allowed (30 for prefix, 15 for suffix).
+     * @returns {string} - Sanitized and trimmed text.
      */
-    function sanitizeFilenameComponent(text) {
+    export function sanitizeFilenameComponent(text, maxLen = 30) {
         try {
-            return text.trim().replace(/[^a-zA-Z0-9 ]/g, '');
+            let clean = text.trim().replace(/[^a-zA-Z0-9 ]/g, '');
+            return clean.length > maxLen ? clean.slice(0, maxLen) : clean;
         } catch (err) {
             logDebug(1, `❌ Error sanitizing filename component: ${err.message}`);
             return '';
@@ -359,6 +378,7 @@
 
         } catch (error) {
             logDebug(1, `❌ Error displaying user message: ${error.message}`);
+            logDebug(3, `❌ Stacktrace: ${error.stack}`);
         }
     }
 
@@ -381,7 +401,7 @@
             if (configCache.allowWEBP) allowedExts.push('.webp');
 
             const isValid = allowedExts.some(ext => pathname.endsWith(ext));
-            logDebug(3, `🧪 Checking format for "${pathname}": ${isValid}`);
+            logDebug(2, `✅ Is an allowed image format!`);
             return isValid;
         } catch (err) {
             logDebug(1, `❌ Error in isAllowedImageFormat: ${err.message}`);
@@ -396,7 +416,6 @@
         updateBadge,
         calculatePathSimilarity,
         generateFilename,
-        sanitizeFilenameComponent,
         isDirectImageUrl,
         isAllowedImageFormat,
         showUserMessage,

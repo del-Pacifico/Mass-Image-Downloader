@@ -1,30 +1,31 @@
 {
   "manifest_version": 3,
   "name": "Mass image downloader",
-  "version": "2.07.139",
+  "version": "2.07.159",
   "short_name": "MID",
-  "description": "Automatically detects and downloads images from open tabs or galleries. Supports batch processing, format filters, filename customization, and concurrency control.",    
+  "description": "Download images from tabs or galleries with filters, naming rules, batch control, and a lot options!",
   "icons": {
-    "16": "ico/emoji_16x16.png",
-    "19": "ico/emoji_19x19.png",
-    "32": "ico/emoji_32x32.png",
-    "38": "ico/emoji_38x38.png",
-    "48": "ico/emoji_48x48.png",
-    "128": "ico/emoji_128x128.png"
+      "16": "ico/emoji_16x16.png",
+      "19": "ico/emoji_19x19.png",
+      "32": "ico/emoji_32x32.png",
+      "38": "ico/emoji_38x38.png",
+      "48": "ico/emoji_48x48.png",
+      "128": "ico/emoji_128x128.png"
   },
   "permissions": [
-    "tabs",
-	  "downloads",
-	  "storage",
-	  "scripting",
-    "clipboardRead"
+      "tabs",
+      "downloads",
+      "storage",
+      "scripting",
+      "clipboardRead"
   ],
   "content_scripts": [
-  {
-    "matches": ["<all_urls>"],
-    "js": ["script/clipboardHotkeys.js"],
-    "run_at": "document_idle"
-  }
+    {
+      "matches": ["<all_urls>"],
+      "js": ["script/clipboardHotkeys.js",
+      "script/settingsPeek.js"],
+      "run_at": "document_idle"
+    }
   ],
   "host_permissions": [
     "<all_urls>"
@@ -42,5 +43,23 @@
     "default_title": "Mass image downloader",
     "default_popup": "html/popup.html"
   },
-  "options_page": "html/options.html"
+  "options_page": "html/options.html",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "html/peekOptions.html",
+        "script/peekOptions.js",
+        "ico/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "commands": {
+    "open-peek-options": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y"
+      },
+      "description": "Open Peek Settings (read-only)"
+    }
+  }
 }

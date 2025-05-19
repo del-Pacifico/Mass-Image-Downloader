@@ -1,9 +1,8 @@
- 
 // # This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 // # If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
 // #
 // # Original Author: Sergio Palma Hidalgo
-// # Project URL: https://github.com/sergiopalmah/Mass-Image-Downloader
+// # Project URL: https://github.com/del-Pacifico/Mass-Image-Downloader
 // # Copyright (c) 2025 Sergio Palma Hidalgo
 // # All rights reserved.
 
@@ -90,7 +89,7 @@ window.addEventListener("load", () => {
 
         const icon = document.createElement("div");
         icon.textContent = "💾";
-        icon.title = "Save this image";
+        icon.title = "Mass image downloader: Save this image";
         icon.style.position = "absolute";
         icon.style.zIndex = "9999";
         icon.style.fontSize = "14px";
@@ -105,7 +104,7 @@ window.addEventListener("load", () => {
 
         const rect = bestImage.getBoundingClientRect();
         icon.style.top = `${window.scrollY + rect.top + 6}px`;
-        icon.style.left = `${window.scrollX + rect.left + bestImage.width - 28}px`;
+        icon.style.left = `${window.scrollX + rect.left + bestImage.width - 42}px`;
 
         icon.addEventListener("click", () => {
             logDebug(1, "💾 Save icon clicked. Sending image to background.");

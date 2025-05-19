@@ -1,9 +1,8 @@
- 
 // # This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 // # If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
 // #
 // # Original Author: Sergio Palma Hidalgo
-// # Project URL: https://github.com/sergiopalmah/Mass-Image-Downloader
+// # Project URL: https://github.com/del-Pacifico/Mass-Image-Downloader
 // # Copyright (c) 2025 Sergio Palma Hidalgo
 // # All rights reserved.
 
@@ -217,5 +216,28 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     } else {
         logDebug("🔴 Error - 'settings' link not found.");
+    }    // ✅ View Settings (Peek) button
+    const peekButton = document.getElementById("btn-peek");
+    if (peekButton) {
+        peekButton.addEventListener("click", () => {
+            logDebug("🔍 Opening peek settings overlay from popup.");
+
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                if (tabs.length && tabs[0].id) {
+                    chrome.tabs.sendMessage(tabs[0].id, { action: "open-peek-overlay" }, (response) => {
+                        if (chrome.runtime.lastError) {
+                            logDebug("❌ Failed to send message:", chrome.runtime.lastError.message);
+                        } else {
+                            logDebug("📤 Message sent to content script to open peek overlay.");
+                        }
+                    });
+                } else {
+                    logDebug("❌ No active tab found to send peek message.");
+                }
+            });
+        });
+    } else {
+        logDebug("🔴 Error - 'btn-peek' button not found.");
     }
+
 });

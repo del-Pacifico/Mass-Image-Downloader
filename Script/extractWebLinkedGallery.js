@@ -1,9 +1,8 @@
- 
 // # This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 // # If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
 // #
 // # Original Author: Sergio Palma Hidalgo
-// # Project URL: https://github.com/sergiopalmah/Mass-Image-Downloader
+// # Project URL: https://github.com/del-Pacifico/Mass-Image-Downloader
 // # Copyright (c) 2025 Sergio Palma Hidalgo
 // # All rights reserved.
 
@@ -83,13 +82,17 @@
             const parsed = new URL(url);
             const pathname = parsed.pathname;
     
-            // ✅ Must end with .html, .htm, .php, .asp, .aspx, .jsp or similar
             const isValidExtension = /\.(html?|php|aspx?|jsp)(\?.*)?$/i.test(pathname);
-    
-            // ❌ Reject if it's the domain root (no path or just "/")
+            const isFolderLike = pathname.endsWith("/") && pathname.split("/").length > 2;
             const isRoot = pathname === "/" || pathname.trim() === "";
-    
-            return isValidExtension && !isRoot;
+
+            // Is the URL a folder-like structure? Or a valid web page?
+            if (isFolderLike && !isValidExtension) {
+                logDebug(2, `📂 Accepted folder-style URL without extension: ${url}`);
+            }
+
+            return (isValidExtension || isFolderLike) && !isRoot;
+
         } catch (e) {
             logDebug(2, `⛔ Invalid URL while checking HTML: ${url}`);
             return false;

@@ -1,9 +1,8 @@
- 
 // # This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 // # If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
 // #
 // # Original Author: Sergio Palma Hidalgo
-// # Project URL: https://github.com/sergiopalmah/Mass-Image-Downloader
+// # Project URL: https://github.com/del-Pacifico/Mass-Image-Downloader
 // # Copyright (c) 2025 Sergio Palma Hidalgo
 // # All rights reserved.
 
@@ -120,6 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const continueBulkLoopCheckbox = document.getElementById("continueFromLastBulkBatch");
     let galleryMaxImagesInput;
     const showUserFeedbackMessagesCheckbox = document.getElementById("showUserFeedbackMessages");
+    const peekTransparencyInput = document.getElementById("peekTransparencyLevel");
     const enableClipboardHotkeysCheckbox = document.getElementById("enableClipboardHotkeys"); 
 
     const maxOpenTabsInput = document.getElementById("maxOpenTabs");
@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "gallerySimilarityLevel", "galleryMinGroupSize",
             "galleryEnableSmartGrouping", "galleryEnableFallback",
             "showUserFeedbackMessages", "enableClipboardHotkeys",
-            "maxOpenTabs", "webLinkedGalleryDelay"
+            "maxOpenTabs", "webLinkedGalleryDelay", "peekTransparencyLevel"
         ], (data) => {
             logDebug(1, "🔍 Settings loaded from storage.");
     
@@ -311,6 +311,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     showUserFeedbackMessagesCheckbox.checked = data.showUserFeedbackMessages ?? true; // Default: enabled
                 }
 
+                // 🔍 Peek Transparency Setting
+                if (peekTransparencyInput) {
+                    peekTransparencyInput.value = data.peekTransparencyLevel ?? 0.8;
+                    logDebug(2, "🫥 Loaded peekTransparencyLevel:", peekTransparencyInput.value);
+                } else {
+                    logDebug(2, "⚠️ peekTransparencyLevel input not found.");
+                }
+
+                // 📂 Max Open Tabs
                 if (maxOpenTabsInput) {
                     maxOpenTabsInput.value = data.maxOpenTabs ?? 5;
                     logDebug(2, "🪟 Loaded maxOpenTabs:", maxOpenTabsInput.value);
@@ -488,6 +497,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // 📢 Global Settings: Notifications
             const showUserFeedbackMessages = showUserFeedbackMessagesCheckbox ? showUserFeedbackMessagesCheckbox.checked : true;
+
+            // 🫥 Peek Transparency
+            let peekTransparencyLevel = 0.8;
+            if (peekTransparencyInput) {
+                peekTransparencyLevel = Math.max(0.2, Math.min(1.0, parseFloat(peekTransparencyInput.value)));
+                if (isNaN(peekTransparencyLevel)) peekTransparencyLevel = 0.8;
+            } else {
+                logDebug(2, "⚠️ peekTransparencyLevel input not found during save. Using fallback 0.8");
+            }
     
             // Save Settings
             chrome.storage.sync.set({
@@ -515,7 +533,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 showUserFeedbackMessages,
                 enableClipboardHotkeys: enableClipboardHotkeysCheckbox ? enableClipboardHotkeysCheckbox.checked : false,
                 maxOpenTabs: maxOpenTabsInput ? Math.min(10, Math.max(1, parseInt(maxOpenTabsInput.value))) : 5,
-                webLinkedGalleryDelay: webLinkedGalleryDelayInput ? Math.min(3000, Math.max(100, parseInt(webLinkedGalleryDelayInput.value))) : 500
+                webLinkedGalleryDelay: webLinkedGalleryDelayInput ? Math.min(3000, Math.max(100, parseInt(webLinkedGalleryDelayInput.value))) : 500,
+                peekTransparencyLevel
 
             }, () => {
                 if (chrome.runtime.lastError) {

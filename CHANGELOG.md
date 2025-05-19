@@ -5,6 +5,156 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [2.07.159] - 2025-05-18
+
+### 🗂 Overview
+
+This release focuses on robustness, fault-tolerance, and fine-grained control across all major workflows: **Bulk Image Download**, **Extract Visual Gallery**, and **Extract Linked Gallery**. Several enhancements improve script injection reliability, clipboard usage, image filtering performance, and badge update tracking. Logging across modules has been heavily enriched to support diagnostics and edge case transparency.
+
+**Key highlights include:**
+
+- 🔒 **Script execution protection**: Prevents gallery scripts from running multiple times simultaneously in the same tab.
+- 🧠 **Smarter image validation**: Filters small or invalid images early via HEAD request and format validation, reducing processing time and memory use.
+- 🚀 **Download rate control**: Uses dynamic delays and concurrency limits to ensure smooth and fast bulk downloading without overwhelming the browser.
+- 📦 **Enhanced filename handling**: Applies consistent prefix/suffix/timestamp rules with character sanitization for cleaner file organization.
+- 🧰 **Improved diagnostics with fine-grained logging**: Offers detailed logs by phase, including validations, downloads, errors, and badge updates.
+- 👁️ **New View Settings (peek) mode**: Allows users to review current extension settings in a read-only view without navigating to the full Options page.
+- 📘 **New documentation sections**: Shortcuts & Commands, Runtime Behavior, Peek Settings Mode, Use Cases, Donations, and Related Projects.
+
+Several enhancements improve script injection reliability, clipboard usage, image filtering performance, and badge update tracking. Logging across modules has been heavily enriched to support diagnostics and edge case transparency.
+
+---
+
+### ✨ Added
+
+- **Execution lock for gallery scripts**  
+  Introduced runtime flags (`window.__mdi_extractVisualGalleryRunning`, `__mdi_extractLinkedGalleryRunning`) to avoid duplicated script execution within the same tab context.
+
+- **Advanced clipboard support & fallback handling**  
+  - Integrated permission checks for `navigator.permissions.query({ name: 'clipboard-read' })` and `document.readyState` validation before reading clipboard content.
+  - Displays user feedback for unsupported or denied clipboard API contexts.
+
+- **Pre-download HEAD request for image size validation**  
+  Downloads are skipped early if `Content-Length` indicates a file smaller than 20 KB—avoiding unnecessary bandwidth and bitmap creation attempts.
+
+- **Download concurrency queue with delay control**  
+  Sequential processing of images now respects the user-defined `galleryMaxImages` rate (1–10) using dynamic delays in `handleExtractLinkedGallery` and `handleExtractVisualGallery`.
+
+- **🆕 New "View Settings (peek)" functionality**  
+  A keyboard shortcut (Ctrl+Shift+Y) or internal trigger now allows users to open a read-only summary of current configuration.  
+  Useful for quickly verifying settings (e.g., prefix, suffix, filename mode, batch size) without modifying them or leaving the active tab.
+  This mode is non-intrusive and does not affect the current workflow.
+  The settings are displayed in a modal overlay with a close button.
+  The modal is styled to match the extension's theme and includes a close button.
+
+- **New "Extension Shortcuts & Commands" section in README**  
+  Lists all available and planned hotkeys, including prefix/suffix clipboard shortcuts and performance presets.
+
+- **New "Behavior When Navigating or Closing the Page" section**  
+  Documents runtime behavior for all flows if the tab is closed or navigated away from.
+
+- **New "Peek Settings Mode" section**  
+  Describes the read-only settings overlay injected into tabs for quick reference.
+
+- **New "Support the Project" and donation section**  
+  Added PayPal link and messaging inviting user support.
+
+- **New "Related Projects" section**  
+  Includes link and description for the Unicode to PNG companion project.
+  This project allows users to convert Unicode characters into PNG images, which can be useful for various applications, such as creating custom icons or graphics.
+  The project is open-source and available on GitHub, encouraging collaboration and contributions from the community.  
+
+---
+
+### 🔁 Changed
+
+- **Filename generation logic**  
+  `generateFilename(...)` was reinforced to sanitize and apply formatting rules based on prefix/suffix/timestamp reliably and consistently across all modes.
+
+- **User feedback message display**  
+  Visual toast messages (`showUserMessage`) now include:
+  - Background color based on message type (`#007EE3` or `#d9534f`)
+  - Duration variation (`5s` for info/success, `10s` for errors)
+  - Exception guards on DOM manipulation for display and removal
+
+- **Log verbosity with debug levels (1–3)**  
+  All scripts (`background.js`, `popup.js`, `options.js`, `utils.js`, etc.) implement fine-grained `logDebug(...)` calls categorized by:
+  - Phase markers (BEGIN/END)
+  - Validation steps
+  - Download status
+  - Errors and fallbacks
+  - Final completion
+
+- **Badge behavior fully restructured**  
+  - Badge remains green (`#4CAF50`) during any ongoing download or gallery image processing.
+  - Badge switches to blue (`#1E90FF`) only when all processing steps are completed (even across batches or delayed loops).
+  - `updateBadge(...)` now includes text color control and cumulative update tracking.
+
+- **README.md: structure and clarity improvements**  
+  Overview rewritten with a more commercial and engaging tone. Typos corrected, redundant content removed, and content reorganized for better flow.
+
+- **Clipboard Hotkeys documentation reorganized**  
+  Moved full description to Options section and replaced duplicate in How It Works with a concise reference link.
+
+- **Use Cases section rewritten**  
+  Now includes marketing-focused use cases for researchers, designers, developers, and data engineers.
+
+---
+
+### ⚙️ Performance
+
+- **Download concurrency and queue processing redesigned**  
+  Introduced a rate-limited download queue to handle image downloads with precise concurrency control.  
+  This eliminates blocking behavior and improves throughput in high-volume galleries (`galleryMaxImages` respected consistently).
+
+- **HEAD-based early rejection for small images**  
+  Added a lightweight HEAD request before bitmap decoding to discard images under ~20 KB.  
+  Prevents costly `createImageBitmap(...)` calls and reduces unnecessary memory usage.
+
+- **Script execution flags prevent redundancy**  
+  Gallery scripts (`extractLinkedGallery.js`, `extractVisualGallery.js`) now use runtime flags to avoid duplicate injection and execution, particularly when clicking buttons multiple times or during rapid toggles.
+
+- **Badge logic no longer blocks UI feedback**  
+  The badge update function was refactored to allow asynchronous, cumulative updates without interrupting image processing logic.
+
+---
+
+### 🐛 Fixed
+
+- **Image filtering with fallback**  
+  - Enhanced path similarity fallback logic when dominant group is too small.
+  - Automatically retries with lower threshold (–10%) if `galleryEnableFallback` is enabled.
+
+- **`isAllowedImageFormat(...)` fallback correction**  
+  In `extractLinkedGallery.js`, a safeguard fallback was added in case extension-based logic fails—reducing false negatives.
+
+- **Silent download errors during clipboard injection**  
+  Errors triggered by invalid clipboard context are now fully caught and logged, with user feedback shown conditionally if enabled.
+
+- **Custom folder path sanitization**  
+  `customFolderPath` values are cleaned via regex to avoid illegal filesystem characters before generating download paths.
+
+- **Edge case tab validation**  
+  Tabs missing valid image URLs, extensions, or resolution now trigger complete debug logs without interrupting the flow.
+
+- **Uncaught `sendResponse` failures**  
+  All asynchronous message handlers now safely wrap `sendResponse(...)` with `respondSafe(...)` to avoid runtime exceptions.
+
+---
+
+### 📁 Repository & Project Structure
+
+- **Repository namespace updated**  
+  The official repository location has moved from  
+  `https://github.com/sergiopalmah/mass-image-downloader`  
+  to  
+  `https://github.com/del-Pacifico/mass-image-downloader`  
+
+  All related repositories are now maintained under the GitHub organization **Del-Pacifico** for long-term collaborative development and community contributions.
+  The original repository will remain available for historical reference.
+
+---
+
 ## [2.07.139] - 2025-05-09
 
 ### 🗂 Overview
