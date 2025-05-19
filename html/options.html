@@ -3,7 +3,7 @@
 # If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
 #
 # Original Author: Sergio Palma Hidalgo
-# Project URL: https://github.com/sergiopalmah/Mass-Image-Downloader
+# Project URL: https://github.com/del-Pacifico/Mass-Image-Downloader
 # Copyright (c) 2025 Sergio Palma Hidalgo
 # All rights reserved.
 -->
@@ -329,6 +329,16 @@
         <p class="info-text">Toggle on to receive visual feedback during operations (success, progress, and errors).</p>
     </div>
     
+    <!-- 📃 Peek Panel Transparency (new) -->
+    <div class="option-group">
+        <label for="peekTransparencyLevel">Peek panel transparency (0.2 - 1.0):</label>
+        <input type="number" id="peekTransparencyLevel" min="0.2" max="1.0" step="0.1" value="0.8">
+        <p class="info-text">This setting adjusts the transparency of the Settings Peek panel displayed when pressing Ctrl+Alt+T.</p>
+        <p class="info-text">Valid range: 0.2 (very transparent) to 1.0 (fully opaque).<br>
+            Default: 0.8.</p>
+    </div>
+
+    
     <!-- 🌍 Global Settings: Debugging -->
     <h2>🐛 Debugging</h2>
     <p class="description">Diagnostic settings for developers and testers.</p>
@@ -422,7 +432,7 @@
         • Logs can be enabled under Debugging (choose log level).<br>
         • Reload the extension if options are not applied correctly.</p>
 
-        <p class="info-text">📚 For technical details, advanced use, usage examples, troubleshooting, or to contribute: visit the <a href="https://github.com/sergiopalmah?tab=repositories" target="_blank">GitHub project page</a>.</p>        
+        <p class="info-text">📚 For technical details, advanced use, usage examples, troubleshooting, or to contribute: visit <a href="https://github.com/del-Pacifico/" target="_blank">Del-Pacifico Organization on Github</a>.</p>        
     </div>
 
     <hr>
@@ -436,7 +446,7 @@
         <p>Version: <strong id="extension-version">Loading...</strong></p>
         <p>Concept & Development by <strong>💻 Sergio Palma Hidalgo</strong></p>
         <p>Powered by AI: 🤖 Copilot, ChatGPT, Gemini & DeepSeek</p>
-        <p>View source on GitHub: <a href="https://github.com/sergiopalmah?tab=repositories" target="_blank" rel="noopener">🔗 Repositories</a></p>
+        <p>Check out the sources at the: <a href="https://github.com/del-Pacifico/" target="_blank" rel="noopener">🔗 Del-Pacifico Organization on Github</a></p>
     </div>
 
     <script src="../script/options.js"></script>

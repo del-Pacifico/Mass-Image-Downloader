@@ -1,10 +1,13 @@
-# 🖼️ Mass Image Downloader
+# 🏔️ Mass Image Downloader
 
-![Version](https://img.shields.io/badge/version-2.07.139-blue?style=flat-square)
+![Version](https://img.shields.io/badge/version-2.07.159-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MPL--2.0-green?style=flat-square)
 ![Status](https://img.shields.io/badge/status-active-brightgreen?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Chromium%2090%2B-orange?style=flat-square&logo=googlechrome)
 ![GitHub community standards](https://img.shields.io/badge/community%20standards-100%25-brightgreen?style=flat-square&logo=github)
+![Made with ❤️ by del-Pacifico](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F%20by%20del--Pacifico-orange?style=flat-square)
+![Star this project](https://img.shields.io/github/stars/del-Pacifico/Mass-Image-Downloader?style=flat-square&logo=github)
+![Donate](https://img.shields.io/badge/Donate-via%20PayPal-blue?style=flat-square&logo=paypal)
 
 ---
 
@@ -12,8 +15,11 @@
 
 - [🚀 Features](#-features)
 - [⚙️ Options Available](#️-options-available)
+- [🎹 Extension Shortcuts & Commands](#-extension-shortcuts--commands)
 - [🧩 How It Works](#-how-it-works)
 - [🧠 Technical Design](#-technical-design)
+- [🔄 Behavior When Navigating or Closing the Page](#-behavior-when-navigating-or-closing-the-page)
+- [👁️ Peek Settings Mode](#️-peek-settings-mode)
 - [💾 Installation](#-installation)
 - [📌 Show Extension Icon in Toolbar](#-show-extension-icon-in-toolbar)
 - [💡 Recommended Setup](#-recommended-setup)
@@ -23,20 +29,25 @@
 - [💡 Use Cases](#-use-cases)
 - [🧠 Advanced Usage & Developer Tips](#-advanced-usage--developer-tips)
 - [⚠️ Edge Cases & Warnings](#️-edge-cases--warnings)
+- [🔗 Related Projects](#-related-projects)
+- [💖 Support the Project](#-support-the-project)
 - [🙌 Contributions](#-contributions)
 
 ---
 
-**Mass Image Downloader** is a high-performance, privacy-first browser extension built to streamline the process of bulk image extraction and download. Whether you're a designer, researcher, archivist, or content curator, this tool gives you precision and control at scale.
+**Mass Image Downloader** is your personal image capture powerhouse—designed for speed, precision, and privacy.
 
-Designed for Chromium-based browsers like **Chrome**, **Edge**, and **Brave**, it combines intelligent image grouping, customizable filtering, and a frictionless user experience—without sacrificing speed or transparency.
+From visual research and UX inspiration to product scraping or digital archiving, this extension helps you download exactly what you need, faster than ever.
 
-> 🚀 Modular. 🔍 Accurate. 🧠 Smart.  
-> Built for users who care about efficiency, clarity, and results.
+Built for **Chrome**, **Edge**, and **Brave**, it automates the tedious while giving you full control over formats, sizes, filenames, and gallery structures.
+
+> 🖼️ Built for scale. Powered by clarity. Trusted by pros.  
+> Your image workflow, streamlined.
+> 🚀 Loved by power users. Built for efficiency. Always improving.
 
 ---
 
-## 🚀 Features
+### ✨ Key highlights in version 2.07.159
 
 - 📸 Download images from open tabs directly.
 - 🌄 Extract high-res images from galleries with direct image links.
@@ -51,9 +62,40 @@ Designed for Chromium-based browsers like **Chrome**, **Edge**, and **Brave**, i
 
 ---
 
+## 🚀 Features
+
+- 📸 Download images from open tabs directly.
+- 🌄 Extract high-res images from galleries with direct image links.
+- 🖼️ Extract gallery images visually without links, using DOM analysis.
+- 🔗 Extract images from web-linked pages (`<a href="page.html"><img>`).
+- 📋 Use keyboard shortcuts to set filename prefix/suffix via clipboard.
+- 👁️ Peek current settings without leaving the active tab.
+- 🧠 Smart and fallback grouping by path similarity.
+- 📐 Customizable filters by image format, size, and resolution.
+- 🎯 Configurable download paths and filename strategies.
+- 🧪 Visual feedback via badges and toast messages.
+- 💬 Rich logs for developers via `chrome.storage.sync` debug level.
+
+---
+
 ## ⚙️ Options Available
 
 Mass Image Downloader offers a wide range of customizable settings. Options are persisted using `chrome.storage.sync`, meaning your preferences are retained across sessions and devices (if signed in).
+
+> Full breakdown of options is available in the **Options Page** of the extension.
+
+Includes:
+
+- 📁 Download folder (default or custom)
+- 🖼️ Allowed image formats
+- 📐 Minimum width & height filters
+- ✍️ Filename mode (prefix, suffix, timestamp)
+- 📋 Clipboard hotkeys (Ctrl+Alt+P / S)
+- 💬 Visual feedback toggle
+- 🧠 Smart grouping and fallback logic
+- ⚡ Rate limit for gallery processing
+- 🔢 Batch size and concurrency controls
+- 🔍 Debug log level (0–3)
 
 ---
 
@@ -188,6 +230,7 @@ Specialized options for when `<a>` tags link to another page instead of a direct
 > 🖱️ Clicking the icon downloads the image using your configured filename options.
 > 🔗 Ideal for photo series spread across paginated content (e.g., blog-style image sets).
 > 🖼️ The icon is only shown for images that:
+
   - Are visible in the viewport
   - Meet the minimum size (e.g., `300x500`)
   - Have an allowed format (`.jpg`, `.jpeg`, `.png`, `.webp`)
@@ -215,13 +258,31 @@ These hotkeys let you assign filename elements using clipboard content.
 
 ---
 
+## 🎹 Extension Shortcuts & Commands
+
+Mass Image Downloader includes several keyboard shortcuts for fast access to internal actions.  
+All shortcuts can be triggered while browsing, and do not require the popup to be open.
+
+| Key Combination      | Action                                      | Scope       |
+|----------------------|---------------------------------------------|-------------|
+| `Ctrl + Alt + P`     | Set clipboard text as filename **prefix**   | Global      |
+| `Ctrl + Alt + S`     | Set clipboard text as filename **suffix**   | Global      |
+| `Ctrl + Alt + 1`     | Apply **Low Spec** configuration preset     | Global *(planned)* |
+| `Ctrl + Alt + 2`     | Apply **Medium Spec** configuration preset  | Global *(planned)* |
+| `Ctrl + Alt + 3`     | Apply **High Spec** configuration preset    | Global *(planned)* |
+
+> ⚙️ You can enable or disable these from the Options Page.  
+> ⏳ Future updates will include additional hotkeys for quick mode switching and preview toggles.
+
+---
+
 ## 🧩 How It Works
 
 This extension offers multiple ways to detect, group, and download images depending on how the target page is structured. Below are all supported modes, what they do, and how they behave in different scenarios:
 
 ---
 
-### 📸 Download Images in Open Tabs
+### 📸 Download Images (Open Tabs)
 
 This mode scans tabs to the right of the currently active one and looks for direct image URLs (e.g., ending in `.jpg`, `.png`, etc.).
 
@@ -303,24 +364,33 @@ When using **Web-Linked Galleries**, the extension opens each gallery page in a 
 
 ---
 
+### 👁️ Peek Settings Mode
+
+Opens a clean, read-only overlay displaying all active settings:
+
+1. Filename mode
+2. Prefix/suffix
+3. Format filters
+4. Download path
+5. Gallery limits
+6. Clipboard hotkey state
+7. Useful for quickly reviewing current configuration before triggering actions.
+8. No navigation required — opens directly in current tab.
+9. Works independently of the Options page.
+
+> 🔎 Accessed internally from popup or via injected trigger.
+> ✨ Ideal for quickly reviewing your current settings without opening the Options page.
+
+---
+
 ### 📋 Clipboard Hotkeys
 
-This utility mode lets you assign the current clipboard text as a filename **prefix** or **suffix** using keyboard shortcuts.
+Quickly apply clipboard text as a filename prefix or suffix:
 
-**Key Combos:**
+- `Ctrl + Alt + P` → Set as prefix  
+- `Ctrl + Alt + S` → Set as suffix
 
-- `Ctrl + Alt + P`: Assigns clipboard content as **prefix**.
-- `Ctrl + Alt + S`: Assigns clipboard content as **suffix**.
-
-**Behavior:**
-
-1. Validates the clipboard input (alphanumeric only, trimmed, max length).
-2. Saves it to extension settings (persisted via `chrome.storage.sync`).
-3. Shows a toast message confirming success or explaining the error.
-
-> ✂️ Great for naming groups of images consistently before triggering a download.
-
-Each of these flows is independent, and can be used as needed based on the structure of the page you're browsing. You can launch them from the extension's popup window using the respective buttons.
+> For validation rules and behavior details, see [Clipboard Hotkeys Overview](#-clipboard-hotkeys-overview).
 
 ---
 
@@ -332,12 +402,37 @@ Mass Image Downloader follows a modular, resilient, and scalable architecture de
 
 | File                    | Purpose                                                                 |
 |-------------------------|-------------------------------------------------------------------------|
-| `background.js`         | Orchestrates core logic: downloading, grouping, messaging, state        |
-| `popup.js`              | Triggers flows via buttons and injects scripts                          |
-| `options.js / .html`    | Loads, displays, validates and saves settings                           |
-| `extract*.js`           | Each handles a different extraction mode (linked, visual, web-linked)   |
-| `clipboardHotkeys.js`   | Manages global hotkeys for setting prefix/suffix                        |
-| `utils.js`              | Logging, badge updates, validation, filename generation, messages       |
+| `background.js`         | Core controller: download logic, batching, messaging, gallery handling |
+| `popup.js`              | Launches actions, shows version, injects scripts                        |
+| `options.js`            | Loads, saves, and validates configuration options                       |
+| `options.html`          | Main configuration UI                                                   |
+| `settingsPeek.js`       | Handles state detection to display peek overlay                        |
+| `peekOptions.js`        | Injected overlay displaying current settings                            |
+| `peekOptions.html`      | Read-only view for live configuration snapshot                         |
+| `extractLinkedGallery.js` | Handles `<a><img>` galleries pointing to direct images              |
+| `extractVisualGallery.js`| Handles direct `<img>` DOM images on-page                             |
+| `extractWebLinked.js`   | Manages `<a>` links to HTML pages that contain galleries               |
+| `injectSaveIcon.js`     | Adds floating save icons to qualifying images in linked pages          |
+| `clipboardHotkeys.js`   | Listens for clipboard hotkey triggers to apply prefix/suffix           |
+| `utils.js`              | Shared helpers: logging, badge control, file naming, validation        |
+
+### Optimizations
+
+- HEAD requests avoid downloading small or invalid images.
+- Dynamic badge updates with visual state tracking.
+- Configurable delays (`galleryMaxImages/sec`) for throttling.
+- `respondSafe()` ensures message replies never fail silently.
+- Tabs closed using `closeTabSafely()` with deduplication guards.
+- Logs grouped by emojis and levels (See 🧪 Logging and Diagnostics for details).  
+- Uses `chrome.runtime.sendMessage` for inter-script communication.
+- Uses `chrome.scripting.executeScript` for injecting content scripts.
+- Uses `chrome.downloads.download` for file saving.
+- Uses `chrome.storage.sync` for settings persistence.
+- Uses `chrome.tabs.query` for tab management.
+- Uses `chrome.runtime.onMessage` for event handling.
+- Uses `chrome.runtime.onInstalled` for initialization.
+
+---
 
 ### ⚙️ Browser-native APIs
 
@@ -357,10 +452,11 @@ Mass Image Downloader follows a modular, resilient, and scalable architecture de
 
 - Configurable log levels (0–3) from options page.
 - Logs every step with emoji-based indicators:
-  - `✅` Success
-  - `❌` Error
-  - `🔄` Iteration
-  - `⚠️` Warning
+  - `✅` success  
+  - `❌` error  
+  - `⚠️` warning  
+  - `🔄` loop  
+  - `🧠` grouping
 
 ### 🔒 Safe, Non-Intrusive Design
 
@@ -375,6 +471,77 @@ Mass Image Downloader follows a modular, resilient, and scalable architecture de
 
 ---
 
+## 🔄 Behavior When Navigating or Closing the Page
+
+This section describes how the extension behaves when the user navigates away from a page or closes a tab while one of the image-processing functionalities is running. Understanding this behavior is crucial for ensuring reliable and uninterrupted operation during downloads and gallery extractions.
+
+---
+
+### 1. 🧩 Extract Images from Galleries (with Direct Links)
+
+- **Script involved**: `extractLinkedGallery.js` (runs as a content script)
+
+- **How it works**: This script scans the current page for `<a>` tags that point to other HTML pages containing images. Once these are found, the image URLs are sent to `background.js`, which then opens new tabs to process each one.
+- **Behavior on tab change or closure**: ✅ **Safe**
+  - After sending the message to background, the entire process continues independently of the original tab. Downloads and processing occur in newly opened tabs.
+
+---
+
+### 2. 🧩 Extract Images from Galleries (with Direct Image Links)
+
+- **Script involved**: `extractVisualGallery.js` (runs as a content script)
+
+- **How it works**: This script looks for all `<img>` elements within the current DOM and filters them based on size and configuration. It then sends the validated image list to `background.js` for downloading.
+- **Behavior on tab change or closure**: ⚠️ **Potentially Interrupted**
+  - If the user navigates to a different page or closes the tab **before the image list is sent**, the operation will fail. This is because content scripts are destroyed when the page unloads, so any logic still running will be lost.
+
+---
+
+### 3. 🧩 Bulk Image Download
+
+- **Script involved**: `background.js` (invoked directly via extension popup or click)
+
+- **How it works**: This feature detects whether the current tab points directly to an image or qualifies for batch processing, and proceeds to download accordingly.
+- **Behavior on tab change or closure**: ✅ **Safe**
+  - The full flow is executed in `background.js`, which is persistent and independent from the content of the current tab. Even if the tab is closed, downloads proceed without issue.
+
+---
+
+### 4. 🧩 Clipboard Hotkeys (Prefix/Suffix Assignment)
+
+- **Script involved**: `clipboardHotkeys.js` (content script injected into all pages)
+
+- **How it works**: The user can press `Ctrl+Alt+P` or `Ctrl+Alt+S` to assign a prefix or suffix from the clipboard. This is stored in `chrome.storage.sync` and used later when naming downloaded images.
+- **Behavior on tab change or closure**: ✅ **Safe**
+  - The action is immediate and only involves storage updates. There is no ongoing process to interrupt, so it works regardless of navigation.
+
+---
+
+### 🧾 Comparison Summary
+
+What happens if a tab is closed while a feature is running?  
+The outcome depends on which process is active. Here's a summary:
+
+| Flow                                | Safe if tab closes? | Notes |
+|-------------------------------------|----------------------|-------|
+| Bulk download (tabs)                | ✅ Yes               | Runs fully in background. |
+| Extract gallery (with links)        | ✅ Yes               | After sending to background. |
+| Extract gallery (without links)     | ⚠️ Partial          | Tab must remain until images are sent. |
+| Web-linked gallery (icon injected)  | ✅ Yes               | Icons are placed in background tab. |
+| Clipboard hotkeys                   | ✅ Yes               | Settings saved immediately. |
+| Peek Settings                       | ✅ Yes               | Read-only overlay. No process involved. |
+
+---
+
+### ✅ Final Notes
+
+To ensure a successful experience:
+
+- **Avoid closing or navigating** during gallery extraction from the current page (direct `<img>` galleries).
+- **No issues will occur** when using features triggered via popup or those that delegate processing to the background.
+
+---
+
 ## 💾 Installation
 
 Mass Image Downloader is not yet published in the Chrome Web Store.  
@@ -384,7 +551,7 @@ You can install it manually using the source code provided in the GitHub reposit
 
 ### 👤 For Regular Users (No technical skills required)
 
-1. Visit the [GitHub repository](https://github.com/sergiopalmah/Mass-Image-Downloader).
+1. Visit the [GitHub repository](https://github.com/del-Pacifico/Mass-Image-Downloader).
 2. Click on the green **`Code`** button and select **`Download ZIP`**.
 3. Extract the ZIP file to a folder on your desktop or preferred location.
 4. Open your browser and navigate to:
@@ -409,7 +576,7 @@ You can clone the repository and work directly with the source files.
 #### 🐧 Linux / macOS
 
 ```bash
-git clone https://github.com/sergiopalmah/Mass-Image-Downloader.git
+git clone https://github.com/del-Pacifico/Mass-Image-Downloader.git
 cd Mass-Image-Downloader
 ```
 
@@ -431,7 +598,7 @@ Then:
 #### 🪟 Windows Systems
 
 ```cmd
-git clone https://github.com/sergiopalmah/Mass-Image-Downloader.git
+git clone https://github.com/del-Pacifico/Mass-Image-Downloader.git
 cd Mass-Image-Downloader
 ```
 
@@ -535,7 +702,7 @@ To ensure smooth performance and optimal results when using Mass Image Downloade
 
 ## 🔒 Privacy
 
-This extension is fully local. No data is collected or transmitted.  
+This extension is fully local. No telemetry. No tracking. No data is collected or transmitted.  
 No external APIs are used. Settings are stored via `chrome.storage.sync`.
 
 ---
@@ -554,17 +721,48 @@ See [CHANGELOG.md](./CHANGELOG.md) for full release history.
 
 ## 💡 Use Cases
 
-- 📚 Academic scraping for diagrams or charts.
-- 🎨 Visual collection from design portfolios.
-- 🗞️ Archiving high-res media images.
-- 🛍️ Product scraping for comparisons (ethically).
-- 📁 Image curation from multiple search results.
+Whether you're a digital professional or casual user, Mass Image Downloader adapts to multiple workflows:
+
+- 📚 **Academic and research scraping**  
+  Extract figures, diagrams, or scientific images from journals and data repositories for study or analysis.
+
+- 🖼️ **Art and portfolio archiving**  
+  Collect high-resolution artwork from online portfolios, Behance, ArtStation, or DeviantArt in batch mode.
+
+- 🛍️ **Ecommerce product comparison**  
+  Bulk download product images for internal cataloging, competitor analysis, or sourcing purposes.
+
+- 🧠 **UI/UX inspiration harvesting**  
+  Curate collections of interface samples, icon sets, or component ideas from design sites like Dribbble or Awwwards.
+
+- 📷 **Media and press kit backup**  
+  Archive photosets, press releases, or campaign visuals from brand pages or media centers.
+
+- 🧩 **Blog series and paginated content**  
+  Seamlessly follow image trails across paginated blog posts or user galleries and download all assets at once.
+
+- 🔍 **Visual investigation and OSINT**  
+  Capture photo evidence, memes, or screenshots for archiving in investigations or social listening tasks.
+
+- 🔬 **Dataset preparation for AI/ML**  
+  Aggregate diverse image sources to feed computer vision pipelines or custom image classifiers.
+
+- 🖥️ **Web development and testing**  
+  Download assets for local development, testing, or quality assurance of web applications.
+
+> 🚀 Power users can customize everything from file naming to concurrency and download limits, enabling granular control for large-scale tasks.
 
 ---
 
 ## 🧠 Advanced Usage & Developer Tips
 
 Mass Image Downloader includes several diagnostic and debug tools for advanced users and contributors. Below are some tips and features available when working under the hood:
+
+1. Open console (`Ctrl+Shift+I`) to see detailed logs.
+2. Adjust debug level (0–3) from Options.
+3. Prefix/suffix via clipboard helps batch renaming.
+4. Use fallback logic when galleries are irregular.
+5. Grouping uses path similarity (%) → tweak it from the Options page as needed.
 
 ---
 
@@ -621,6 +819,8 @@ To force fallback grouping and test robustness:
 3. Use a gallery with inconsistent URL patterns
 4. Observe fallback logic activating (`🛟 Retrying with fallback threshold...`)
 
+> 🧪 Useful for testing robustness of fallback logic during gallery inconsistencies.
+
 ---
 
 ### 📦 Inspect Badge Behavior
@@ -646,7 +846,7 @@ Open the console and track:
 To explore the source code:
 
 ```bash
-git clone https://github.com/sergiopalmah/Mass-Image-Downloader.git
+git clone https://github.com/del-Pacifico/Mass-Image-Downloader.git
 cd Mass-Image-Downloader
 ```
 
@@ -666,16 +866,44 @@ Then reload the extension via `chrome://extensions/` → **Reload**.
 
 - CSP or lazy-loading sites may prevent downloads.
 - Base64/CSS images not supported.
-- "Ask where to save" must be disabled in browser.
-- Some galleries need proper `<a>` links to be detected.
-- Massive galleries may slow down page briefly.
+- Important: Make sure the browser setting “Ask where to save each file before downloading” is disabled.
+
+> ✍🏻 Disable “Ask where to save each file before downloading” in browser settings.
+
+- Some galleries without direct links may require manual download via icon.
+- Massive galleries (>100 images) may momentarily slow the UI.
+- Use throttling to avoid overloading weak machines.
 - Only works in same window where extension is triggered.
+
+---
+
+## 🔗 Related Projects
+
+Looking for other powerful tools?
+
+- 🧙‍♂️ [Unicode to PNG](https://github.com/del-Pacifico/unicode-to-png)  
+  A Python utility to convert Unicode emoji into PNG files using system fonts.  
+  Ideal for emoji asset generation, custom packs, or UI prototyping.
+
+---
+
+## 💖 Support the Project
+
+**Mass Image Downloader** is a free and open-source tool maintained during personal time.  
+If it has helped you save time or improve your workflow, consider supporting its continued development:
+
+- 💸 [Donate via PayPal](https://paypal.me/spalmah?country.x=CL&locale.x=es_XC)
+
+> 🙏 Every bit of support is truly appreciated.  
+> 💬 Feel free to reach out with questions, ideas, or feedback — your input matters!
 
 ---
 
 ## 🙌 Contributions
 
-New feaures? Issues? Throubleshooting? PRs welcome. Open an issue or discussion for feedback.
+Suggestions, new features, issues, troubleshooting or PRs are welcome! Open an issue or discussion for feedback.
+Project is now maintained under:  
+[github.com/del-Pacifico/Mass-Image-Downloader](https://github.com/del-Pacifico/Mass-Image-Downloader)
 
 ---
 
@@ -686,3 +914,4 @@ New feaures? Issues? Throubleshooting? PRs welcome. Open an issue or discussion 
 ![ES Modules](https://img.shields.io/badge/ESM-Enabled-success?style=flat-square&logo=javascript)
 ![Cross Platform](https://img.shields.io/badge/Compatible-Chromium%2090%2B-important?style=flat-square&logo=googlechrome)
 ![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen?style=flat-square&logo=github)
+![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen?style=flat-square)

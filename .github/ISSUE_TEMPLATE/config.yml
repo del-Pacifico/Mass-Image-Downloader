@@ -1,10 +1,10 @@
 blank_issues_enabled: false
 contact_links:
   - name: 📖 Wiki Documentation
-    url: https://github.com/sergiopalmah/mass-image-downloader/wiki
+    url: https://github.com/del-Pacifico/mass-image-downloader/wiki
     about: Full architecture, usage modes, configuration, and roadmap
   - name: 💬 Discussions
-    url: https://github.com/sergiopalmah/mass-image-downloader/discussions
+    url: https://github.com/del-Pacifico/mass-image-downloader/discussions
     about: Ask questions, share feedback, or propose ideas
 
 issue_templates:

@@ -1,0 +1,133 @@
+<!-- 
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+# If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+#
+# Original Author: Sergio Palma Hidalgo
+# Project URL: https://github.com/del-Pacifico/Mass-Image-Downloader
+# Copyright (c) 2025 Sergio Palma Hidalgo
+# All rights reserved.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mass Image Downloader - Peek Settings</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #F8F8F8;
+      color: #768591;
+      margin: 0;
+      padding: 15px;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    h1 {
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 12px;
+      color: #007EE3;
+    }
+
+    h2 {
+      font-size: 14px;
+      margin-top: 20px;
+      color: #007EE3;
+    }
+
+    .description {
+      font-size: 12px;
+      color: #6C757D;
+      margin-bottom: 8px;
+    }
+
+    .option-group {
+      margin-bottom: 12px;
+      padding: 10px;
+      background-color: #FFFFFF;
+      border: 1px solid #D0D0D0;
+      border-radius: 6px;
+      box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .global-options-wrapper {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      background-color: #F8F8F8;
+      border: 1px solid #D0D0D0;
+      border-radius: 8px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: bold;
+      color: #768591;
+    }
+
+    .info-text {
+      font-size: 13px;
+      color: #3f3f3f;
+      margin: 4px 0;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: bold;
+      background-color: #7090cb;
+      border: 2px solid #4f5984;
+      color: #f4f4f4;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      background-color: #4f5984;
+      border-color: #aaa8a6;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #AAA;
+      margin-top: 15px;
+      opacity: 0.8;
+    }
+
+    .footer strong {
+      color: #007EE3;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Mass Image Downloader - Peek Settings</h1>
+  <p class="description">Visual snapshot of current settings (read-only).</p>
+
+  <!-- 📦 Settings will be dynamically injected by peekOptions.js -->
+  <div id="settings-container"></div>
+
+  <!-- 📋 Copy JSON button -->
+  <button id="copy-json">📋 Copy as JSON</button>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>Version: <strong id="extension-version">Loading...</strong></p>
+    <p>Peek display powered by Mass Image Downloader</p>
+  </div>
+
+  <script src="../script/peekOptions.js"></script>
+</body>
+</html>

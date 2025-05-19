@@ -8,14 +8,17 @@ This guide provides everything you need to know to start contributing effectivel
 ## 📥 How to Contribute
 
 ### 🐛 Report a Bug
+
 - Use the [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.md)
 - Include steps to reproduce, screenshots, and console output if possible
 
 ### 🌟 Suggest a Feature
+
 - Use the [Feature Request template](.github/ISSUE_TEMPLATE/feature_request.md)
 - Explain your use case and what benefit it adds
 
 ### 🛠 Submit a Code Contribution
+
 1. Fork the repository
 2. Create a new branch from `main`
    ```bash
@@ -38,6 +41,7 @@ This guide provides everything you need to know to start contributing effectivel
 ---
 
 ## 📚 Resources
+
 - [Architecture](./wiki/Architecture.md)
 - [Modes of Operation](./wiki/Modes.md)
 - [Development Guide](./wiki/Development.md)
@@ -45,7 +49,8 @@ This guide provides everything you need to know to start contributing effectivel
 ---
 
 ## 💬 Need Help?
-Feel free to [start a discussion](https://github.com/sergiopalmah/mass-image-downloader/discussions) or open an issue with your question. We’re happy to assist!
+
+Feel free to [start a discussion](https://github.com/del-Pacifico/mass-image-downloader/discussions) or open an issue with your question. We’re happy to assist!
 
 ---
 

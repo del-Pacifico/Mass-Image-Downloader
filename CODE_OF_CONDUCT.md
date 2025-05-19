@@ -7,6 +7,7 @@ This project follows a code of conduct to ensure a respectful and inclusive comm
 ## 💬 Our Pledge
 
 We as contributors and maintainers pledge to make participation in this project a harassment-free experience for everyone, regardless of:
+
 - Age
 - Body size
 - Disability
@@ -24,6 +25,7 @@ We commit to acting and interacting in ways that contribute to an open, welcomin
 ---
 
 ## ✅ Expected Behavior
+
 - Be respectful and considerate
 - Assume good intent in others
 - Provide constructive feedback
@@ -33,6 +35,7 @@ We commit to acting and interacting in ways that contribute to an open, welcomin
 ---
 
 ## 🚫 Unacceptable Behavior
+
 - Use of sexualized language or imagery
 - Trolling, insults, or derogatory comments
 - Harassment in any form (public or private)
@@ -42,6 +45,8 @@ We commit to acting and interacting in ways that contribute to an open, welcomin
 ---
 
 ## 🛠 Enforcement
+
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project.
 Violations of this Code of Conduct may be reported by contacting the maintainers at:
 
 📧 `spalmah@proton.me`

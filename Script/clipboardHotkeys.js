@@ -1,9 +1,8 @@
- 
 // # This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 // # If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
 // #
 // # Original Author: Sergio Palma Hidalgo
-// # Project URL: https://github.com/sergiopalmah/Mass-Image-Downloader
+// # Project URL: https://github.com/del-Pacifico/Mass-Image-Downloader
 // # Copyright (c) 2025 Sergio Palma Hidalgo
 // # All rights reserved.
 
@@ -48,22 +47,8 @@
         });
     }
 
+    // ✅ Initialize config
     await initConfig();
-
-    if (!chrome.storage || !chrome.storage.sync) {
-        logDebug(1, "❌ chrome.storage.sync is not available in this context.");
-        return resolve(); // continuar sin romper ejecución
-    }
-
-    chrome.storage.sync.get(
-        ["debugLogLevel", "showUserFeedbackMessages", "enableClipboardHotkeys"],
-        (data) => {
-            debugLogLevelCache = parseInt(data.debugLogLevel ?? 1);
-            showUserFeedbackMessagesCache = data.showUserFeedbackMessages ?? true;
-            enableClipboardHotkeysCache = data.enableClipboardHotkeys ?? false;
-            resolve();
-        }
-    );
     
     // ✅ Check if the script is already loaded
     logDebug(1, '📋 ClipboardHotkeys script loaded.');
@@ -162,6 +147,22 @@
             logDebug(2, '❌ Stacktrace:', err.stack);
         }
     }
+    
+    /**
+     * Removes invalid characters from filename components.
+     * @param {string} text - Raw input for prefix/suffix.
+     * @param {number} maxLen - Max length allowed (30 for prefix, 15 for suffix).
+     * @returns {string} - Sanitized and trimmed text.
+     */
+    function sanitizeFilenameComponent(text, maxLen = 30) {
+        try {
+            let clean = text.trim().replace(/[^a-zA-Z0-9 ]/g, '');
+            return clean.length > maxLen ? clean.slice(0, maxLen) : clean;
+        } catch (err) {
+            logDebug(1, `❌ Error sanitizing filename component: ${err.message}`);
+            return '';
+        }
+    }
 
     /**
      * Sanitizes clipboard text and stores as prefix or suffix.
@@ -170,15 +171,14 @@
      */
     function saveClipboardAs(type, rawText) {
         try {
-            let sanitized = rawText.trim().replace(/[^a-zA-Z0-9 ]/g, '');
+
+            const maxLen = type === 'prefix' ? 30 : 15;
+            const sanitized = sanitizeFilenameComponent(rawText, maxLen);
 
             if (sanitized.length < 4) {
                 showUserMessage(`❌ ${type.charAt(0).toUpperCase() + type.slice(1)} too short. Minimum 4 characters.`, 'error');
                 return;
             }
-
-            const maxLen = type === 'prefix' ? 30 : 15;
-            if (sanitized.length > maxLen) sanitized = sanitized.slice(0, maxLen);
 
             const update = {};
             update[type] = sanitized;
