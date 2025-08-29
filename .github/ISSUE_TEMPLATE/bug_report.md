@@ -1,6 +1,6 @@
 ---
 name: "🐛 Bug Report"
-description: "Report a reproducible problem with Mass Image Downloader"
+about: "Report a reproducible problem with Mass Image Downloader"
 title: "[Bug] <brief description>"
 labels: [bug]
 assignees: []
@@ -10,16 +10,13 @@ assignees: []
 
 _A clear and concise description of the bug._
 
-
 ## ✅ Expected Behavior
 
 _What you expected to happen._
 
-
 ## ❌ Actual Behavior
 
 _What actually happened. Include console logs, screenshots, or error messages when possible._
-
 
 ## 🔁 Steps to Reproduce
 
@@ -28,22 +25,17 @@ _What actually happened. Include console logs, screenshots, or error messages wh
 3. Scroll down to '...'
 4. See error
 
-
 ## 🌐 Environment
 
 - **Browser:** (e.g. Brave, Chrome, Edge)
 - **Version:** (e.g. 1.62.156)
-- **Extension Version:** (e.g. 2.06.63)
+- **Extension Version:** (e.g. 2.08.127)
 - **OS:** (e.g. Windows 11, macOS 14)
 
-
 ## 🧪 Debug Output (Optional)
-```
-Copy and paste any console logs here, especially if Debug Logging is enabled.
-```
 
+_Copy and paste any console logs here, especially if Debug Logging is enabled._
 
 ## 📎 Additional Context
 
 _Add any other context or screenshots about the bug here._
-

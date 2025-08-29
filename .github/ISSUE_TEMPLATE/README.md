@@ -17,4 +17,3 @@ This folder contains predefined issue templates used by GitHub to streamline the
 To suggest edits to these templates, open a pull request with your proposed changes.
 
 > Tip: These templates are automatically used by GitHub when contributors select "New Issue".
-

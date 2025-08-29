@@ -135,6 +135,8 @@
      */
     function formatValue(val) {
         if (typeof val === "boolean") return val ? "Enabled" : "Disabled";
+        // If it's a number, return it directly
+        // If it's a string, check for specific known values
         if (typeof val === "string") {
             switch (val) {
                 case "prefix": return "Prefix mode";
@@ -143,6 +145,7 @@
                 case "timestamp": return "Timestamped";
                 case "tab": return "Open in tab";
                 case "immediate": return "Download immediately";
+                case "custom": return "Custom (user modified)";
             }
         }
         return val ?? "(not set)";
@@ -162,10 +165,16 @@
                 allowJPG: "Allow JPG",
                 allowJPEG: "Allow JPEG",
                 allowPNG: "Allow PNG",
-                allowWEBP: "Allow WEBP"
+                allowWEBP: "Allow WEBP",
+                allowAVIF: "Allow AVIF",
+                allowBMP: "Allow BMP"
+            },
+            "🐦 Allow extended image URLs":{
+                allowExtendedImageUrls: "Allow extended image URLs (e.g., Twitter/X :large, :orig)"
             },
             "📋 Clipboard Hotkeys": {
-                enableClipboardHotkeys: "Enable Clipboard Hotkeys"
+                enableClipboardHotkeys: "Enable Clipboard Hotkeys",
+                enableOneClickIcon: "One-click Download Icon"
             },
             "🖼️ Galleries": {
                 gallerySimilarityLevel: "Gallery Similarity Level",
@@ -193,6 +202,9 @@
             "🔗 Web-Linked Gallery": {
                 maxOpenTabs: "Max Open Tabs",
                 webLinkedGalleryDelay: "Linked Gallery Delay (ms)"
+            },
+            "⚙️ Performance Preset": {
+                performancePreset: "Performance Preset"
             }
         };
     }
@@ -259,7 +271,7 @@
             const duration = type === "error" ? 10000 : 5000;
             const backgroundColor = type === "error" ? "#d9534f" : "#007EE3";
 
-            msg.textContent = text;
+            msg.textContent = "Mass image downloader: " + text;
             msg.style.position = "fixed";
             msg.style.top = "20px";
             msg.style.right = "20px";

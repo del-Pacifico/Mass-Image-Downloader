@@ -23,7 +23,21 @@
     let debugLogLevelCache = 1;
     let showUserFeedbackMessagesCache = true;
     let enableClipboardHotkeysCache = false;
+    let filenameModeCache = 'none';
 
+    // ✅ Initialize config from chrome.storage.sync
+    /**
+     * Initializes configuration settings from chrome.storage.sync.
+     * @returns {Promise<void>} Resolves when configuration is loaded.
+     * @description
+     * This function retrieves configuration settings from chrome.storage.sync.
+     * It fetches the debug log level, user feedback message preference, clipboard hotkeys setting, and filename mode.
+     * If any of these settings are not found, it assigns default values.   
+     * It also handles errors gracefully and logs debug messages based on the user's log level.
+     * This function is useful for initializing the script's configuration before any other operations.
+     * It ensures that the script has the necessary settings to function correctly.
+     * It is called immediately when the script is loaded to ensure that the configuration is ready before any other operations.
+     */
     async function initConfig() {
         return new Promise((resolve) => {
             if (!chrome.storage || !chrome.storage.sync) {
@@ -32,12 +46,13 @@
             }
 
             chrome.storage.sync.get(
-                ["debugLogLevel", "showUserFeedbackMessages", "enableClipboardHotkeys"],
+                ["debugLogLevel", "showUserFeedbackMessages", "enableClipboardHotkeys", "filenameMode"],
                 (data) => {
                     try {
                         debugLogLevelCache = parseInt(data.debugLogLevel ?? 1);
                         showUserFeedbackMessagesCache = data.showUserFeedbackMessages ?? true;
                         enableClipboardHotkeysCache = data.enableClipboardHotkeys ?? false;
+                        filenameModeCache = data.filenameMode ?? "none";
                     } catch (err) {
                         logDebug(1, "❌ Failed to assign config values:", err.message);
                     }
@@ -179,6 +194,20 @@
                 showUserMessage(`❌ ${type.charAt(0).toUpperCase() + type.slice(1)} too short. Minimum 4 characters.`, 'error');
                 return;
             }
+
+            // 🔍 Validate filenameMode from cached config
+            const mode = filenameModeCache;
+            const isPrefixAllowed = (type === "prefix" && (mode === "prefix" || mode === "both"));
+            const isSuffixAllowed = (type === "suffix" && (mode === "suffix" || mode === "both"));
+
+            logDebug(2, `📄 Filename mode is '${mode}'. Prefix allowed: ${isPrefixAllowed}, Suffix allowed: ${isSuffixAllowed}`);
+
+            if (!(isPrefixAllowed || isSuffixAllowed)) {
+                logDebug(1, `⚠️ Attempted to set ${type} while filenameMode is '${mode}'. Operation ignored.`);
+                showUserMessage(`⚠️ Enable ${type} mode in settings first.`, 'info');
+                return;
+            }
+
 
             const update = {};
             update[type] = sanitized;
