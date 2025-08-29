@@ -1,7 +1,71 @@
 # 📦 Changelog - Mass Image Downloader
 
-All notable changes to this project will be documented in this file.
 This project follows [Semantic Versioning](https://semver.org/).
+
+---
+
+## [2.08.127] - 2025-08-28
+
+All notable changes between **2.07.159** and **2.08.127** are listed here.  
+
+### ✨ Added
+
+- **One-click download icon** (hotkey **Alt+Shift+I**): injects a floating download button over the highlighted image in the current page. Clicking the icon immediately downloads the image following the configured rules (minimum resolution, allowed formats, filename mode with prefix/suffix).
+- **Extract Web-linked Galleries** (new flow).
+- **Allow extended image URLs** (`:large`, `:orig`, etc. for Twitter/X, Pixiv).
+- **Support for AVIF and BMP** image formats.
+
+---
+
+### 🔁 Changed
+
+- **Popup UI** updated with a modern color palette.
+- **Options** reorganized into clear sections (Galleries, Image Size, File System) with explicit defaults and ranges.
+- **Badge color logic clarified and stabilized**:
+  - **Green** (white numbers) → active bulk downloads.
+  - **Yellow** → manual downloads in progress.
+  - **Blue** → all downloads completed.
+- **Minimum Chromium version requirement enforced**: v93+.
+
+---
+
+### 🐛 Fixed
+
+- **Async filename bug** in Bulk Download (resolved `undefined finalName` caused by async generation).
+- **Badge reset issue** in Bulk Download (counter now accumulates properly and avoids early “Done” state).
+- **Service Worker memory usage** optimized to prevent prolonged RAM consumption.
+
+---
+
+### 🧹 Maintenance
+
+- **utils.js**
+  - `logDebug` refactored with improved error handling and legacy support.
+  - `closeTabSafely` enhanced using a `Set` to prevent duplicate closures.
+  - Functions standardized with JSDoc comments and consistent formatting.
+- **background.js**
+  - Redundant validations removed and batch logic consolidated.
+  - Listeners wrapped with `try/catch` for stability.
+- **options.js**
+  - Default values handling improved (e.g., `galleryMaxImages`).
+  - Console logs standardized with `[Mass image downloader]` prefix.
+- **General**
+  - Code refactored for clarity and maintainability across modules.
+
+---
+
+### 📄 Documentation
+
+- **README** updated to reflect:
+  - Bulk Image Download improvements and stable badge behavior.
+  - New/clarified gallery options and thresholds (`galleryMaxImages`, `gallerySimilarityLevel`).
+  - Minimum Chromium version requirement (v93).
+- - Updated **CONTRIBUTING.md**:
+  - Removed outdated “Resources” section (no wiki available yet).
+  - Added new **AI-Assisted Contributions** policy, clarifying responsible use of Copilot, ChatGPT, Gemini, and DeepSeek.
+- **Issue templates**:
+  - Fixed front-matter in `bug_report.md` and `feature_request.md` by replacing `description:` with required `about:` field (resolves GitHub error “About can't be blank”).
+  - Cleaned `.github/ISSUE_TEMPLATE/config.yml` by removing invalid `issue_templates` section and leaving only valid `blank_issues_enabled` and `contact_links`.
 
 ---
 

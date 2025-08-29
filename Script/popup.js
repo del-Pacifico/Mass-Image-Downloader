@@ -54,6 +54,61 @@ function logDebug(levelOrMessage, ...args) {
     }
 }
 
+/**
+ * Displays a styled feedback message to the user if enabled in settings.
+ * - 5 seconds for success/progress messages.
+ * - 10 seconds for error messages.
+ * - Only visible if "showUserFeedbackMessages" setting is enabled.
+ * @param {string} text - The message text to display.
+ * @param {string} type - Type of message ("info", "success", "error").
+ * @returns {void}
+ * @description This function creates a styled message element and appends it to the document body.
+ */
+function showUserMessage(text, type = "info") {
+    try {
+        if (!configCache.showUserFeedbackMessages) {
+            logDebug(2, `🚫 User feedback messages disabled. Skipping display.`);
+            return;
+        }
+
+        const duration = (type === "error") ? 10000 : 5000;
+        const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
+
+        const messageElement = document.createElement("div");
+        messageElement.textContent = "Mass image downloader: " + text;
+        messageElement.style.position = "fixed";
+        messageElement.style.top = "20px";
+        messageElement.style.right = "20px";
+        messageElement.style.backgroundColor = backgroundColor;
+        messageElement.style.color = "#FFFFFF";
+        messageElement.style.padding = "12px";
+        messageElement.style.borderRadius = "6px";
+        messageElement.style.fontSize = "14px";
+        messageElement.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
+        messageElement.style.opacity = "1";
+        messageElement.style.transition = "opacity 0.5s ease-in-out";
+        messageElement.style.zIndex = "9999";
+        document.body.appendChild(messageElement);
+
+        logDebug(3, `📢 Showing user message: "${text}" (${type})`);
+
+        setTimeout(() => {
+            messageElement.style.opacity = "0";
+            setTimeout(() => {
+                try {
+                    messageElement.remove();
+                } catch (removeError) {
+                    logDebug(1, `⚠️ Error removing message element: ${removeError.message}`);
+                }
+            }, 500);
+        }, duration);
+
+    } catch (error) {
+        logDebug(1, `❌ Error displaying user message: ${error.message}`);
+        logDebug(3, `❌ Stacktrace: ${error.stack}`);
+    }
+}
+
 /** 
  * @description This script handles the popup functionality of the Mass Image Downloader extension.
  * It initializes event listeners for buttons and links in the popup, including the start download button,
@@ -114,6 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
             chrome.tabs.query({ active: true, currentWindow: true }, (activeTabs) => {
                 if (activeTabs.length === 0) {
                     logDebug("🔴 No active tab found.");
+                    showUserMessage("No active tab found to extract images.", "error");
                     return;
                 }
 
@@ -218,26 +274,53 @@ document.addEventListener("DOMContentLoaded", () => {
         logDebug("🔴 Error - 'settings' link not found.");
     }    // ✅ View Settings (Peek) button
     const peekButton = document.getElementById("btn-peek");
-    if (peekButton) {
-        peekButton.addEventListener("click", () => {
-            logDebug("🔍 Opening peek settings overlay from popup.");
+	
+	if (peekButton) {
+		peekButton.addEventListener("click", () => {
+			logDebug("🔍 Opening peek settings overlay from popup.");
 
-            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                if (tabs.length && tabs[0].id) {
-                    chrome.tabs.sendMessage(tabs[0].id, { action: "open-peek-overlay" }, (response) => {
-                        if (chrome.runtime.lastError) {
-                            logDebug("❌ Failed to send message:", chrome.runtime.lastError.message);
-                        } else {
-                            logDebug("📤 Message sent to content script to open peek overlay.");
-                        }
+			chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+				if (!tabs.length || !tabs[0].id) {
+					logDebug("❌ No active tab found to send peek message.");
+					return;
+				}
+
+				const activeTab = tabs[0];
+                const tabId = activeTab.id;
+
+                // Defensive check on URL scheme
+                if (/^(chrome|chrome-extension|edge):\/\//.test(activeTab.url) || activeTab.url === 'about:blank') {
+                    logDebug("⚠️ Settings Peek not allowed on restricted page:", activeTab.url);
+                    chrome.scripting.executeScript({
+                        target: { tabId },
+                        func: () => alert("Settings Peek is not available on this page.")
                     });
-                } else {
-                    logDebug("❌ No active tab found to send peek message.");
+                    return;
                 }
-            });
-        });
-    } else {
-        logDebug("🔴 Error - 'btn-peek' button not found.");
-    }
+
+                chrome.scripting.executeScript({
+                    target: { tabId },
+                    files: ["script/settingsPeek.js"]
+                }).then(() => {
+					logDebug("💉 settingsPeek.js injected into active tab.");
+
+					// Small delay to ensure the script is fully injected and ready
+					setTimeout(() => {
+						chrome.tabs.sendMessage(tabId, { action: "open-peek-overlay" }, (response) => {
+							if (chrome.runtime.lastError) {
+								logDebug("❌ Failed to send message after injection:", chrome.runtime.lastError.message);
+							} else {
+								logDebug("📤 Message sent to injected settingsPeek.js content script.");
+							}
+						});
+					}, 100);
+				}).catch((err) => {
+					logDebug("❌ Failed to inject settingsPeek.js:", err.message);
+				});
+			});
+		});
+	} else {
+		logDebug("🔴 Error - 'btn-peek' button not found.");
+	}
 
 });

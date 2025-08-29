@@ -1,6 +1,6 @@
 ---
 name: "🌟 Feature Request"
-description: "Propose a new feature or enhancement for Mass Image Downloader"
+about: "Propose a new feature or enhancement for Mass Image Downloader"
 title: "[Feature] <brief description>"
 labels: [enhancement]
 assignees: []
@@ -16,7 +16,7 @@ _Why is this feature useful? What problem does it solve or opportunity does it u
 
 ## 🧩 Suggested Implementation (Optional)
 
-_If applicable, describe how this feature might be implemented (UI changes, logic adjustments, etc)._ 
+_If applicable, describe how this feature might be implemented (UI changes, logic adjustments, etc)._
 
 ## 📐 Scope and Constraints
 

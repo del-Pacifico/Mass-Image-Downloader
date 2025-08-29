@@ -135,6 +135,17 @@ if (!window.__mdi_settingsPeekInjected) {
             overlay.appendChild(iframe);
             document.body.appendChild(overlay);
 
+            // 🆕 Send performancePreset to iframe after load
+            iframe.onload = () => {
+                try {
+                    const preset = configCache.performancePreset ?? "medium";
+                    iframe.contentWindow.postMessage({ action: "set-performance-preset", value: preset }, "*");
+                    logDebug(1, `📤 Sent performancePreset to Peek: '${preset}'`);
+                } catch (err) {
+                    logDebug(1, `❌ Failed to post performancePreset to iframe:`, err.message);
+                }
+            };
+
             document.addEventListener("keydown", escKeyHandler);
             logDebug(1, "🪟 Peek overlay injected into page.");
         } catch (err) {

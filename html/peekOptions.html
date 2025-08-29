@@ -98,6 +98,11 @@
       border-color: #aaa8a6;
     }
 
+    .preset-info {
+        font-weight: bold;
+        margin-bottom: 12px;
+    }
+
     .footer {
       text-align: center;
       font-size: 12px;
@@ -115,6 +120,9 @@
 <body>
   <h1>Mass Image Downloader - Peek Settings</h1>
   <p class="description">Visual snapshot of current settings (read-only).</p>
+
+  <!-- ⚙️ Display active performance preset -->
+  <div id="preset-display" class="info-text preset-info"></div>
 
   <!-- 📦 Settings will be dynamically injected by peekOptions.js -->
   <div id="settings-container"></div>

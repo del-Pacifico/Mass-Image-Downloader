@@ -166,17 +166,33 @@
     }
     
     /**
-     * 🖼️ Check if the URL is a direct image URL (e.g., ends with .jpg, .png, etc.)
-     * @param {*} url - The URL to check.
-     * @returns  {boolean} - True if the URL is a direct image URL, false otherwise.
-     * @description 
-     * This function uses a regular expression to check if the URL ends with a valid image file extension.
-     * It supports common image formats like JPEG, PNG, and WEBP. 
-     * 
+     * 🖼️ Check if the URL is a direct image URL (e.g., ends with .jpg, .png, etc.).
+     *    - Ignores query strings and fragments via URL.pathname.
+     *    - Trims any trailing slashes.
+     *    - Logs functional breakdown at level 2.
      */
     function isDirectImageUrl(url) {
-        return /\.(jpe?g|png|webp)$/i.test(url);
+        try {
+            const parsed = new URL(url);
+            // Trim trailing slashes from the pathname
+            const pathname = parsed.pathname.replace(/\/+$/g, "");
+            
+            // Test extension against allowed image formats
+            const valid = /\.(jpe?g|png|webp|avif|bmp)$/i.test(pathname);
+            
+            // Functional debug breakdown
+            logDebug(2,
+                `🔍 DirectImageURL check | URL: "${url}" | ` +
+                `Pathname: "${pathname}" | Valid: ${valid}`
+            );
+            
+            return valid;
+        } catch (err) {
+            logDebug(1, `❌ Error in isDirectImageUrl: ${err.message}`);
+            return false;
+        }
     }
+
 
     /**
      * 📦 Main entry point to Extract Linked Gallery 
@@ -191,66 +207,86 @@
         logDebug(1, '🌄 Begin: Extract Linked Gallery process');
         logDebug(3, '----------------------------------------------------');
         
-        // 🔍 Step 1: Scan anchors with valid image href and an <img> inside
-        logDebug(2, '🔍 Step 1: Scan anchors with valid image href and an <img> inside.');
-        const anchorElements = Array.from(document.querySelectorAll('a[href]'));
-        const validatedImages = [];
+		// 📌 Step 1: Find anchor <a> with internal <img>
+		const anchors = Array.from(document.querySelectorAll('a[href]'));
+		const webGalleryCandidates = [];
 
-        // 🖼️ Step 1.1: Filter anchors with valid image href and an <img> inside
-        for (const anchor of anchorElements) {
-            try {
-                const href = anchor.getAttribute('href');
-                const img = anchor.querySelector('img');
+		for (const anchor of anchors) {
+			const href = anchor.getAttribute("href");
+			const img = anchor.querySelector("img");
 
-                if (!href || !img) continue;
+			if (!href || !img) continue;
 
-                const fullUrl = new URL(href, window.location.href).href;
+			try {
+				const resolvedHref = new URL(href, window.location.href).href;
+				const src = img.getAttribute("src")?.trim() || "";
 
-                logDebug(2, `🕵 Checking linked image: ${fullUrl}`);
+				// ✅ Step 1.1: Skip only if src is truly empty or 1x1 pixel pattern
+				if (!src || /1x1|spacer.gif|pixel.gif|\.ico$/i.test(src)) {
+					logDebug(2, `⛔ Skipped <a><img>: Decorative or transparent src (${src})`);
+					continue;
+				}
 
-                // ✅ Step 1.1: Validate it's a direct image link (based on extension)
-                if (!isDirectImageUrl(fullUrl)) {
-                    logDebug(2, '⛔ Skipped (not a direct image URL)');
-                    logDebug(3, '');
-                    continue;
-                }
+				// ✅ Step 1.2: Validate that href is a direct image URL
+				const isImageLink = await isDirectImageUrl(resolvedHref);
+				if (!isImageLink) {
+                    //logDebug(2, `🔎 Validating extension against settings: ${resolvedHref}`);
+					logDebug(2, `⛔ Skipped <a><img>: Link points to non-image (likely HTML): ${resolvedHref}`);
+					continue;
+				}
+				
+				// 🎯 Step 1.3: Skip if already collected
+				if (webGalleryCandidates.includes(resolvedHref)) continue;
 
-                // ✅ Step 1.2: Validate format is allowed by user settings
-                const allowed = isAllowedImageFormat(fullUrl, settings);
-                if (!allowed) {
-                    logDebug(2, '⛔ Skipped image (blocked format)');
-                    logDebug(3, '');
-                    continue;
-                }
+				webGalleryCandidates.push(resolvedHref);
+				logDebug(2, `✅ Accepted web-linked gallery: ${resolvedHref}`);
+			} catch (err) {
+				logDebug(1, `⚠️ Failed to process anchor: ${err.message}`);
+			}
+		}
 
-                // ✅ Step 1.3: Accept the image (size will be validated in background)
-                validatedImages.push({ 
-                    url: fullUrl, 
-                    width: img.naturalWidth || 0, 
-                    height: img.naturalHeight || 0 
-                });
-                logDebug(2, '✅ Accepted gallery image');
-                logDebug(3, '');
-            } catch (err) {
-                logDebug(1, `⚠️ Error processing anchor image: ${err.message}`);
-            }
-        }
+		// 🚦 Block execution if no valid candidates collected
+		if (!webGalleryCandidates.length) {
+			try {
+				logDebug(1, "⛔ No valid web-linked image anchors found.");
+				logDebug(2, "💡 Tip: Try 'Extract Visual Gallery' if images are not inside links.");
+				showUserMessage("No gallery links found. Try 'Extract galleries (without links)' instead.", "error");
 
-        if (!validatedImages.length) {
-            logDebug(2, '💡 Tip: Review allowed formats and minimum dimensions in Settings.');
-            logDebug(2, '❌ End: Extract Linked Gallery Process (no input)');
-            logDebug(3, '');
-            showUserMessage("No valid images found in the gallery. Check file format, resolution, or links.", "error");
+				// 🧹 Defensive memory cleanup
+				if (Array.isArray(webGalleryCandidates)) webGalleryCandidates.length = 0;
 
-            // 🔒 Step 2.1: Reset running state
-            window.__mdi_extractLinkedGalleryRunning = false;
+			} catch (validationError) {
+				logDebug(1, `⚠️ Cleanup error: ${validationError.message}`);
+			} finally {
+				// 🔓 Allow future extractions
+				window.__mdi_extractLinkedGalleryRunning = false;
+			}
 
-            return;
-        }
+			return;
+		}
+		
+		// ✅ Use the validated and accepted gallery URLs
+		const gallery = Array.isArray(webGalleryCandidates) ? [...webGalleryCandidates] : [];
 
-        // 📤 Step 2: Send all valid image links to the background for grouping and filtering
-        logDebug(1, '📤 Sending all valid gallery image URLs to background...');
-        const gallery = Array.isArray(validatedImages) ? [...validatedImages] : [];
+		// 🚦 Stop execution if the final gallery is empty
+		if (!gallery.length) {
+			try {
+				logDebug(1, "⛔ No valid image links found to process.");
+				logDebug(2, "💡 Tip: The page may not contain valid web-linked images.");
+				showUserMessage("No valid gallery images found. Try another extractor mode.", "error");
+
+				// 🧹 Defensive cleanup
+				if (Array.isArray(webGalleryCandidates)) webGalleryCandidates.length = 0;
+
+			} catch (cleanupError) {
+				logDebug(1, `⚠️ Cleanup error: ${cleanupError.message}`);
+			} finally {
+				// 🔓 Unlock flag for next attempt
+				window.__mdi_extractLinkedGalleryRunning = false;
+			}
+
+			return;
+		}
 
         // ✉️ Step 3: Send the grouped gallery images to the background script
         logDebug(1, '📤 Sending gallery to background for download/tab handling...');
@@ -262,7 +298,9 @@
                 return;
             }
             
-            const uniqueGalleryUrls = [...new Set(gallery.map(img => img.url))];
+            // ✅ Ensure we deduplicate gallery URLs properly
+			// 🔁 Previous version expected {url: "..."} objects. We're now working with direct string URLs.
+			const uniqueGalleryUrls = [...new Set(gallery)];
 
             // 🔒 Step 3.1: Check for duplicates and limit the number of images sent
             chrome.runtime.sendMessage({
@@ -310,7 +348,7 @@
         logDebug(1, '🔄 Loading configuration and starting extraction process...');
         chrome.storage.sync.get([
             "minWidth", "minHeight", "galleryMaxImages",
-            "debugLogLevel", "allowJPG", "allowJPEG", "allowPNG", "allowWEBP",
+            "debugLogLevel", "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP",
             "showUserFeedbackMessages"
         ], (data) => {
         
@@ -343,6 +381,8 @@
                         allowJPEG: data.allowJPEG !== false,
                         allowPNG: data.allowPNG !== false,
                         allowWEBP: data.allowWEBP !== false,
+                        allowAVIF: data.allowAVIF !== false,
+                        allowBMP: data.allowBMP !== false,
                         extractGalleryMode: data.extractGalleryMode ?? 'tab'
                     };
                     // 🖼️ Start the extraction process with the loaded settings                    

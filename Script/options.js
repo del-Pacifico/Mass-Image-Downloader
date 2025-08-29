@@ -114,6 +114,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const allowJPEGCheckbox = document.getElementById("allowJPEG");
     const allowPNGCheckbox = document.getElementById("allowPNG");
     const allowWEBPCheckbox = document.getElementById("allowWEBP");
+    const allowAVIFCheckbox = document.getElementById("allowAVIF");
+    const allowBMPCheckbox = document.getElementById("allowBMP");
+
+    const allowExtendedImageUrls = document.getElementById("allowExtendedImageUrls");
 
     const maxBulkBatchInput = document.getElementById("maxBulkBatch");
     const continueBulkLoopCheckbox = document.getElementById("continueFromLastBulkBatch");
@@ -121,11 +125,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const showUserFeedbackMessagesCheckbox = document.getElementById("showUserFeedbackMessages");
     const peekTransparencyInput = document.getElementById("peekTransparencyLevel");
     const enableClipboardHotkeysCheckbox = document.getElementById("enableClipboardHotkeys"); 
+    const enableOneClickIconCheckbox = document.getElementById("chkEnableOneClickIcon");
 
     const maxOpenTabsInput = document.getElementById("maxOpenTabs");
     const webLinkedGalleryDelayInput = document.getElementById("webLinkedGalleryDelay");
+    let applyingPreset = false;
 
     galleryMaxImagesInput = document.getElementById("galleryMaxImages");
+
     // Check if galleryMaxImagesInput is null or undefined
     if (!galleryMaxImagesInput) {
         logDebug(2, "⚠️ Warning: galleryMaxImages input not found in DOM.");
@@ -135,7 +142,212 @@ document.addEventListener("DOMContentLoaded", () => {
 
     logDebug(3, `📦 Getting UI elements references.`);
 
+    // 🆕 Performance Presets handler
+    const presetRadios = document.querySelectorAll('input[name="performancePreset"]');
+
+    // 🔍 Detects if a setting is manually modified after applying a preset
+    function markCustomPresetIfNeeded() {
+        if (applyingPreset) return; // Don't trigger if user is applying preset via radio
+
+        const customRadio = document.querySelector('input[name="performancePreset"][value="custom"]');
+        if (customRadio) {
+            customRadio.checked = true;
+            logDebug(2, "⚙️ User modified a setting → Marking preset as 'custom'.");
+        } else {
+            logDebug(2, "⚠️ Unable to mark preset as custom - radio not found.");
+        }
+    }
+
+    presetRadios.forEach((radio) => {
+        
+        if (!radio.checked) return;
+
+        const preset = radio.value;
+        logDebug(1, `⚙️ Performance preset selected: ${preset}`);
+
+        try {
+            applyingPreset = true; // ⬅️ New: activate protection to prevent multiple preset applications
+
+            const presetConfigs = {
+                low: {
+                    downloadLimit: 1,
+                    maxBulkBatch: 10,
+                    continueFromLastBulkBatch: false,
+                    filenameMode: "none",
+                    prefix: "",
+                    suffix: "",
+                    allowJPG: true,
+                    allowJPEG: true,
+                    allowPNG: true,
+                    allowWEBP: false,
+                    allowAVIF: false,
+                    allowBMP: false,
+                    minWidth: 600,
+                    minHeight: 400,
+                    gallerySimilarityLevel: 60,
+                    galleryMinGroupSize: 3,
+                    galleryEnableSmartGrouping: false,
+                    galleryEnableFallback: false,
+                    galleryMaxImages: 1,
+                    extractGalleryMode: "tab",
+                    maxOpenTabs: 2,
+                    webLinkedGalleryDelay: 1000
+                },
+                medium: {
+                    downloadLimit: 2,
+                    maxBulkBatch: 25,
+                    continueFromLastBulkBatch: true,
+                    filenameMode: "suffix",
+                    prefix: "",
+                    suffix: "img",
+                    allowJPG: true,
+                    allowJPEG: true,
+                    allowPNG: true,
+                    allowWEBP: true,
+                    allowAVIF: true,
+                    allowBMP: true,
+                    minWidth: 800,
+                    minHeight: 600,
+                    gallerySimilarityLevel: 70,
+                    galleryMinGroupSize: 4,
+                    galleryEnableSmartGrouping: true,
+                    galleryEnableFallback: true,
+                    galleryMaxImages: 3,
+                    extractGalleryMode: "tab",
+                    maxOpenTabs: 4,
+                    webLinkedGalleryDelay: 600
+                },
+                high: {
+                    downloadLimit: 4,
+                    maxBulkBatch: 50,
+                    continueFromLastBulkBatch: true,
+                    filenameMode: "both",
+                    prefix: "img",
+                    suffix: "hq",
+                    allowJPG: true,
+                    allowJPEG: true,
+                    allowPNG: true,
+                    allowWEBP: true,
+                    allowAVIF: true,
+                    allowBMP: true,
+                    minWidth: 1000,
+                    minHeight: 800,
+                    gallerySimilarityLevel: 85,
+                    galleryMinGroupSize: 5,
+                    galleryEnableSmartGrouping: true,
+                    galleryEnableFallback: true,
+                    galleryMaxImages: 5,
+                    extractGalleryMode: "immediate",
+                    maxOpenTabs: 6,
+                    webLinkedGalleryDelay: 300
+                }
+            };
+
+            const config = presetConfigs[preset];
+
+            if (downloadLimitInput) downloadLimitInput.value = config.downloadLimit;
+            if (maxBulkBatchInput) maxBulkBatchInput.value = config.maxBulkBatch;
+            if (continueBulkLoopCheckbox) continueBulkLoopCheckbox.checked = config.continueFromLastBulkBatch;
+
+            if (filenameModeSelect) filenameModeSelect.value = config.filenameMode;
+            if (prefixInput) prefixInput.value = config.prefix;
+            if (suffixInput) suffixInput.value = config.suffix;
+            if (allowWEBPCheckbox) allowWEBPCheckbox.checked = config.allowWEBP;
+
+            if (minWidthInput) minWidthInput.value = config.minWidth;
+            if (minHeightInput) minHeightInput.value = config.minHeight;
+
+            const gallerySimilarityLevelElement = document.getElementById("gallerySimilarityLevel");
+            const galleryMinGroupSizeElement = document.getElementById("galleryMinGroupSize");
+            const galleryEnableSmartGroupingElement = document.getElementById("galleryEnableSmartGrouping");
+            const galleryEnableFallbackElement = document.getElementById("galleryEnableFallback");
+
+            if (gallerySimilarityLevelElement) gallerySimilarityLevelElement.value = config.gallerySimilarityLevel;
+            if (galleryMinGroupSizeElement) galleryMinGroupSizeElement.value = config.galleryMinGroupSize;
+            if (galleryEnableSmartGroupingElement) galleryEnableSmartGroupingElement.checked = config.galleryEnableSmartGrouping;
+            if (galleryEnableFallbackElement) galleryEnableFallbackElement.checked = config.galleryEnableFallback;
+
+            if (galleryMaxImagesInput) galleryMaxImagesInput.value = config.galleryMaxImages;
+            if (extractGalleryModeSelect) extractGalleryModeSelect.value = config.extractGalleryMode;
+
+            if (maxOpenTabsInput) maxOpenTabsInput.value = config.maxOpenTabs;
+            if (webLinkedGalleryDelayInput) webLinkedGalleryDelayInput.value = config.webLinkedGalleryDelay;
+
+            if (allowJPGCheckbox) allowJPGCheckbox.checked = config.allowJPG;
+            if (allowJPEGCheckbox) allowJPEGCheckbox.checked = config.allowJPEG;
+            if (allowPNGCheckbox) allowPNGCheckbox.checked = config.allowPNG;
+            if (allowAVIFCheckbox) allowAVIFCheckbox.checked = config.allowAVIF;
+            if (allowBMPCheckbox) allowBMPCheckbox.checked = config.allowBMP;
+            if (allowExtendedImageUrls) { // New
+                allowExtendedImageUrls.checked = config.allowExtendedImageUrls ?? false;
+            }
+            if (enableClipboardHotkeysCheckbox) {
+                enableClipboardHotkeysCheckbox.checked = config.enableClipboardHotkeys ?? false;
+                logDebug(2, "🔤 Clipboard hotkeys enabled?:", config.enableClipboardHotkeys);
+            }
+            if (enableOneClickIconCheckbox) {
+                enableOneClickIconCheckbox.checked = config.enableOneClickIcon ?? false;
+                logDebug(2, "🖱️ One-click icon enabled?:", config.enableOneClickIcon);
+            }
+            if (peekTransparencyInput) {
+                peekTransparencyInput.value = config.peekTransparencyLevel ?? 0.8;
+                logDebug(2, "🫥 Loaded peekTransparencyLevel:", peekTransparencyInput.value);
+            }
+            else {
+                logDebug(2, "⚠️ peekTransparencyLevel input not found.");
+            }
+            logDebug(2, "🪟 Loaded maxOpenTabs:", config.maxOpenTabs);
+            logDebug(2, "⏱️ Loaded webLinkedGalleryDelay:", config.webLinkedGalleryDelay);
+            
+            // 🧩 Inputs that affect performance preset
+            const inputsAffectingPreset = [
+                downloadLimitInput,
+                maxBulkBatchInput,
+                continueBulkLoopCheckbox,
+                filenameModeSelect,
+                prefixInput,
+                suffixInput,
+                allowJPGCheckbox,
+                allowJPEGCheckbox,
+                allowPNGCheckbox,
+                allowAVIFCheckbox,
+                allowBMPCheckbox,
+                allowWEBPCheckbox,
+                allowExtendedImageUrls,
+                minWidthInput,
+                minHeightInput,
+                document.getElementById("gallerySimilarityLevel"),
+                document.getElementById("galleryMinGroupSize"),
+                document.getElementById("galleryEnableSmartGrouping"),
+                document.getElementById("galleryEnableFallback"),
+                galleryMaxImagesInput,
+                extractGalleryModeSelect,
+                maxOpenTabsInput,
+                webLinkedGalleryDelayInput
+            ];
+
+            // 🧠 Bind change listener to inputs
+            inputsAffectingPreset.forEach(input => {
+                if (input) {
+                    input.addEventListener("change", markCustomPresetIfNeeded);
+                }
+            });
+
+            updateFilenameInputs();
+
+            logDebug(2, `⚙️ Preset '${preset}' applied:`, config);
+        } catch (err) {
+            logDebug(1, `❌ Failed to apply preset '${preset}':`, err.message);
+            logDebug(3, err.stack);
+            showError(`Failed to apply preset '${preset}'.`);
+        } finally {
+            applyingPreset = false; // ⬅️ New: reset protection after applying preset
+        }
+    });
+
+    // ✅ Extension version display
     extensionVersion.textContent = chrome.runtime.getManifest().version;
+
 
     // 🔁 Enable/Disable folder path input
     defaultFolderRadio.addEventListener("change", () => {
@@ -168,13 +380,36 @@ document.addEventListener("DOMContentLoaded", () => {
             "filenameMode", "prefix", "suffix", "extractGalleryMode",
             "minWidth", "minHeight", "galleryMaxImages",
             "maxBulkBatch", "continueFromLastBulkBatch",
-            "allowJPG", "allowJPEG", "allowPNG", "allowWEBP",
+            "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", 
+            "allowExtendedImageUrls",
             "gallerySimilarityLevel", "galleryMinGroupSize",
             "galleryEnableSmartGrouping", "galleryEnableFallback",
             "showUserFeedbackMessages", "enableClipboardHotkeys",
-            "maxOpenTabs", "webLinkedGalleryDelay", "peekTransparencyLevel"
+            "maxOpenTabs", "webLinkedGalleryDelay", "peekTransparencyLevel",
+            "enableOneClickIcon", "performancePreset"
         ], (data) => {
             logDebug(1, "🔍 Settings loaded from storage.");
+
+        // 🆕 Restore Performance Preset
+        const savedPreset = data.performancePreset ?? "medium";
+        const presetRadioToCheck = document.querySelector(`input[name="performancePreset"][value="${savedPreset}"]`);
+        if (presetRadioToCheck) {
+            presetRadioToCheck.checked = true;
+            logDebug(2, `⚙️ Restored performancePreset: ${savedPreset}`);
+        } else {
+            logDebug(2, "⚠️ No matching performancePreset radio found. Defaulting to medium.");
+            const fallbackRadio = document.querySelector('input[name="performancePreset"][value="medium"]');
+            if (fallbackRadio) fallbackRadio.checked = true;
+        }
+
+        // ⚠️ If preset is 'custom', skip auto-application of fixed preset
+        if (savedPreset !== "custom") {
+            logDebug(2, `⚙️ Applying preset configuration for: ${savedPreset}`);
+            const applyRadio = document.querySelector(`input[name="performancePreset"][value="${savedPreset}"]`);
+            if (applyRadio) applyRadio.dispatchEvent(new Event("change"));
+        } else {
+            logDebug(2, "⚙️ Custom preset detected, skipping auto-apply.");
+        }
     
             if (chrome.runtime.lastError) {
                 logDebug(1, "❌ Error loading settings:", chrome.runtime.lastError);
@@ -226,7 +461,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     logDebug(2, "🔤 Clipboard hotkeys enabled?:", data.enableClipboardHotkeys);
                 } else {
                     logDebug(2, "⚠️ Clipboard hotkey checkbox not found.");
-                }                
+                }   
+
+                // 🖱️ One-click icon setting
+                if (enableOneClickIconCheckbox) {
+                    enableOneClickIconCheckbox.checked = data.enableOneClickIcon ?? false;
+                    logDebug(2, "🖱️ One-click icon enabled?:", data.enableOneClickIcon);
+                } else {
+                    logDebug(2, "⚠️ One-click icon checkbox not found.");
+                }
 
                 updateFilenameInputs();
     
@@ -297,6 +540,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (allowWEBPCheckbox) {
                     allowWEBPCheckbox.checked = data.allowWEBP !== false;
                 }
+                if (allowAVIFCheckbox) {
+                    allowAVIFCheckbox.checked = data.allowAVIF !== false;
+                }
+                if (allowBMPCheckbox) {
+                    allowBMPCheckbox.checked = data.allowBMP !== false;
+                }
+
+                // 🆕 Extended Image URLs setting
+                if (allowExtendedImageUrls) { // New
+                    allowExtendedImageUrls.checked = data.allowExtendedImageUrls ?? false;
+                }   
     
                 // 📸 Download images directly in tabs
                 if (maxBulkBatchInput) {
@@ -485,12 +739,18 @@ document.addEventListener("DOMContentLoaded", () => {
             const allowJPEGCheckbox = document.getElementById("allowJPEG");
             const allowPNGCheckbox = document.getElementById("allowPNG");
             const allowWEBPCheckbox = document.getElementById("allowWEBP");
+            const allowAVIFCheckbox = document.getElementById("allowAVIF");
+            const allowBMPCheckbox = document.getElementById("allowBMP");
+            const allowExtendedImageUrls = document.getElementById("allowExtendedImageUrls"); // New
     
             const allowJPG = allowJPGCheckbox ? allowJPGCheckbox.checked : false;
             const allowJPEG = allowJPEGCheckbox ? allowJPEGCheckbox.checked : false;
             const allowPNG = allowPNGCheckbox ? allowPNGCheckbox.checked : false;
             const allowWEBP = allowWEBPCheckbox ? allowWEBPCheckbox.checked : false;
-    
+            const allowAVIF = allowAVIFCheckbox ? allowAVIFCheckbox.checked : false;
+            const allowBMP = allowBMPCheckbox ? allowBMPCheckbox.checked : false;
+            const allowExtendedImageUrlsChecked = allowExtendedImageUrls ? allowExtendedImageUrls.checked : false; // New   
+                
             // 📸 Download images directly in tabs
             const maxBulkBatch = maxBulkBatchInput ? (parseInt(maxBulkBatchInput.value, 10) || 10) : 10;
             const continueFromLastBulkBatch = continueBulkLoopCheckbox ? continueBulkLoopCheckbox.checked : false;
@@ -506,6 +766,10 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 logDebug(2, "⚠️ peekTransparencyLevel input not found during save. Using fallback 0.8");
             }
+
+            // 🆕 Get selected preset (low, medium, high)
+            const selectedPresetRadio = document.querySelector('input[name="performancePreset"]:checked');
+            const performancePreset = selectedPresetRadio ? selectedPresetRadio.value : "custom";
     
             // Save Settings
             chrome.storage.sync.set({
@@ -528,13 +792,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 allowJPEG,
                 allowPNG,
                 allowWEBP,
+                allowAVIF,
+                allowBMP,
+                allowExtendedImageUrls: allowExtendedImageUrlsChecked, // New
                 maxBulkBatch,
                 continueFromLastBulkBatch,
                 showUserFeedbackMessages,
                 enableClipboardHotkeys: enableClipboardHotkeysCheckbox ? enableClipboardHotkeysCheckbox.checked : false,
+                enableOneClickIcon: enableOneClickIconCheckbox ? enableOneClickIconCheckbox.checked : false,
                 maxOpenTabs: maxOpenTabsInput ? Math.min(10, Math.max(1, parseInt(maxOpenTabsInput.value))) : 5,
                 webLinkedGalleryDelay: webLinkedGalleryDelayInput ? Math.min(3000, Math.max(100, parseInt(webLinkedGalleryDelayInput.value))) : 500,
-                peekTransparencyLevel
+                peekTransparencyLevel, performancePreset
 
             }, () => {
                 if (chrome.runtime.lastError) {

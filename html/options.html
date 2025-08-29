@@ -225,7 +225,15 @@
         <input type="checkbox" id="allowJPEG" checked> JPEG
         <input type="checkbox" id="allowPNG" checked> PNG
         <input type="checkbox" id="allowWEBP" checked> WEBP
+        <input type="checkbox" id="allowAVIF"> AVIF
+        <input type="checkbox" id="allowBMP"> BMP
         <p class="info-text">Only selected formats will be considered during processing.</p>
+        <p class="info-text">❗ Unsupported formats like <strong>SVG, GIF, HEIC, TIFF, ICO</strong> are ignored due to decoding failures (e.g., "DOMException: The image format is not supported").</p>
+    </div>
+        <div class="option-group">
+        <input type="checkbox" id="allowExtendedImageUrls">
+        <label for="allowExtendedImageUrls">Allow extended image URLs (accept Twitter/X :large, :orig, etc. as valid images)</label>
+        <p class="info-text">Enable to accept image links that end with modifiers like :large or :orig. Useful for Twitter/X, Pixiv, etc.</p>
     </div>
     <div class="option-group">
         <label>Filename Customization:</label>
@@ -259,6 +267,19 @@
         <p class="info-text">Use Ctrl+Shift+P to set new prefix. Only if prefix. Is available.<br>
             Use Ctrl+Shift+S to set new suffix. Only if suffix. Is available.<br>
             Only on active tabs.</p>
+    </div>
+
+    <!-- 🖱️ Global Settings: One-click Download Icon -->
+    <h2>🖱️ One-click Download Icon</h2>
+    <p class="description">Activate the floating download icon on a high-resolution image using a keyboard shortcut:</p>
+    <div class="option-group">
+    <input type="checkbox" id="chkEnableOneClickIcon">
+    <label for="chkEnableOneClickIcon">Enable One-click download icon (via hotkey)</label>
+    <p class="info-text">
+        Use <strong>Alt+Shift+I</strong> to activate the download icon over the best image candidate.<br>
+        Works only if this option is enabled and the current page contains valid images.
+        Default values is Disabled. 
+    </p>
     </div>
 
     <!-- 🖼️ Global Settings: Galleries -->
@@ -403,6 +424,50 @@
         <p class="info-text">This setting is only available when the "Extract Web-Linked Gallery" option is selected.</p>
     </div>
 
+    </div>
+
+    <!-- ⚙️ Performance Presets -->
+    <h2>⚙️ Performance Presets</h2>
+    <p class="description">Auto-configure the extension based on your device's capabilities. Selecting a preset will immediately update all relevant options below.</p>
+    <div class="global-options-wrapper">
+    <div class="option-group">
+        <input type="radio" name="performancePreset" id="presetLow" value="low">
+        <label for="presetLow"><strong>Low Spec Configuration</strong></label>
+        <p class="info-text">
+        Minimal CPU/RAM usage.<br>
+        Ideal for older laptops or limited hardware.<br>
+        ➤ Slower batch size, minimal concurrency, filtering reduced.
+        </p>
+    </div>
+
+    <div class="option-group">
+        <input type="radio" name="performancePreset" id="presetMedium" value="medium" checked>
+        <label for="presetMedium"><strong>Medium Spec Configuration</strong></label>
+        <p class="info-text">
+        Balanced performance.<br>
+        Suitable for most modern systems.<br>
+        ➤ Moderate concurrency, smart grouping enabled.
+        </p>
+    </div>
+
+    <div class="option-group">
+        <input type="radio" name="performancePreset" id="presetHigh" value="high">
+        <label for="presetHigh"><strong>High Spec Configuration</strong></label>
+        <p class="info-text">
+        Maximize speed and parallel processing.<br>
+        Designed for high-end devices with plenty of resources.<br>
+        ➤ Large batches, concurrent tabs, fallback enabled.
+        </p>
+    </div>
+
+    <div class="option-group">
+        <input type="radio" name="performancePreset" id="presetCustom" value="custom" disabled>
+        <label for="presetCustom"><strong>Custom (auto-set)</strong></label>
+        <p class="info-text">
+        This mode is enabled when you manually tweak any option.<br>
+        It reflects your custom configuration and is not selectable directly.
+        </p>
+    </div>
     </div>
 
     <hr>

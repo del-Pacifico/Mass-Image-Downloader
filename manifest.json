@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Mass image downloader",
-  "version": "2.07.159",
+  "version": "2.08.127",
+  "minimum_chrome_version": "93",
   "short_name": "MID",
-  "description": "Download images from tabs or galleries with filters, naming rules, batch control, and a lot options!",
+  "description": "Download images from tabs or galleries. With filters, naming rules, batch control, and a lot options!",
   "icons": {
       "16": "ico/emoji_16x16.png",
       "19": "ico/emoji_19x19.png",
@@ -54,12 +55,11 @@
       "matches": ["<all_urls>"]
     }
   ],
-  "commands": {
-    "open-peek-options": {
+  "commands": {    
+    "open-oneclick-icon": {
       "suggested_key": {
-        "default": "Ctrl+Shift+Y"
+        "default": "Alt+Shift+I"
       },
-      "description": "Open Peek Settings (read-only)"
-    }
+      "description": "Inject One-click download icon"}
   }
 }

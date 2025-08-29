@@ -1,72 +1,178 @@
-// # This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-// # If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
-// #
-// # Original Author: Sergio Palma Hidalgo
-// # Project URL: https://github.com/del-Pacifico/Mass-Image-Downloader
-// # Copyright (c) 2025 Sergio Palma Hidalgo
-// # All rights reserved.
+    // # This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+    // # If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+    // #
+    // # Original Author: Sergio Palma Hidalgo
+    // # Project URL: https://github.com/del-Pacifico/Mass-Image-Downloader
+    // # Copyright (c) 2025 Sergio Palma Hidalgo
+    // # All rights reserved.
 
-// background.js - Mass Image Downloader (Robust & Complete)
+    // background.js - Mass Image Downloader (Robust & Complete)
 
-// 🔧 Check if running in Chrome and log version
-if (chrome.runtime.getManifest) {
-    logDebug(1, `🧩 Running version ${chrome.runtime.getManifest().version}`);
-}
+    // 🔧 Check if running in Chrome and log version
+    if (chrome.runtime.getManifest) {
+        logDebug(1, `🧩 Running version ${chrome.runtime.getManifest().version}`);
+    }
 
-/**
- * ✅ Import utility functions relative to manifest root (for ES module support)
- * @description This function imports utility functions from the utils.js file.
- * It includes functions for updating the badge, closing tabs, logging debug messages,
- * calculating path similarity, generating filenames, sanitizing filename components,
- * checking direct image URLs, and checking allowed image formats.
- * @returns {void} 
- */
-import {
-    updateBadge,
-    closeTabSafely,
-    logDebug,
-    calculatePathSimilarity,
-    generateFilename,
-    sanitizeFilenameComponent,
-    isDirectImageUrl,
-    isAllowedImageFormat,
-    initConfigCache
-} from "./utils.js";
+    /**
+     * ✅ Import utility functions relative to manifest root (for ES module support)
+     * @description This function imports utility functions from the utils.js file.
+     * It includes functions for updating the badge, closing tabs, logging debug messages,
+     * calculating path similarity, generating filenames, sanitizing filename components,
+     * checking direct image URLs, and checking allowed image formats.
+     * @returns {void}
+     */
+    import {
+        updateBadge,
+        setBadgeProcessing,
+        setBadgeFinished,
+        closeTabSafely,
+        logDebug,
+        calculatePathSimilarity,
+        generateFilename,
+        normalizeImageUrl,
+        sanitizeFilenameComponent,
+        isDirectImageUrl,
+        isAllowedImageFormat,
+        initConfigCache
+    } from "./utils.js";
 
-(async () => {
-    await initConfigCache();
-    logDebug(1, "📦 Background configuration initialized.");
-})();
+    // 🔧 Gate configuration for utils/configCache
+    // NOTE: Keep this Promise reference to await it before any filename/path build.
+    const configReady = initConfigCache().then(() => {
+        logDebug(1, "📦 Background configuration initialized.");
+    });
 
-// [Mass image downloader]: 🔧 Global settings variables
-let downloadFolder = "default";
-let customFolderPath = "";
-let downloadLimit = 2;
-let debugLogLevel = 0;
-let filenameMode = "none";
-let prefix = "";
-let suffix = "";
-let extractGalleryMode = "tab";
-let minWidth = 800;
-let minHeight = 600;
-let galleryMaxImages = 3;
-let galleryMinGroupSize = 3;
-let galleryEnableSmartGrouping = false;
-let galleryEnableFallback = false;
-let maxBulkBatch = 0;
-let continueBulkLoop = false;
-let gallerySimilarityLevel = 70;
-let allowJPG = false;
-let allowJPEG = false;
-let allowPNG = false;
-let allowWEBP = false;
-let showUserFeedbackMessages = false;
-let enableClipboardHotkeys = false;
-let maxOpenTabs = 5; // 🔗 Max concurrent tabs for Web-Linked Gallery
-let webLinkedGalleryDelay = 500;
-let peekTransparencyLevel = 0.8; // 🖼️ Transparency level for the peek overlay
+    // 🔒 Enforce final filename/path for every download
+    // Reason: Chromium/servers can override suggested names; this listener cements our choice.
+    const pendingDownloadPaths = new Map(); // key: download URL, value: desired relative path
+
+    // 🧠 Listen for download requests to enforce filename/path
+    chrome.downloads.onDeterminingFilename.addListener((item, suggest) => {
+        try {
+            const desired = pendingDownloadPaths.get(item.url);
+            if (desired && typeof desired === "string") {
+                // ✅ Force the filename (subfolder under default Downloads dir is allowed)
+                suggest({ filename: desired, conflictAction: "uniquify" });
+                pendingDownloadPaths.delete(item.url);
+                logDebug(2, `🔒 Filename enforced by listener: ${desired}`);
+            } else {
+                // Use Chrome's suggestion if we did not schedule one
+                suggest();
+            }
+        } catch (err) {
+            // Fallback: never block the download
+            try { suggest(); } catch (_) {}
+            logDebug(1, `⚠️ onDeterminingFilename error: ${err.message}`);
+            logDebug(2, `🐛 Stack trace: ${err.stack}`);
+        }
+    });
+
+
+    // [Mass image downloader]: 🔧 Global settings variables
+    let downloadFolder = "default";
+    let customFolderPath = "";
+    let downloadLimit = 2;
+    let debugLogLevel = 0;
+    let filenameMode = "none";
+    let prefix = "";
+    let suffix = "";
+    let extractGalleryMode = "tab";
+    let minWidth = 800;
+    let minHeight = 600;
+    let galleryMaxImages = 3;
+    let galleryMinGroupSize = 3;
+    let galleryEnableSmartGrouping = false;
+    let galleryEnableFallback = false;
+    let maxBulkBatch = 0;
+    let continueBulkLoop = false;
+    let gallerySimilarityLevel = 70;
+    let allowJPG = false;
+    let allowJPEG = false;
+    let allowPNG = false;
+    let allowWEBP = false;
+    let allowAVIF = false;
+    let allowBMP = false;
+    let allowExtendedImageUrls = false; // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
+    let showUserFeedbackMessages = false;
+    let enableClipboardHotkeys = false;
+    let maxOpenTabs = 5; // 🔗 Max concurrent tabs for Web-Linked Gallery
+    let webLinkedGalleryDelay = 500;
+    let peekTransparencyLevel = 0.8; // 🖼️ Transparency level for the peek overlay
+    let enableOneClickIcon = false; // 🖱️ Enable One-click download icon
+    let performancePreset = "medium"; // 📊 Performance preset (default to medium)
 
     /** 
+     * One-time settings gate. Ensures options are loaded before first use.
+     * This Promise resolves once chrome.storage.sync values are read and assigned.
+     */
+    const settingsReady = new Promise((resolve) => {
+        // Only read what is needed for path building; add more keys if required
+        chrome.storage.sync.get(
+            ["downloadFolder", "customFolderPath"],
+            (data) => {
+                try {
+                    if (typeof data.downloadFolder === "string") {
+                        downloadFolder = data.downloadFolder;
+                    }
+                    if (typeof data.customFolderPath === "string") {
+                        customFolderPath = data.customFolderPath;
+                    }
+                } catch (e) {
+                    // [Mass Image Downloader]: ⚠️ Fallback to defaults on parsing errors
+                    logDebug(1, `❌ Error reading settings: ${e.message}`);
+                    logDebug(2, `🐛 Stack trace: ${e.stack}`);
+                } finally {
+                    resolve();
+                }
+            }
+        );
+    });
+
+    // 🧪 Chromium version validation (Chrome >= 93 required)
+    try {
+        const userAgent = navigator.userAgent;
+        const isChromium = /Chrome|Chromium|Edg|Brave/i.test(userAgent);
+        const chromeVersionMatch = userAgent.match(/Chrom(?:e|ium)\/([0-9]+)/i);
+        const version = chromeVersionMatch ? parseInt(chromeVersionMatch[1]) : 0;
+
+        if (!isChromium || version < 93) {
+            console.warn("[Mass image downloader]: ⚠️ Unsupported browser or version. Requires Chromium v93+.");
+
+            // Optional notification to user
+            chrome.notifications?.create({
+                type: "basic",
+                iconUrl: "ico/emoji_48x48.png",
+                title: "Compatibility Warning",
+                message: "This extension requires a Chromium-based browser (v93+). Some features may not work."
+            }, () => {
+                if (chrome.runtime.lastError)
+                    console.warn("[Mass image downloader]: ⚠️ Notification failed:", chrome.runtime.lastError.message);
+            });
+        }
+
+        // 🧹 Defensive cleanup: clear local variables explicitly
+        // (no need to delete anything from 'window' in a service worker)
+        // userAgent, chromeVersionMatch, version are local and go out of scope naturally
+
+    } catch (validationError) {
+        console.warn("[Mass image downloader]: ❌ Browser compatibility check failed:", validationError.message);
+        console.warn("[Mass image downloader]: ⚠️ Please use a Chromium-based browser (v93+) for best experience.");
+        console.warn("[Mass image downloader]: ⚠️ Some features may not work as expected.");
+        console.warn(`[Mass image downloader]: ❌ Error details: ${validationError.stack}`);
+
+        chrome.notifications?.create({
+            type: "basic",
+            iconUrl: "ico/emoji_48x48.png",
+            title: "Compatibility Warning",
+            message: "This extension requires a Chromium-based browser (v93+). Some features may not work."
+        }, () => {
+            if (chrome.runtime.lastError)
+                console.warn("[Mass image downloader]: ⚠️ Notification failed:", chrome.runtime.lastError.message);
+        });
+    }
+
+
+    /**
      * ✅ Apply default settings when the extension is installed for the first time.
      * @description This function is called when the extension is installed for the first time.
      * It sets the default settings in chrome.storage.sync and logs the default settings to the console.
@@ -80,6 +186,9 @@ let peekTransparencyLevel = 0.8; // 🖼️ Transparency level for the peek over
                 allowJPEG: true,
                 allowPNG: true,
                 allowWEBP: false,
+                allowAVIF: false,
+                allowBMP: false,
+                allowExtendedImageUrls: false, // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
                 downloadLimit: 1,
                 filenameMode: "none",
                 debugLogLevel: 1,
@@ -91,7 +200,7 @@ let peekTransparencyLevel = 0.8; // 🖼️ Transparency level for the peek over
                 continueFromLastBulkBatch: false,
                 prefix: "",
                 suffix: "",
-                enableClipboardHotkeys, 
+                enableClipboardHotkeys,
                 gallerySimilarityLevel: 70,
                 galleryEnableSmartGrouping: false,
                 galleryEnableFallback: false,
@@ -101,13 +210,16 @@ let peekTransparencyLevel = 0.8; // 🖼️ Transparency level for the peek over
                 enableClipboardHotkeys: false,
                 maxOpenTabs: 5, // 🔗 Max concurrent tabs for Web-Linked Gallery
                 webLinkedGalleryDelay: 500, // 🕒 Delay between opening tabs for Web-Linked Gallery
-                peekTransparencyLevel: 0.8 // 🖼️ Transparency level for the peek overlay
+                peekTransparencyLevel: 0.8, // 🖼️ Transparency level for the peek overlay
+                enableOneClickIcon: false, // 🖱️ Enable One-click download icon
+                performancePreset: "medium" // 📊 Performance preset (default to medium)
             }, () => {
                 logDebug(3, '------------------------------');
                 logDebug(1, '✅ Default settings applied successfully.');
                 logDebug(3, '');
                 // 🌍 Global settings
                 logDebug(3, '🌍 Global settings:');
+
                 // 📁 File system
                 logDebug(3, '   📁 Download Folder');
                 logDebug(3, '   Stored Download Folder: default');
@@ -117,12 +229,18 @@ let peekTransparencyLevel = 0.8; // 🖼️ Transparency level for the peek over
                 logDebug(3, '      allow JPEG? true');
                 logDebug(3, '      allow PNG?  true');
                 logDebug(3, '      allow WEBP? false');
+                logDebug(3, '      allow AVIF? false');
+                logDebug(3, '      allow BMP?  false');
+                logDebug(3, '   🐦 Allow extended image URLs? false');
                 logDebug(3, '   📜 Filename Mode: none');
                 logDebug(3, '      🔤 Prefix: ""');
                 logDebug(3, '      🔡 Suffix: ""');
+
                 // 📋 Clipboard hotkeys
                 logDebug(3, '   📋 Clipboard hotkeys: false');
+                logDebug(3, '   🖱️ One-click Download Icon: false');
                 logDebug(3, '   📌 Max Simultaneous Downloads: 1');
+
                 // 🧠 Galleries
                 logDebug(3, '   🧠 Gallery Grouping');
                 logDebug(3, '      🧠 Gallery similarity level: 70%');
@@ -131,6 +249,7 @@ let peekTransparencyLevel = 0.8; // 🖼️ Transparency level for the peek over
                 logDebug(3, '      🛟 Fallback grouping enabled: false');
                 logDebug(3, '    🖼 Extract Gallery Mode: tab');
                 logDebug(3, '    ⚡ Gallery Max Images/sec: 3');
+                
                 // 📐 Image size
                 logDebug(3, '   📐 Image size filters');
                 logDebug(3, '      📏 Minimum Image Width: 800');
@@ -138,15 +257,20 @@ let peekTransparencyLevel = 0.8; // 🖼️ Transparency level for the peek over
                 // 📢 Global Settings: Notifications
                 logDebug(3, '   📢 User feedback messages: false');
                 logDebug(3, '   📃 Peek panel transparency: 0.8');
+
                 // 🐛 Debugging
                 logDebug(3, '   🐛 Debug logging level: 1 (shows key events)');
                 // 📸 Bulk Image Download
+
                 logDebug(3, '📸 Bulk Image Download functionality');
                 logDebug(3, '   📌 Max image per batch: 0');
                 logDebug(3, '   🔁 Continue bulk loop: false');
                 logDebug(3, '🔗 Web-Linked Gallery Settings');
                 logDebug(3, '   🔗 Max concurrent tabs: 5');
                 logDebug(3, '   🕒 Delay between opening tabs: 500ms');
+                // ⚙️ Performance preset
+                logDebug(3, '⚙️ Performance Preset: medium');
+
                 logDebug(3, '');
                 logDebug(3, '✅ Default settings loaded and confirmed.');
                 logDebug(3, '------------------------------');
@@ -162,17 +286,19 @@ let peekTransparencyLevel = 0.8; // 🖼️ Transparency level for the peek over
         chrome.storage.sync.get([
             "downloadFolder", "customFolderPath", "downloadLimit", "debugLogLevel",
             "filenameMode", "prefix", "suffix", "extractGalleryMode",
-            "minWidth", "minHeight", 
+            "minWidth", "minHeight",
             "galleryMaxImages",
             "maxBulkBatch", "continueFromLastBulkBatch",
             "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "gallerySimilarityLevel",
+            "allowAVIF", "allowBMP", "allowExtendedImageUrls",
             "galleryMinGroupSize",
             "galleryEnableSmartGrouping",
             "galleryEnableFallback",
             "showUserFeedbackMessages",
             "enableClipboardHotkeys",
-            "maxOpenTabs", "webLinkedGalleryDelay", 
-            "peekTransparencyLevel"
+            "maxOpenTabs", "webLinkedGalleryDelay",
+            "peekTransparencyLevel", "enableOneClickIcon",
+            "performancePreset"
         ], (data) => {
 
             if (chrome.runtime.lastError) {
@@ -183,13 +309,13 @@ let peekTransparencyLevel = 0.8; // 🖼️ Transparency level for the peek over
                 logDebug(1, "❌ No settings received from storage or unexpected format.");
                 return;
             }
-            
+
 
             downloadFolder = data.downloadFolder || "default";
             customFolderPath = data.customFolderPath?.replace(/[<>:"/\\|?*]+/g, '') || "";
             downloadLimit = (data.downloadLimit >= 1 && data.downloadLimit <= 15) ? data.downloadLimit : 2;
-            debugLogLevel = (typeof data.debugLogLevel === 'number' && [0, 1, 2, 3].includes(data.debugLogLevel)) 
-            ? data.debugLogLevel 
+            debugLogLevel = (typeof data.debugLogLevel === 'number' && [0, 1, 2, 3].includes(data.debugLogLevel))
+            ? data.debugLogLevel
             : 1;
             filenameMode = data.filenameMode || "none";
             prefix = sanitizeFilenameComponent(data.prefix || "");
@@ -203,26 +329,31 @@ let peekTransparencyLevel = 0.8; // 🖼️ Transparency level for the peek over
             gallerySimilarityLevel = (data.gallerySimilarityLevel >= 30 && data.gallerySimilarityLevel <= 100)
             ? data.gallerySimilarityLevel
             : 70;
-            
+
             galleryMinGroupSize = (data.galleryMinGroupSize >= 2 && data.galleryMinGroupSize <= 50)
             ? data.galleryMinGroupSize
             : 3;
-        
+
             galleryEnableSmartGrouping = !!data.galleryEnableSmartGrouping;
-            galleryEnableFallback = !!data.galleryEnableFallback;            
+            galleryEnableFallback = !!data.galleryEnableFallback;
 
             allowJPG = data.allowJPG !== false;
             allowJPEG = data.allowJPEG !== false;
             allowPNG = data.allowPNG !== false;
             allowWEBP = data.allowWEBP !== false;
+            allowAVIF = data.allowAVIF !== false;
+            allowBMP = data.allowBMP !== false;
+            allowExtendedImageUrls = data.allowExtendedImageUrls !== false; // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
+
             showUserFeedbackMessages = data.showUserFeedbackMessages || false;
             enableClipboardHotkeys = data.enableClipboardHotkeys || false;
+            enableOneClickIcon = data.enableOneClickIcon || false;
 
             maxOpenTabs = (data.maxOpenTabs >= 1 && data.maxOpenTabs <= 10) ? data.maxOpenTabs : 5;
-            peekTransparencyLevel = (data.peekTransparencyLevel >= 0 && data.peekTransparencyLevel <= 1) 
+            peekTransparencyLevel = (data.peekTransparencyLevel >= 0 && data.peekTransparencyLevel <= 1)
             ? data.peekTransparencyLevel
             : 0.8;
-                        
+            performancePreset = data.performancePreset || "medium";
             // Display current settings by console
             logDebug(3, '------------------------------');
             logDebug(1, '🔄 Retrieving settings from storage...');
@@ -238,13 +369,21 @@ let peekTransparencyLevel = 0.8; // 🖼️ Transparency level for the peek over
             logDebug(3, `      allow JPEG? ${allowJPEG}`);
             logDebug(3, `      allow PNG?  ${allowPNG}`);
             logDebug(3, `      allow WEBP? ${allowWEBP}`);
+            logDebug(3, `      allow AVIF? ${allowAVIF}`);
+            logDebug(3, `      allow BMP?  ${allowBMP}`);
+            
             logDebug(3, `   📜 Filename Mode: ${filenameMode}`);
             logDebug(3, `      🔤 Prefix: ${prefix}`);
             logDebug(3, `      🔡 Suffix: ${suffix}`);
+            
+            logDebug(3, `   🐦 Allow extended image URLs: ${allowExtendedImageUrls}`);
+
             // 🌍 Clipboard hotkeys
             logDebug(2, '   📋 Clipboard hotkeys.');
             logDebug(3, `      📋 Clipboard hotkeys: ${enableClipboardHotkeys}`);
+            logDebug(3, `      🖱️ One-click Download Icon: ${enableOneClickIcon}`);
             logDebug(3, `   📌 Max Simultaneous Downloads: ${downloadLimit}`);
+
             // 🌍 Galleries
             logDebug(2, '   🧠 Galleries.');
             logDebug(3, '     ☁️ Gallery Grouping');
@@ -254,24 +393,34 @@ let peekTransparencyLevel = 0.8; // 🖼️ Transparency level for the peek over
             logDebug(3, `       🛟 Fallback grouping enabled: ${galleryEnableFallback}`);
             logDebug(3, `     🖼 Extract Gallery Mode: ${extractGalleryMode}`);
             logDebug(3, `     ⚡ Gallery Max Images/sec: ${galleryMaxImages}`);
+
             // 📐 Image size
             logDebug(2, '   ✅ Image size filters.');
             logDebug(3, `      📏 Minimum Image Width: ${minWidth}`);
             logDebug(3, `      📐 Minimum Image Height: ${minHeight}`);
+
             // 📢 Global Settings: Notifications
             logDebug(2, '   📢 User feedback messages.');
             logDebug(3, `       📢 User feedback messages: ${showUserFeedbackMessages}`);
             logDebug(3, `       📃 Peek panel transparency: ${peekTransparencyLevel}`);
+
             // 🐛 Debugging
             logDebug(2, '   🐜 Debugging.');
             logDebug(3, `       🐛 Debug logging level: ${debugLogLevel}`);
+
             // 📸 Bulk Image Download
             logDebug(3, '📸 Bulk Image Download functionality');
             logDebug(3, `   📌 Max image per batch: ${maxBulkBatch}`);
             logDebug(3, `   🔁 Continue bulk loop: ${continueBulkLoop}`);
+
+            // 🔗 Web-Linked Gallery Settings
             logDebug(3, '🔗 Web-Linked Gallery Settings');
             logDebug(3, `   🔗 Max concurrent tabs: ${maxOpenTabs}`);
             logDebug(3, `   ⏱️ Delay between tabs (Web-Linked Gallery): ${webLinkedGalleryDelay} ms`);
+
+            // ⚙️ Performance preset
+            logDebug(3, '⚙️ Performance Preset: ' + performancePreset);
+
             logDebug(3, '');
             logDebug(2, '✅ Settings loaded and applied.');
             logDebug(3, '------------------------------');
@@ -292,15 +441,15 @@ chrome.storage.onChanged.addListener((changes) => {
     for (const key in changes) {
         const newValue = changes[key].newValue;
         const oldValue = changes[key].oldValue;
-        
+
         switch (key) {
             case "downloadFolder": downloadFolder = newValue; break;
             case "customFolderPath": customFolderPath = newValue.replace(/[<>:"/\\|?*]+/g, ''); break;
             case "downloadLimit": downloadLimit = newValue; break;
-            case "debugLogLevel": 
-            debugLogLevel = (typeof newValue === 'number' && [0,1,2,3].includes(newValue)) 
-                ? newValue 
-                : 0; 
+            case "debugLogLevel":
+            debugLogLevel = (typeof newValue === 'number' && [0,1,2,3].includes(newValue))
+                ? newValue
+                : 0;
             break;
             case "filenameMode": filenameMode = newValue; break;
             case "prefix": prefix = sanitizeFilenameComponent(newValue); break;
@@ -314,22 +463,28 @@ chrome.storage.onChanged.addListener((changes) => {
             case "allowJPG": allowJPG = newValue; break;
             case "allowJPEG": allowJPEG = newValue; break;
             case "allowPNG": allowPNG = newValue; break;
-            case "allowWEBP": allowWEBP = newValue; break;  
-            case "gallerySimilarityLevel": gallerySimilarityLevel = newValue; break;  
+            case "allowWEBP": allowWEBP = newValue; break;
+            case "allowAVIF": allowAVIF = newValue; break;
+            case "allowBMP": allowBMP = newValue; break;
+            case "allowExtendedImageUrls": allowExtendedImageUrls = newValue; break; // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
+
+            case "gallerySimilarityLevel": gallerySimilarityLevel = newValue; break;
             case "galleryMinGroupSize": galleryMinGroupSize = newValue; break;
             case "galleryEnableSmartGrouping": galleryEnableSmartGrouping = newValue; break;
             case "galleryEnableFallback": galleryEnableFallback = newValue; break;
             case "showUserFeedbackMessages": showUserFeedbackMessages = newValue; break;
             case "enableClipboardHotkeys": enableClipboardHotkeys = newValue; break;
             case "maxOpenTabs": maxOpenTabs = newValue; break;
-            case "webLinkedGalleryDelay": webLinkedGalleryDelay = newValue; break;  
-            case "peekTransparencyLevel": peekTransparencyLevel = newValue; break;          
+            case "webLinkedGalleryDelay": webLinkedGalleryDelay = newValue; break;
+            case "peekTransparencyLevel": peekTransparencyLevel = newValue; break;
+            case "enableOneClickIcon": enableOneClickIcon = newValue; break;
+            case "performancePreset": performancePreset = newValue; break;
             default: logDebug(2, `⚠️ Unknown setting changed: ${key}`); break;
         }
-        
+
         updatedDetails.push(`${key}: ${JSON.stringify(oldValue)} → ${JSON.stringify(newValue)}`);
     }
-    
+
     logDebug(2, `🆕 Settings updated in memory:\n 📌 ${updatedDetails.join('\n - ')}`);
     logDebug(3, '');
 });
@@ -338,17 +493,17 @@ chrome.storage.onChanged.addListener((changes) => {
  * 🧠 Utility: Validates a message before handling
  * @param {*} message - The message object to validate.
  * @returns {boolean} - Returns true if the message is valid, false otherwise.
- * @description This function checks if the message is an object and has a valid action property. 
+ * @description This function checks if the message is an object and has a valid action property.
  */
 function validateMessage(message) {
     return message && typeof message === 'object' && typeof message.action === 'string';
 }
 
-/** 
+/**
  * 🧠 Utility: Sends response safely
  * @param {function} sendResponse - The callback function to send the response.
  * @param {object} payload - The payload to send in the response.
- * @returns {void} 
+ * @returns {void}
  * @description This function attempts to send a response using the sendResponse callback.
  */
 function respondSafe(sendResponse, payload) {
@@ -360,7 +515,7 @@ function respondSafe(sendResponse, payload) {
 }
 
 /**
- * 
+ *
  */
 /**
  * 📩 Main message handler for core extension functionalities
@@ -370,9 +525,9 @@ function respondSafe(sendResponse, payload) {
  * @param {function} sendResponse - The callback function to send the response.
  * @description This function listens for messages from the popup or content scripts and handles them accordingly.
  */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     try {
-        
+
         let injectionsCompleted = 0;
 
         if (!validateMessage(message)) return false;
@@ -385,12 +540,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             logDebug(2, '⚠️ Message received without action. Ignored.');
             return;
         } else {
-            logDebug(1, '✅ Message received with action: ' + message.action);
+            logDebug(2, '✅ Message received with action: ' + message.action);
         }
 
         // ✅ Handle bulk download action
+        // Flow: 1 - Download images directly in tabs
         if (message.action === 'bulkDownload') {
             logDebug(1, '📷 Initiating Bulk Image Download flow.');
+            
+            // Show processing indicator before starting analysis
+            setBadgeProcessing();
+
             try {
                 // ✅ No need to check sender.tab.id for bulkDownload
                 handleBulkDownload(message, sendResponse);
@@ -403,8 +563,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
 
         // ✅ Handle gallery extraction (linked images)
+        // Flow: 2 - Extract images from galleries (with direct links)
         if (message.action === 'extractLinkedGallery') {
             logDebug(1, '🌄 Extract Linked Gallery flow started.');
+            
+            // Show processing indicator before starting analysis
+            setBadgeProcessing();
             try {
                 if (!message.payload || typeof message.payload !== 'object') {
                     throw new Error('Payload is missing or not an object');
@@ -414,7 +578,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 }
                 const tabId = sender.tab?.id;
                 if (!tabId) throw new Error('Invalid sender tab ID');
-        
+
                 // ✅ Validate payload properties
                 handleExtractLinkedGallery(message.payload, sendResponse)
                 .then((result) => respondSafe(sendResponse, result))
@@ -422,18 +586,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                   logDebug(1, '❌ Error in Linked Gallery flow: ' + error.message);
                   logDebug(2, `🐛 Stacktrace: ${error.stack}`);
                   respondSafe(sendResponse, { success: false, error: error.message });
-                });              
+                });
             } catch (e) {
                 logDebug(1, '❌ Critical error before processing extractLinkedGallery: ' + e.message);
-                logDebug(1, '🐛 Stacktrace: ', e.stack);
+                logDebug(2, '🐛 Stacktrace: ', e.stack);
                 respondSafe(sendResponse, { success: false, error: e.message });
             }
             return true;
         }
 
         // ✅ Handle gallery extraction (visual detection)
+        // Flow: 3 - Extract images from galleries (without links)
         if (message.action === 'extractVisualGallery') {
-            logDebug(1, '🖼️ BEGIN: Extract Visual Gallery flow started.');
+            logDebug(2, '🖼️ BEGIN: Extract Visual Gallery flow started.');
+            
+            // Show processing indicator before starting analysis
+            setBadgeProcessing();
+
             try {
                 if (!message.payload || typeof message.payload !== 'object') {
                     throw new Error('Payload is missing or not an object');
@@ -446,11 +615,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 }
                 const tabId = sender.tab?.id;
                 if (!tabId) throw new Error('Invalid sender tab ID');
-        
+
                 handleExtractVisualGallery(message.payload, sendResponse);
-                logDebug(1, '✅ END: Bulk download process completed.');
+                logDebug(2, '✅ END: Bulk download process completed.');
                 return true;
-                
+
             } catch (e) {
                 logDebug(1, '❌ Critical error before processing extractVisualGallery: ' + e.message);
                 logDebug(1, '🐛 Stacktrace: ', e.stack);
@@ -460,129 +629,163 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
 
         // ✅ Handle Web-Linked Gallery extraction
+        // Flow: 4 - Extract images from web-linked galleries
         if (message.action === 'processWebLinkedGallery') {
             logDebug(1, '🔗 BEGIN: Extract Web-Linked Gallery (background handler)');
+            
+            // Show processing indicator before starting analysis
+            setBadgeProcessing();
+            
             logDebug(3, '');
-        
+
             try {
+                
+                const timing = logTimingStart("processWebLinkedGallery");
+                
                 const candidates = message.images;
                 if (!Array.isArray(candidates) || candidates.length === 0) {
                     throw new Error("Missing or invalid image candidates.");
                 }
-        
+
                 const urls = candidates.filter(url => typeof url === 'string' && url.startsWith('http'));
                 const total = urls.length;
                 const concurrencyLimit = Math.max(1, Math.min(10, maxOpenTabs));
                 let opened = 0;
                 let index = 0;
-        
+
                 logDebug(2, `📦 Candidates: ${total}`);
                 logDebug(2, `🔄 Max concurrent tabs: ${concurrencyLimit}`);
                 logDebug(3, '');
 
-                // 🧠 Function to open tabs with controlled concurrency
+                // 🧠 Validate URLs
+                // This will filter out any invalid URLs
                 async function openNextTabsControlled() {
                     try {
                         const delayBetweenTabs = Math.max(100, Math.min(3000, webLinkedGalleryDelay));
-                        let tabsOpened = 0;
                         logDebug(1, `🔗 BEGIN: Opening ${total} tabs...`);
-                        logDebug(2, `⏱️ Using delay between tab openings: ${delayBetweenTabs} ms`);
+                        logDebug(2, `⏱️ Delay between openings: ${delayBetweenTabs} ms`);
                         logDebug(3, '');
-                        updateBadge(0); // 🟢 Start badge in green
-                
-                        while (index < total) {
-                            try {
-                                if (opened < concurrencyLimit) {
-                                    const currentUrl = urls[index++];
-                                    logDebug(2, `🔗 Opening tab ${index} of ${total}`);
-                                    logDebug(2, `📦 Opening URL: ${currentUrl}`);
-                                    logDebug(3, '');
-                                    opened++;
-                                    tabsOpened++;
-                
-                                    // 💻 Open the tab in the background
-                                    chrome.tabs.create({ url: currentUrl, active: false }, (tab) => {
-                                        if (chrome.runtime.lastError) {
-                                            logDebug(1, `🧟 Failed to open tab: ${chrome.runtime.lastError.message}`);
-                                        } else {
-                                            logDebug(2, `🧭 Opened tab: ${currentUrl}`);
-                                            logDebug(3, '');
-                                            updateBadge(tabsOpened);
+                        updateBadge(0); // 🟢 Initialize badge in green
 
-                                            // 💉 Inject save icon script after tab opens
-                                            if (tab && tab.id) {
-                                                logDebug(2, `💉 Injecting save icon into tab ${tab.id}`);
-                                                logDebug(3, '');
+                        // ✅ Capture base tab index once
+                        const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                        const baseTabIndex = (activeTab && typeof activeTab.index === 'number') ? activeTab.index : 0;
+                        logDebug(2, `🧭 Base tab index: ${baseTabIndex}`);
 
-                                                // 💉 Inject the save icon script into the tab
-                                                chrome.scripting.executeScript({
-                                                    target: { tabId: tab.id },
-                                                    files: ["script/injectSaveIcon.js"]
-                                                }).then(() => {
-                                                    injectionsCompleted++;
-                                                    if (injectionsCompleted === total) {
-                                                        logDebug(1, `💉 All save icon scripts injected into ${injectionsCompleted} tab(s).`);
-                                                        logDebug(1, '✅ END: Extract Web-Linked Gallery!');
-                                                    }
-                                                }).catch((injectErr) => {
-                                                    logDebug(1, `❌ Failed to inject save icon: ${injectErr.message}`);
-                                                });
-                                            } else {
-                                                logDebug(1, `❌ Cannot inject script: Invalid tab object`);
-                                            }
-                                        }
-                                        opened--;
-                                    });
-                                    await new Promise(resolve => setTimeout(resolve, delayBetweenTabs));
-                                } else {
-                                    await new Promise(resolve => setTimeout(resolve, 100));
+                        let activeOpenings = 0;
+                        let tabsOpened = 0;
+
+                        // 🧠 Recursive function to open tabs with controlled concurrency
+                        function tryOpenNext() {
+                            // 🧠 Check if we have reached the end of the list
+                            if (index >= total) {
+                                if (activeOpenings === 0) {
+                                    logDebug(1, `🏁 All tabs opened successfully.`);
+                                    logDebug(1, "💾 End: Finished injecting save icon script into tabs");
+                                    updateBadge(tabsOpened, true);
+                                    respondSafe(sendResponse, { success: true });
                                 }
-                            } catch (innerError) {
-                                logDebug(1, `🧟 Error during tab opening loop: ${innerError.message}`);
-                                logDebug(2, `🐛 Stacktrace: ${innerError.stack}`);
+                                return;
+                            }
+
+                            // 🧠 Check if we can open more tabs
+                            if (activeOpenings < concurrencyLimit) {
+                                const currentUrl = urls[index];
+                                const targetIndex = baseTabIndex + 1 + tabsOpened; // 🔧 Corrige dirección (hacia la derecha)
+
+                                // 🧠 Validate URL format
+                                chrome.tabs.create({ url: currentUrl, active: false, index: targetIndex }, (tab) => {
+                                    if (chrome.runtime.lastError) {
+                                        if (chrome.runtime.lastError.message.includes('429')) {
+                                            logDebug(1, `⚠️ Rate limit hit (429). Delaying retry.`);
+                                            setTimeout(tryOpenNext, delayBetweenTabs * 2);
+                                        } else {
+                                            logDebug(1, `🧟 Failed to open tab: ${chrome.runtime.lastError.message}`);
+                                            setTimeout(tryOpenNext, delayBetweenTabs);
+                                        }
+                                    } else {
+                                        tabsOpened++;
+                                        updateBadge(tabsOpened);
+                                        logDebug(2, `✅ Opened tab ${index + 1} of ${total}: ${currentUrl}`);
+
+                                        // 🚀 NEW: Inject save icon if option enabled
+                                        if (enableOneClickIcon) {
+                                            chrome.scripting.executeScript({
+                                                target: { tabId: tab.id },
+                                                files: ["script/injectSaveIcon.js"]
+                                            }, () => {
+                                                if (chrome.runtime.lastError) {
+                                                    logDebug(1, `❌ Failed to inject save icon: ${chrome.runtime.lastError.message}`);
+                                                } else {
+                                                    logDebug(2, `💾 Save icon injected into tabId ${tab.id}`);
+                                                }
+                                            });
+                                        }
+
+                                        setTimeout(tryOpenNext, delayBetweenTabs);
+                                    }
+                                    activeOpenings--;
+                                });
+
+
+                                index++;
+                                activeOpenings++;
+                            } else {
+                                setTimeout(tryOpenNext, delayBetweenTabs);
                             }
                         }
-                
-                        const waitUntilAllClosed = setInterval(() => {
-                            if (opened === 0) {
-                                clearInterval(waitUntilAllClosed);
-                                logDebug(1, '✅ All tabs from Web-Linked Gallery opened.');
-                                updateBadge(tabsOpened, true); // 🔵 Paint blue
-                                respondSafe(sendResponse, { success: true });
-                            }
-                        }, 100);
-                    } catch (outerError) {
-                        logDebug(1, `❌ Critical error in openNextTabsControlled(): ${outerError.message}`);
-                        logDebug(2, `🐛 Stacktrace: ${outerError.stack}`);
-                        respondSafe(sendResponse, { success: false, error: outerError.message });
+
+                        tryOpenNext();
+
+                    } catch (err) {
+                        logDebug(1, `❌ Exception in openNextTabsControlled: ${err.message}`);
+                        respondSafe(sendResponse, { success: false, error: err.message });
                     }
                 }
-        
+
                 // 🧠 Start opening tabs with controlled concurrency
                 logDebug(1, `💉 Begin: Injecting save icon script into tabs`);
                 openNextTabsControlled();
-                respondSafe(sendResponse, { success: true });
+                
+                // respondSafe(sendResponse, { success: true });
             } catch (err) {
                 logDebug(1, `❌ Error in Web-Linked Gallery flow: ${err.message}`);
                 logDebug
                 respondSafe(sendResponse, { success: false, error: err.message });
             }
-        
+
             return true;
         }
 
         // ✅ Handle manual image download from 💾 overlay
         if (message.action === 'manualDownloadImage') {
+            logDebug(3, '');
             logDebug(1, '💾 BEGIN: Manual image download requested.');
-            logDebug(3, '------------------------------------');
 
+            setBadgeProcessing();
+                    
             try {
                 const imageUrl = message.imageUrl;
                 if (!imageUrl || typeof imageUrl !== 'string') {
                     throw new Error("Invalid image URL received.");
                 }
 
-                const urlObj = new URL(imageUrl);
+                const allowExtended = allowExtendedImageUrls ?? false;
+                const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
+                const hasExtendedSuffix = extendedSuffixPattern.test(imageUrl);
+
+                let urlForDownload;
+                if (allowExtended && hasExtendedSuffix) {
+                    urlForDownload = normalizeImageUrl(imageUrl);
+                    logDebug(2, `🔵 [Manual] Extended suffix detected and allowed. Using normalized URL: ${urlForDownload}`);
+                } else {
+                    urlForDownload = imageUrl;
+                    logDebug(2, `🟢 [Manual] No extended suffix detected or not allowed. Using original URL.`);
+                }
+
+                logDebug(2, `🔗 Processing URL: ${urlForDownload}`);
+
+                const urlObj = new URL(urlForDownload);
                 let baseName = urlObj.pathname.split('/').pop() || 'image';
                 let extension = '';
                 if (baseName.includes('.')) {
@@ -591,52 +794,139 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     baseName = baseName.slice(0, lastDot);
                 }
 
-                generateFilename(baseName, extension).then((finalName) => {
-                    const finalPath = (downloadFolder === 'custom' && customFolderPath)
-                        ? `${customFolderPath.replace(/\\/g, '/')}/${finalName}`
-                        : finalName;
+                // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
+                await Promise.all([configReady, settingsReady]);
 
-                    chrome.downloads.download({
-                        url: imageUrl,
-                        filename: finalPath,
-                        conflictAction: 'uniquify'
-                    }, (downloadId) => {
-                        if (downloadId) {
-                            logDebug(1, '💾 Manual image download: ', finalName);
-                            // Close the sender tab if possible
-                            const tabId = sender?.tab?.id;
-                            if (tabId) {
-                                closeTabSafely(tabId);
-                                logDebug(2, '💾 END: Manual image download.');
-                                logDebug(3, '');
+                (async () => {
+                    try {
+                        // Generate final filename with prefix/suffix/timestamp (from utils/configCache)
+                        const finalName = await generateFilename(baseName, extension);
+
+                        // Normalize custom subfolder (relative under default Downloads)
+                        const safeFolder = (downloadFolder === 'custom' && typeof customFolderPath === 'string' && customFolderPath.trim())
+                            ? customFolderPath.trim().replace(/\\/g, '/').replace(/\/+$/, '')
+                            : '';
+
+                        const finalPath = safeFolder ? `${safeFolder}/${finalName}` : finalName;
+                        logDebug(2, `📁 Saving folder/file (requested): ${finalPath}`);
+
+                        // 🔒 Register the desired filename so the listener can enforce it
+                        pendingDownloadPaths.set(urlForDownload, finalPath);
+
+                        chrome.downloads.download({
+                            url: urlForDownload,
+                            // filename is still passed (harmless); listener will enforce it anyway
+                            filename: finalPath,
+                            conflictAction: 'uniquify'
+                        }, (downloadId) => {
+                            if (downloadId) {
+                                // ACK early to keep message port healthy in MV3
+                                respondSafe(sendResponse, { success: true });
+
+                                try {
+                                    chrome.downloads.search({ id: downloadId }, (items) => {
+                                        const resolved = items && items[0] ? items[0].filename : finalPath;
+                                        logDebug(1, '💾 Manual image download (resolved path): ', resolved);
+                                    });
+                                } catch (auditErr) {
+                                    logDebug(1, `⚠️ Could not audit saved path: ${auditErr.message}`);
+                                    logDebug(3, `🐛 Stacktrace: ${auditErr.stack}`);
+                                }
+
+                                const tabId = sender?.tab?.id;
+                                if (tabId) {
+                                    setBadgeFinished();
+                                    closeTabSafely(tabId);
+                                    logDebug(2, '💾 END: Manual image download.');
+                                    logDebug(3, '');
+                                }
+                            } else {
+                                logDebug(1, `❌ Manual download failed for: ${urlForDownload}`);
+                                respondSafe(sendResponse, { success: false, error: "Download failed" });
+                                // Cleanup on failure
+                                pendingDownloadPaths.delete(urlForDownload);
                             }
-                            respondSafe(sendResponse, { success: true });
-                        } else {
-                            logDebug(1, `❌ Manual download failed for: ${imageUrl}`);
-                            respondSafe(sendResponse, { success: false, error: "Download failed" });
-                        }
-                    });
-                }).catch((err) => {
-                    logDebug(1, `❌ Failed to generate filename: ${err.message}`);
-                    respondSafe(sendResponse, { success: false, error: err.message });
-                });
+                        });
+                    } catch (err) {
+                        logDebug(1, `❌ Failed to prepare manual download: ${err.message}`);
+                        logDebug(3, `🐛 Stacktrace: ${err.stack}`);
+                        respondSafe(sendResponse, { success: false, error: err.message });
+                    }
+                })();
+
             } catch (e) {
                 logDebug(1, `❌ Error handling manual download: ${e.message}`);
+                logDebug(3, `🐛 Stacktrace: ${e.stack}`);
                 respondSafe(sendResponse, { success: false, error: e.message });
             }
 
             return true;
         }
 
+
+
         respondSafe(sendResponse, { success: false, error: "Unknown action." });
 
     } catch (error) {
         logDebug(1, `❌ Unhandled error in message handler: ${error.message}`);
-        logDebug(2, '🐛 Stacktrace: ', error.stack); 
+        logDebug(3, '🐛 Stacktrace: ', error.stack);
         sendResponse({ success: false, error: "Internal error occurred in background script." });
     }
 });
 
+// 🎯 Command listener: One-click download icon (injects floating download icon if enabled)
+chrome.commands.onCommand.addListener(async (command) => {
+    try {
+        if (command !== "open-oneclick-icon") {
+            logDebug(1, `⚠️ Unknown command received: "${command}"`);
+            logDebug(2, "💡 Unknown hotkey. Please verify 'commands' in manifest.json and feature toggle in options.");
+            return;
+        }
+
+        logDebug(1, "🖱️ Hotkey 'open-oneclick-icon' triggered.");
+            
+        // Show processing indicator before starting analysis
+        setBadgeProcessing();
+            
+
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+        if (!tab || !tab.id) {
+            logDebug(1, "⛔ No active tab found. Cannot inject One-click icon.");
+            return;
+        }
+
+        // 🧠 Check if the One-click download icon is enabled in options
+        const result = await new Promise((resolve, reject) => {
+            try {
+                chrome.storage.sync.get("enableOneClickIcon", (data) => {
+                    if (chrome.runtime.lastError) {
+                        reject(chrome.runtime.lastError);
+                    } else {
+                        resolve(data);
+                    }
+                });
+            } catch (err) {
+                reject(err);
+            }
+        });
+
+        if (!result.enableOneClickIcon) {
+            logDebug(1, "⚠️ One-click download icon is disabled in options. Injection aborted.");
+            return;
+        }
+
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ["script/injectSaveIcon.js"]
+        });
+
+        logDebug(1, "✅ One-click download icon injected successfully.");
+    } catch (error) {
+        logDebug(1, `❌ Failed to inject One-click icon: ${error.message}`);
+        logDebug(2, `🐛 Stacktrace: ${error.stack}`);
+    }
+});
 
 /**
  * 📸 Handle Download images directly in tabs
@@ -653,8 +943,14 @@ async function handleBulkDownload(message, sendResponse) {
     let totalProcessed = 0;
     let batchIndex = 0;
 
+    // 🕒 Start timing metric
+    const timing = logTimingStart("Download images directly in tabs");
+
+    // 🚦 Continue bulk loop flag
     chrome.tabs.query({ currentWindow: true }, async (tabs) => {
+        
         const activeTabIndex = message.activeTabIndex;
+        
         // TODO: sometimes this objet (filteredTabs) is 0! Why?
         const filteredTabs = tabs.filter(tab => tab.index >= activeTabIndex);
         const validTabs = [];
@@ -662,31 +958,33 @@ async function handleBulkDownload(message, sendResponse) {
         logDebug(2, '🔎 BEGIN: Filtering image tabs...');
         logDebug(3, ' ');
 
+        // 🧠 Filter tabs to find valid image URLs
         for (const tab of filteredTabs) {
             try {
                 logDebug(3, `🕵 Checking tab id: ${tab.id}`);
                 logDebug(3, `⏳ Is a direct image URL?: ${tab.url}`);
-        
-                // ✅ Pre-filter: Only check URLs that appear to be direct images
-                const isDirect = await isDirectImageUrl(tab.url);
-                logDebug(3, `🔎 isDirectImageUrl returned: ${typeof isDirect} (${isDirect})`);
 
-                if (!isDirect) {
-                    logDebug(2, '❌ Not a direct image URL.');
-                    logDebug(2, '⏩ Skipping this tab...');
-                    logDebug(3, '');
-                    continue;
+                const allowExtended = allowExtendedImageUrls ?? false;
+                const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
+                const hasExtendedSuffix = extendedSuffixPattern.test(tab.url);
+
+                let urlForValidation;
+                if (allowExtended && hasExtendedSuffix) {
+                    urlForValidation = normalizeImageUrl(tab.url); // Use clean version to validate
+                    logDebug(2, `🔵 Validating normalized URL for image: ${urlForValidation}`);
+                } else {
+                    urlForValidation = tab.url;
+                    logDebug(3, `🟢 Validating original URL for image: ${urlForValidation}`);
                 }
-        
-                const isAllowed = await isAllowedImageFormat(tab.url);
-        
-                if (!isAllowed) {
+
+                const isDirectImage = await isDirectImageUrl(urlForValidation);
+                if (!isDirectImage) {
                     logDebug(2, `😒 Not an allowed image format!`);
                     logDebug(2, '⏩ Skipping this tab...');
                     logDebug(3, '');
                     continue;
                 }
-        
+
                 logDebug(2, '✅ Valid image found!');
                 logDebug(3, '');
                 validTabs.push(tab);
@@ -694,11 +992,38 @@ async function handleBulkDownload(message, sendResponse) {
                 logDebug(1, `❌ Error validating tab URL: ${err.message}`);
             }
         }
-        
+
 
         logDebug(2, `🔎 END: ${validTabs.length} valid image tabs found`);
         logDebug(3, '------------------------------------');
         logDebug(3, '');
+		
+		// 🚦 Block if no valid tabs found for download
+		if (validTabs.length === 0) {
+			try {
+				logDebug(1, "⛔ No valid image tabs detected. Aborting download process.");
+				logDebug(2, "💡 Tip: Try using 'Extract Gallery' or 'Web-Linked Gallery' instead.");
+
+				if (showUserFeedbackMessages) {
+					showUserMessage("No valid images found in tabs. Use gallery extraction instead.", "error");
+				}
+
+				// 🧹 Clean up visual badge and internal counters
+				updateBadge(0, true); // 🔵 Paint blue (final)
+				validatedUrls.clear(); // Defensive cleanup
+
+			} catch (validationError) {
+				logDebug(1, `⚠️ Validation error: ${validationError.message}`);
+			} finally {
+				respondSafe(sendResponse, {
+					success: false,
+					downloads: 0,
+					error: "No valid tabs for download."
+				});
+			}
+
+			return;
+		}
 
         // 🧪 Prepare batches
         let remainingTabs = [...validTabs];
@@ -732,14 +1057,18 @@ async function handleBulkDownload(message, sendResponse) {
                 logDebug(2, `🔴 END: Batch #${batchIndex} complete. Downloads so far: ${totalProcessed}`);
 
                 if (continueBulkLoop && remainingTabs.length > 0) {
+                    logDebug(3, ``);
                     logDebug(2, '🔁 Continue enabled. Next batch queued...');
                     processNextBatch();
                 } else {
                     logDebug(1, '🏁 All batches processed. Finalizing badge...');
                     logDebug(2, `🔵 Final badge: ${totalProcessed} images downloaded.`);
-                    
+
                     logDebug(3, '');
                     updateBadge(totalProcessed, true); // 🔵 Paint blue at the real end
+    	
+                    // 🕒 End timing metric
+                    logTimingEnd(timing);
 
                     // 🧹 Clean up memory references
                     validatedUrls.clear();
@@ -750,7 +1079,7 @@ async function handleBulkDownload(message, sendResponse) {
                     respondSafe(sendResponse, { success: true, downloads: totalProcessed });
 
                 }
-            }, validatedUrls, batchIndex === 1, totalProcessed);
+            }, validatedUrls, batchIndex === 1, totalProcessed, timing);
         }
 
         processNextBatch();
@@ -774,157 +1103,182 @@ async function processValidTabs(validTabs, onComplete, validatedUrls, resetBadge
     let completedTabs = 0;
     const totalTabs = validTabs.length;
     let successfulDownloads = 0;
+    const queue = [...validTabs];
 
-    // ✅ Reset badge ONLY if it's the very first batch
     if (resetBadge && totalProcessed === 0) updateBadge(0);
 
-    // ✅ Function to process each tab
-    async function processTab(tab) {
-        try {
-            const url = new URL(tab.url);
-            logDebug(2, `🛠️ BEGIN: Processing tab id: ${tab.id}`);
+    // 🧠 Function to generate a unique filename based on the URL
+    const tryNext = () => {
+        if (activeDownloads >= downloadLimit || queue.length === 0) return;
+        const tab = queue.shift();
+        processTab(tab);
+    };
 
+    // Process batch of tabs
+    async function processTab(tab) {
+        let url; // Declare early so it's visible in all inner scopes
+        try {
+            // 🧭 Route for normal and extended URLs
+            const allowExtended = allowExtendedImageUrls ?? false;
+            const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
+            const hasExtendedSuffix = extendedSuffixPattern.test(tab.url);
+
+            let chosenUrlString;
+
+            if (allowExtended && hasExtendedSuffix) {
+                // 🕵 Extended suffix present and allowed: normalize
+                chosenUrlString = normalizeImageUrl(tab.url);
+                logDebug(2, `🕵 Extended suffix detected and allowed.`);
+                logDebug(3, `🔴 Original URL: ${tab.url}`);
+                logDebug(3, `🟢 Normalized URL: ${chosenUrlString}`);
+            } else {
+                // 🕵 Normal URL or option not enabled: use as is
+                chosenUrlString = tab.url;
+                logDebug(3, `🕵 No extended suffix detected or not allowed. Using original URL.`);
+                logDebug(3, `🟢 Original URL: ${chosenUrlString}`);
+            }
+
+            url = new URL(chosenUrlString);
+
+            logDebug(3, ``);
+            logDebug(2, `🛠️ BEGIN: Processing tab id: ${tab.id}`);
+            logDebug(1, `🕵 Validating Url ${url.href}`);
+
+            // ✅ Check if URL is already validated
             if (validatedUrls.has(url.href)) {
-                logDebug(2, `🔁 Duplicate URL skipped: ${url.href}`);
+                logDebug(2, `🔁 Duplicate URL skipped`);
                 logDebug(3, `🛠️ END: Tab id ${tab.id}`);
-                logDebug(3, '------------------------------------');
-                logDebug(3, '');
-                return onCompleteDownload();
+                completedTabs++;
+                if (completedTabs === totalTabs) {
+                    onComplete(successfulDownloads);
+                } else {
+                    tryNext();
+                }
+                return;
             }
 
             validatedUrls.add(url.href);
 
-            // 🧪 Validate image size using Content-Length (header-based) before full fetch
             try {
-                const headResponse = await fetch(url.href, { method: 'HEAD' });
-                const contentLength = parseInt(headResponse.headers.get('Content-Length'), 10);
+                // 🔍 Use normalized URL for fetch and validation
+                const response = await fetch(url.href, { mode: 'cors' });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-                if (!isNaN(contentLength) && contentLength < 20000) {
-                    logDebug(2, `⛔ Skipped: File too small by header (${contentLength} bytes)`);
-                    logDebug(3, `🛠️ END: Tab id ${tab.id}`);
-                    logDebug(3, '------------------------------------');
-                    logDebug(3, '');
-                    return onCompleteDownload();
+                const blob = await response.blob();
+                const bitmap = await createImageBitmap(blob);
+                const width = bitmap.width;
+                const height = bitmap.height;
+
+                logDebug(3, `📏 Image dimensions: ${width}x${height}`);
+
+                if (width < minWidth || height < minHeight) {
+                    logDebug(2, `📉 Image too small. Skipping.`);
+                    completedTabs++;
+                    if (completedTabs === totalTabs) onComplete(successfulDownloads);
+                    tryNext();
+                    return;
                 }
-            } catch (headError) {
-                logDebug(2, `⚠️ Could not determine size via HEAD request: ${headError.message}`);
-                // Continue with normal fetch as fallback
-            }
 
-            logDebug(2, `🕵 BEGIN: Processing tabs.`);
-            // 🧪 Fallback: Validate image size using createImageBitmap
-            fetch(url.href)
-                .then(response => response.blob())
-                .then(blob => createImageBitmap(blob))
-                .then(async (bitmap) => {
-                    logDebug(3, '');
-                    logDebug(2, `📏 BEGIN: Validating image size.`);
+                const parts = url.pathname.split('/');
+                const lastPart = parts.pop();
+                const baseName = lastPart.split('.')[0] || 'image';
+                const extension = '.' + (lastPart.split('.').pop() || 'jpg');
 
-                    if (bitmap.width < minWidth || bitmap.height < minHeight) {
-                        logDebug(2, `⛔ Skipped: Image too small (${bitmap.width}x${bitmap.height})`);
-                        logDebug(2, `🔎 Required minimum: ${minWidth}x${minHeight}`);
-                        logDebug(3, `📏 END: Validation failed`);
-                        logDebug(3, `🛠️ END: Tab id ${tab.id}`);
-                        logDebug(3, '------------------------------------');
-                        logDebug(3, '');
-                        return onCompleteDownload();
-                    }
+                // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
+                await Promise.all([settingsReady, configReady]);
 
-                    // 🧱 Extract file name and extension
-                    let fileName = url.pathname.split('/').pop() || 'image';
-                    let extension = '';
-                    if (fileName.includes('.')) {
-                        const lastDot = fileName.lastIndexOf('.');
-                        extension = fileName.slice(lastDot);
-                        fileName = fileName.slice(0, lastDot);
-                    }
+                // ✅ Generate final filename based on user settings (prefix/suffix/timestamp)
+                const finalName = await generateFilename(baseName, extension);
 
-                    logDebug(2, `💾 BEGIN: Downloading`);
-                    const finalName = await generateFilename(fileName, extension);
-                    const finalPath = (downloadFolder === 'custom' && customFolderPath)
-                        ? `${customFolderPath.replace(/\\/g, '/')}/${finalName}`
-                        : finalName;
-
-                    chrome.downloads.download({
-                        url: url.href,
-                        filename: finalPath,
-                        conflictAction: 'uniquify'
-                    }, (downloadId) => {
-                        if (downloadId) {
-                            logDebug(1, `💾 Download: ${finalName}`);
-                            successfulDownloads++;
-                            updateBadge(successfulDownloads + totalProcessed); // ✅ Cumulative badge (green)
-                            logDebug(2, `🆗 Downloaded image(s): ${successfulDownloads}`);
-                            closeTabSafely(tab.id);
-                        } else {
-                            logDebug(1, `❌ Failed to download: ${url.href}`);
-                        }
-
-                        logDebug(2, `🛠️ END: Tab id ${tab.id}`);
-                        logDebug(3, '------------------------------------');
-                        logDebug(3, '');
-                        onCompleteDownload();
-                    });
-                })
-                .catch(err => {
-                    logDebug(1, `❌ Error validating image: ${err.message}`);
-                    logDebug(1, `🐛 Stacktrace: ${err.stack}`);
-                    logDebug(2, `🛠️ END: Tab id ${tab.id}`);
-                    logDebug(3, '------------------------------------');
-                    logDebug(3, '');
-                    onCompleteDownload();
-                });
-        } catch (error) {
-            logDebug(1, `⚠️ Exception in tab processing: ${error.message}`);
-            logDebug(1, `🐛 Stacktrace: ${error.stack}`);
-            logDebug(2, `🛠️ END: Tab id ${tab.id}`);
-            logDebug(3, '------------------------------------');
-            logDebug(3, '');
-            onCompleteDownload();
-        }
-    }
-
-    // ✅ Callback for when a download is completed
-    function onCompleteDownload() {
-        activeDownloads--;
-        completedTabs++;
-
-        if (completedTabs === totalTabs && activeDownloads === 0) {
-            logDebug(1, `✅ All image tabs processed in batch: ${completedTabs}`);
-            logDebug(1, '📥 END: Batch download completed');
-            logDebug(3, '');
-            onComplete(successfulDownloads); // ✅ Return number of downloads to main loop
-        } else {
-            processQueue();
-        }
-    }
-
-    // ✅ Function to process the queue of tabs
-    function processQueue() {
-        try {
-            // ✅ Process queue using Promise-based concurrency control
-            while (activeDownloads < downloadLimit && queueIndex < totalTabs) {
-                const tab = validTabs[queueIndex++];
                 activeDownloads++;
 
-                // 🧠 Execute tab processing in controlled parallel batch
-                (async () => {
-                    await processTab(tab); // onCompleteDownload() will handle counters
-                })().catch((err) => {
-                    logDebug(1, `❌ Error in async tab processing: ${err.message}`);
+                // ⏳ Set a timeout to catch potential download stalls
+                const timeout = setTimeout(() => {
+                    activeDownloads--;
+                    const failedUrl = url ? url.href : '[unknown]';
+                    logDebug(1, `⏰ Timeout: download stalled for ${failedUrl}`);
+
+                    completedTabs++;
+                    if (completedTabs === totalTabs) onComplete(successfulDownloads);
+                    else tryNext();
+                }, 15000); // 15 seconds safety timeout
+
+                // 📁 Determine full path based on user settings (with robust normalization)
+                let finalPath;
+                try {
+                    const isCustom = (downloadFolder === 'custom' && typeof customFolderPath === 'string' && customFolderPath.trim());
+                    if (isCustom) {
+                        const safeFolder = customFolderPath
+                            .trim()
+                            .replace(/\\/g, '/')
+                            .replace(/^\/+|\/+$/g, ''); // strip leading/trailing slashes
+                        finalPath = safeFolder ? `${safeFolder}/${finalName}` : finalName;
+                        logDebug(3, `📁 Using custom folder path: ${finalPath}`);
+                    } else {
+                        finalPath = finalName;
+                        logDebug(3, `📁 Using default download folder`);
+                    }
+                } catch (err) {
+                    logDebug(1, `❌ Error building download path: ${err.message}`);
                     logDebug(2, `🐛 Stacktrace: ${err.stack}`);
+                    finalPath = finalName;
+                }
+
+                // 🔒 Register desired path so the onDeterminingFilename listener can enforce it
+                pendingDownloadPaths.set(url.href, finalPath);
+
+                // 🚀 Begin the download process with normalized URL
+                chrome.downloads.download({
+                    url: url.href, // normalized (no :large)
+                    // filename is still passed; listener will enforce it anyway
+                    filename: finalPath,
+                    conflictAction: 'uniquify'
+                }, (downloadId) => {
+                    clearTimeout(timeout); // ✅ Clear timeout on response
+                    activeDownloads--;
+
+                    // ✅ Check if download was successful
+                    if (downloadId) {
+                        logDebug(1, `✅ Download started: ${finalPath}`);
+                        successfulDownloads++;
+                        updateBadge(totalProcessed + successfulDownloads);
+
+                        // ✅ Close the tab and move to next
+                        closeTabSafely(tab.id, () => {
+                            completedTabs++;
+                            if (completedTabs === totalTabs) onComplete(successfulDownloads);
+                            else tryNext();
+                        });
+
+                    } else {
+                        logDebug(1, `❌ Download failed for Url.`);
+                        completedTabs++;
+                        if (completedTabs === totalTabs) onComplete(successfulDownloads);
+                        else tryNext();
+
+                        // 🔄 Cleanup on failure
+                        pendingDownloadPaths.delete(url.href);
+                    }
                 });
+
+            } catch (err) {
+                logDebug(1, `❌ Failed to validate or download image (Failed to fetch image. This may be due to CORS policy, server unavailability or network issue): ${err.message}`);
+                logDebug(2, `🐛 Stacktrace: ${err.stack}`);
+                completedTabs++;
+                if (completedTabs === totalTabs) onComplete(successfulDownloads);
+                else tryNext();
             }
-        } catch (queueError) {
-            logDebug(1, `❌ Error in processQueue: ${queueError.message}`);
-            logDebug(3, '------------------------------------');
-            logDebug(3, '');
+
+        } catch (err) {
+            logDebug(1, `❌ Error processing tab: ${err.message}`);
+            logDebug(2, `🐛 Stacktrace: ${err.stack}`);
+            completedTabs++;
+            if (completedTabs === totalTabs) onComplete(successfulDownloads);
+            else tryNext();
         }
     }
 
-    // ✅ Pointer for managing current tab index in download queue
-    let queueIndex = 0;
-    processQueue();
+    tryNext();
 }
 
 /**
@@ -932,19 +1286,20 @@ async function processValidTabs(validTabs, onComplete, validatedUrls, resetBadge
  * @param {object} message - The message object sent from the popup or content script.
  * @param {function} sendResponse - The callback function to send the response.
  * @description This function handles the extraction of gallery images by filtering valid image URLs and processing them in batches.
- * It also updates the badge with the number of images downloaded and shows notifications for success or error messages.    
+ * It also updates the badge with the number of images downloaded and shows notifications for success or error messages.
  * @returns {void}
  */
 async function handleExtractLinkedGallery(message, sendResponse) {
     logDebug(3, '--------------------------------------------------');
-    logDebug(1, '🌄 BEGIN: Extract images from galleries (with direct links) functionality');
+    logDebug(2, '🌄 BEGIN: Extract images from galleries (with direct links) functionality');
     logDebug(3, '--------------------------------------------------');
 
+    const timing = logTimingStart("Extract images from galleries (with direct links)");
     const { images, totalImages } = message || {};
 
     // 🧠 Grouping gallery candidates by path similarity (80% threshold)
     logDebug(2, '🧠 Grouping gallery candidates by path similarity...');
-    
+
     const threshold = gallerySimilarityLevel || 80; // Default threshold
     const similarityMap = {};
     let dominantGroup = [];
@@ -953,60 +1308,32 @@ async function handleExtractLinkedGallery(message, sendResponse) {
     logDebug(2, `📥 Max images per second: ${galleryMaxImages}`);
     logDebug(3, '');
 
-    // 🧪 Check if smart grouping is enabled
-    if (galleryEnableSmartGrouping) {
-        logDebug(1, '🤖 BEGIN: Smart grouping enabled. Calculating path similarity...');
+    // 🧠 Validate galleryEnableSmartGrouping and images input || Safe limit
+    const MAX_GROUPING_CANDIDATES = 100;
 
-        logDebug(3, '');
-            
-        // 🧪 Calculate path similarity between images
+    // 🧠 Validate images input
+    if (galleryEnableSmartGrouping && Array.isArray(images) && images.length <= MAX_GROUPING_CANDIDATES) {
+        logDebug(2, `🤖 BEGIN: Smart grouping enabled. ${images.length} candidates within safe limit (${MAX_GROUPING_CANDIDATES}).`);
+
         for (let i = 0; i < images.length; i++) {
-            // Skip if already processed
             for (let j = i + 1; j < images.length; j++) {
-                logDebug(2, '🕵 Level of similarity between (A vs B):');
-                logDebug(2, `Image a:  ${images[i]}`);
-                logDebug(2, `Image b:  ${images[j]}`);
-                logDebug(2, `Threshold: ${threshold}%`);
-
                 const similarity = calculatePathSimilarity(images[i], images[j]);
+                logDebug(2, `🕵 Similarity between image ${i} and ${j}: ${similarity}%`);
+                // 🧠 Check if similarity meets the threshold
 
-                logDebug(2, `Similarity: ${similarity}%`);
-                logDebug(3, '');
-
-                // 🧪 Check if similarity is above threshold
                 if (similarity >= threshold) {
-                    // 🧪 Group images by similarity
                     if (!similarityMap[images[i]]) similarityMap[images[i]] = [];
                     similarityMap[images[i]].push(images[j]);
                 }
             }
         }
+    } else if (galleryEnableSmartGrouping && images.length > MAX_GROUPING_CANDIDATES) {
+        logDebug(1, `⚠️ Smart grouping skipped: too many candidates (${images.length} > ${MAX_GROUPING_CANDIDATES}). Using all detected images.`);
+        dominantGroup = [...images];
 
-        // 🧪 Identify dominant group
-        for (const [baseImage, group] of Object.entries(similarityMap)) {
-            const currentGroup = [baseImage, ...group];
-            if (currentGroup.length > dominantGroup.length) {
-                dominantGroup = currentGroup;
-            }
-        }
-
-        logDebug(3, `🧩 Total groups evaluated: ${Object.keys(similarityMap).length}`);
-
-        // 🧪 Log dominant group
-        if (dominantGroup.length > 0) {
-            const leader = dominantGroup[0];
-            logDebug(3, `🎯 Group leader (base image): ${leader}`);
-            logDebug(1, `✅ Dominant group size: ${dominantGroup.length} image(s)`);
-            logDebug(3, '');
-        }  
-        else {
-            logDebug(1, '⚠️ No valid similarity group found.');
-        }
-        logDebug(2, '🤖 END: Smart grouping completed.');
-        logDebug(3, '');
     } else {
-            logDebug(2, '🚀 Smart grouping disabled. Using all detected images.');
-            dominantGroup = [...images];
+        logDebug(2, '🚀 Smart grouping disabled. Using all detected images.');
+        dominantGroup = [...images];
     }
 
     try{
@@ -1020,7 +1347,7 @@ async function handleExtractLinkedGallery(message, sendResponse) {
         // 🧪 Check if dominant group is valid
         if (dominantGroup.length < galleryMinGroupSize) {
             logDebug(1, `⚠️ Group too small (${dominantGroup.length} < ${galleryMinGroupSize})`);
-        
+
             // 🛟 Fallback to path similarity level (30% threshold)
             if (!galleryEnableFallback) {
                 logDebug(1, '⛔ Fallback disabled. Aborting.');
@@ -1028,11 +1355,11 @@ async function handleExtractLinkedGallery(message, sendResponse) {
                 respondSafe(sendResponse, { success: false, error: 'Group too small and fallback disabled' });
                 return;
             }
-        
+
             // 🛟 Retry with fallback threshold
             const fallbackThreshold = Math.max(gallerySimilarityLevel - 10, 30);
             logDebug(3, `🛟 Retrying with fallback threshold: ${fallbackThreshold}%`);
-        
+
             const fallbackMap = {};
             // 🧪 Calculate path similarity for fallback grouping
             for (let i = 0; i < images.length; i++) {
@@ -1044,7 +1371,7 @@ async function handleExtractLinkedGallery(message, sendResponse) {
                     }
                 }
             }
-        
+
             dominantGroup = [];
             // 🧪 Identify dominant group from fallback map
             for (const [baseImage, group] of Object.entries(fallbackMap)) {
@@ -1053,7 +1380,7 @@ async function handleExtractLinkedGallery(message, sendResponse) {
                     dominantGroup = groupCandidate;
                 }
             }
-        
+
             // 🧪 Log fallback group
             if (dominantGroup.length < galleryMinGroupSize) {
                 logDebug(1, '❌ Fallback failed. Group still too small.');
@@ -1092,13 +1419,14 @@ async function handleExtractLinkedGallery(message, sendResponse) {
     updateBadge(0);
     let imagesProcessed = 0;
     const parsedDelayLimit = parseInt(message.options?.galleryMaxImages);
+
     const delay = (parsedDelayLimit >= 1 && parsedDelayLimit <= 10)
         ? 1000 / parsedDelayLimit
         : 1000 / galleryMaxImages;
-    
+
     logDebug(2, `⏱️ Gallery download delay calculated: ${Math.round(delay)} ms per image`);
     logDebug(3, '--------------------------------------------------');
-    logDebug(3, '');    
+    logDebug(3, '');
 
     /**
      * * 🧠 Update badge with current progress
@@ -1132,49 +1460,39 @@ async function handleExtractLinkedGallery(message, sendResponse) {
         });
     }
 
-    // 🧠 Enqueue download tasks
-    async function enqueueDownload(task) {
-        return new Promise(resolve => {
-            downloadQueue.push(() => task().then(resolve));
-            processDownloadQueue();
-        });
-    }
+    // 20250621 Smid - Not working - replaced by processImagesSequentially(...)
+    // chrome.tabs.create is not optimized with Index
+    // 🧠 Process images in batches with controlled concurrency
+    async function openTabsInBatches(imageUrls, limit, onProgress) {
 
-    /**
-     * 🧠 Open tabs in batches with delay
-     * @param {string[]} imageUrls - Array of image URLs to open
-     * @param {number} limit - Number of tabs to open in parallel
-     * @param {function} onProgress - Callback function to update progress
-     * @param {number} delay - Delay in milliseconds between each tab opening
-     * @returns {Promise<void>}
-     * @description This function opens tabs in batches with a specified limit and delay between each tab opening.
-     * It uses async/await to handle the asynchronous nature of tab creation and respects the download limit.
-     * It also handles errors gracefully and logs them to the console.
-     * 
-     */
-    async function openTabsInBatches(imageUrls, limit, onProgress, delay) {
         let index = 0;
         const total = imageUrls.length;
 
-        logDebug(2, `🔄 Opening ${total} image URLs in batches of ${limit}...`);
         async function worker() {
             while (index < total) {
                 const currentIndex = index++;
                 const url = imageUrls[currentIndex];
-        
+
                 try {
-                    await new Promise(resolve => {
-                        chrome.tabs.create({ url, active: false }, () => {
-                            onProgress();
-                            resolve();
+                    await new Promise((resolve) => {
+                        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                            const activeTab = tabs[0];
+                            const insertionIndex = activeTab ? activeTab.index + currentIndex + 1 : undefined;
+
+                            const createProperties = { url, active: false };
+                            if (typeof insertionIndex === 'number') {
+                                createProperties.index = insertionIndex;
+                            }
+
+                            chrome.tabs.create(createProperties, () => {
+                                logDebug(2, `🆕 Tab opened at index ${createProperties.index ?? 'default'} | URL: ${url}`);
+                                onProgress();
+                                resolve();
+                            });
                         });
                     });
-        
-                    // 🕒 Respect per-image delay
-                    // 🧪 Check if delay is a number and within range
-                    await new Promise(resolve => setTimeout(resolve, delay));
                 } catch (err) {
-                    console.error(`[Mass image downloader]: ❌ Failed to open tab: ${url}`);
+                    logDebug(1, `[Mass image downloader]: ❌ Failed to open tab: ${url} | ${err.message}`);
                 }
             }
         }
@@ -1203,6 +1521,24 @@ async function handleExtractLinkedGallery(message, sendResponse) {
 
     // 🧠 Sequential processor with rate limiting
     async function processImagesSequentially(images, delayMs) {
+
+        // ✅ One-time capture of the initial tab index
+        let baseTabIndex = 0;
+        let imagesOpened = 0;
+
+        try {
+            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (tabs.length > 0 && typeof tabs[0].index === 'number') {
+                baseTabIndex = tabs[0].index;
+                logDebug(2, `🧭 Initial tab index captured: ${baseTabIndex}`);
+            } else {
+                logDebug(1, `⚠️ Could not determine initial tab index. Defaulting to 0`);
+            }
+        } catch (tabErr) {
+            logDebug(1, `❌ Failed to retrieve initial tab index: ${tabErr.message}`);
+        }
+
+        // ✅ Process each image URL in the gallery
         for (let i = 0; i < images.length; i++) {
             const imageUrl = images[i];
 
@@ -1252,28 +1588,61 @@ async function handleExtractLinkedGallery(message, sendResponse) {
                 if (mode === 'tab') {
                     logDebug(1, '🔗 Mode is set to "tab". Opening image in new tab...');
                     logDebug(2, `🔗 URL: ${imageUrl}`);
-                    chrome.tabs.create({ url: imageUrl, active: false }, () => {
-                        onGalleryProgress();
+
+                    // ✅ Use fixed base index captured once
+                    const targetIndex = baseTabIndex + imagesOpened;
+
+                    // ✅ Open image in new tab 
+                    chrome.tabs.create({ url: imageUrl, active: false, index: targetIndex }, () => {
+                        // ✅ Notifies gallery progress
+                        onGalleryProgress(); 
                         logDebug(1, '🔚 END: Image opened in tab.');
+                        logDebug(2, `📍 Tab opened at index: ${targetIndex}`);
                         logDebug(3, '--------------------------------------------------');
                     });
+                    imagesOpened++;
                     continue;
                 }
 
-                // ✅ Step 4: Extract file name and extension
-                let fileName = new URL(imageUrl).pathname.split('/').pop() || 'image';
+
+                // ✅ Step 4: Extract file name and extension robustly
+                let fileName = 'image';
                 let extension = '';
-                if (fileName.includes('.')) {
-                    const lastDot = fileName.lastIndexOf('.');
-                    extension = fileName.slice(lastDot);
-                    fileName = fileName.slice(0, lastDot);
+                try {
+                    // Trim any trailing slashes so "/photo.jpg/" becomes "/photo.jpg"
+                    const rawPath = new URL(imageUrl).pathname.replace(/\/+$/g, "");
+                    // The segment after the last "/" is our raw name
+                    const rawName = rawPath.split('/').pop() || '';
+
+                    if (rawName.includes('.')) {
+                        const lastDot = rawName.lastIndexOf('.');
+                        fileName = rawName.slice(0, lastDot);
+                        extension = rawName.slice(lastDot);
+                    } else if (rawName) {
+                        // No dot but a valid name
+                        fileName = rawName;
+                    }
+                } catch (err) {
+                    logDebug(1, `❌ Error extracting filename: ${err.message}`);
                 }
 
-                // ✅ Step 5: Generate final path
+                // ✅ Step 5: Generate final path (wait settings+config, then normalize folder)
+                // Wait for BOTH: storage-backed folder and utils/configCache-based naming
+                await Promise.all([settingsReady, configReady]);
+
+                // Generate final filename after settings/config are ready
                 const finalName = await generateFilename(fileName, extension);
-                const finalPath = (downloadFolder === 'custom' && customFolderPath)
-                    ? `${customFolderPath.replace(/\\/g, '/')}/${finalName}`
-                    : finalName;
+
+                // Normalize custom folder and avoid leading/trailing slashes
+                const safeFolder = (downloadFolder === 'custom' && typeof customFolderPath === 'string')
+                    ? customFolderPath
+                        .trim()
+                        .replace(/\\/g, '/')
+                        .replace(/^\/+|\/+$/g, '') // strip both ends
+                    : '';
+
+                const finalPath = safeFolder ? `${safeFolder}/${finalName}` : finalName;
+                logDebug(2, `📁 Final name/path: ${finalPath}`);
 
                 // ✅ Step 6: Download image using controlled queue
                 if (mode === 'immediate') {
@@ -1317,13 +1686,22 @@ async function handleExtractLinkedGallery(message, sendResponse) {
                                 return;
                             }
 
-                            // ✅ Begin download
+                            // 🔒 Register desired filename so the onDeterminingFilename listener can enforce it
+                            pendingDownloadPaths.set(imageUrl, finalPath);
+
+                            // ✅ Begin download (listener will enforce finalPath regardless of server headers)
                             await new Promise(resolve => {
-                                chrome.downloads.download({ url: imageUrl, filename: finalPath }, (downloadId) => {
+                                chrome.downloads.download({
+                                    url: imageUrl,
+                                    filename: finalPath,           // still passed; listener enforces it
+                                    conflictAction: 'uniquify'
+                                }, (downloadId) => {
                                     if (downloadId) {
                                         logDebug(1, `💾 Downloaded: ${finalName}`);
                                     } else {
                                         logDebug(1, '❌ Download failed.');
+                                        // Cleanup the map on failure
+                                        pendingDownloadPaths.delete(imageUrl);
                                     }
 
                                     logDebug(2, `🔚 END: Download process for image index ${i}`);
@@ -1344,6 +1722,7 @@ async function handleExtractLinkedGallery(message, sendResponse) {
                         }
                     });
                 }
+
             } catch (error) {
                 logDebug(1, `⚠️ Error processing image index: ${error.message}`);
                 logDebug(2, `🐛 Stacktrace: ${error.stack}`);
@@ -1354,313 +1733,232 @@ async function handleExtractLinkedGallery(message, sendResponse) {
             }
         }
     }
-
+	
     // 🧠 Start new optimized loop
     await processImagesSequentially(dominantGroup, delay);
 
+    //  🕒 End timing metric
+    logTimingEnd(timing);
 
     respondSafe(sendResponse, { success: true });
 }
 
-/**
- * 🖼️ Handle Extract images from galleries (without links)
+
+/*
+ * 🌄 Handle Extract images from galleries (without links)
  * @param {object} message - The message object sent from the popup or content script.
  * @param {function} sendResponse - The callback function to send the response.
- * @description This function handles the gallery finder functionality by validating and filtering images based on size and format.
- * It also groups images by path similarity and validates the group size before proceeding with the download.
- * @returns {void}
- */
+ * @description This function handles the extraction of gallery images without links by validating image URLs, processing them in batches, and downloading them. 
+ * It also updates the badge with the number of images downloaded and shows notifications for success or error messages.
+ * 
+*/
 async function handleExtractVisualGallery(message, sendResponse) {
     logDebug(3, '---------------------------------------------------------------');
-    logDebug(2, '🖼️ Extract images from galleries (without links) functionality');
+    logDebug(1, '🖼️ Extract images from galleries (without links) functionality - optimized flow');
     logDebug(3, '---------------------------------------------------------------');
 
+    const timing = logTimingStart("Extract images from galleries (without links)");
+
     try {
-        // 🧠 Validate incoming message
         if (!message.images || !Array.isArray(message.images)) {
             logDebug(1, '❌ No images array received from content script.');
             respondSafe(sendResponse, { success: false, error: 'Invalid images list received.' });
             return;
         }
 
-        const potentialImages = message.images;
-        logDebug(2, `🔎 Total images received for processing: ${potentialImages.length}`);
-        logDebug(3, '--------------------------------------------------');
-        logDebug(2, `📥 Configuration Mode: ${extractGalleryMode}`);
-        logDebug(2, `📥 Max images per second: ${galleryMaxImages}`);
-        logDebug(3, '');
-
-        // 🧠 Calculate delay based on galleryMaxImages
-        let userDefinedLimit = parseInt(message.options?.galleryMaxImages);
-        if (isNaN(userDefinedLimit) || userDefinedLimit < 1 || userDefinedLimit > 10) {
-            userDefinedLimit = galleryMaxImages;
-        }
-        const delay = Math.floor(1000 / userDefinedLimit);
-        logDebug(2, `⏱️ Visual gallery download delay: ${delay} ms per image`);
-        logDebug(3, '--------------------------------------------------');
-
         const validatedImages = [];
+        for (let i = 0; i < message.images.length; i++) {
+            const img = message.images[i];
+            const url = img.url;
+            const width = img.width;
+            const height = img.height;
 
-        // 🔁 Begin strict filtering
-        logDebug(2, '🔁 Begin filtering');
-        logDebug(3, '----------------------------------------');
-        logDebug(3, '');
-        for (let i = 0; i < potentialImages.length; i++) {
-            const img = potentialImages[i];
-            const url = img.url || '';
-            const width = img.width || 0;
-            const height = img.height || 0;
+            if (!url || typeof url !== 'string') continue;
 
-            logDebug(2, `🖼️ Validating image ${i + 1}: ${url}`);
+            logDebug(2, `🕵 Validating image/Url: ${i + 1} | ${url}`);
 
-            // ✅ Pre-filter: Only check URLs that appear to be direct images
-            const isDirect = await isDirectImageUrl(url);
-            logDebug(3, `🔎 isDirectImageUrl returned: ${typeof isDirect} (${isDirect})`);
-
-            if (!isDirect) {
-                logDebug(2, '⛔ Skipped (not a direct image URL).');
-                logDebug(3, '');
+            const isAllowed = await isAllowedImageFormat(url);
+            if (!isAllowed) {
+                logDebug(2, `⛔ Skipped (disallowed format).`);
                 continue;
             }
 
-            // ✅ Check if image format is allowed
-            const isAllowedFormat = await isAllowedImageFormat(url);
-            if (!isAllowedFormat) {
-                logDebug(2, '⛔ Skipped (disallowed image format).');
-                logDebug(3, '');
-                continue;
-            }
-
-            // ✅ Check if image size is valid
             if (width < minWidth || height < minHeight) {
-                logDebug(2, `⛔ Skipped (too small - ${width}x${height}).`);
-                logDebug(3, ' ');
+                logDebug(2, `⛔ Skipped (too small: ${width}x${height}).`);
                 continue;
             }
 
-            // ✅ Check if image is already processed
-            validatedImages.push({ url, width, height });
-            logDebug(2, '✅ Image accepted.');
-            logDebug(3, ' ');
+            validatedImages.push(img);
+            logDebug(2, `✅ Accepted!`);
         }
 
-        // 🧹 End strict filtering
         if (validatedImages.length === 0) {
-            logDebug(2, '⚠️ No valid images after validation.');
-            logDebug(3, '----------------------------------------');
-            respondSafe(sendResponse, { success: false, error: 'No valid gallery images found.' });
+            logDebug(1, '⚠️ No valid images after filtering.');
+            respondSafe(sendResponse, { success: false, error: 'No valid images to download.' });
             return;
         }
 
-        logDebug(1, `🎯 Valid images ready for grouping: ${validatedImages.length}`);
-        logDebug(3, '----------------------------------------');
+        updateBadge(0, false);
+        let totalDownloaded = 0;
 
-        // 🧠 Begin grouping by path similarity
-        const groups = {};
-        const similarityThreshold = gallerySimilarityLevel || 70;
-        const visited = new Set();
-
-        logDebug(2, '🧠 Grouping images by path similarity...');
-        
-        // 🧪 Calculate path similarity between images
-        for (let i = 0; i < validatedImages.length; i++) {
-            if (visited.has(i)) continue;
-            const base = validatedImages[i];
-
-            // 🧪 Check if already processed
-            for (let j = i + 1; j < validatedImages.length; j++) {
-                if (visited.has(j)) continue;
-
-                const similarity = calculatePathSimilarity(base.url, validatedImages[j].url);
-
-                logDebug(2, `🔍 Similarity between [${i}] and [${j}]: ${similarity}%`);
-
-                // 
-                if (similarity >= similarityThreshold) {
-                    if (!groups[base.url]) groups[base.url] = [];
-                    groups[base.url].push(validatedImages[j]);
-                    visited.add(j);
-                }
-            }
-            visited.add(i);
-        }
-
-        // 🧠 Identify dominant group
-        let dominantGroup = [];
-        // 🧪 Check if groups are valid
-        for (const baseImage in groups) {
-            // 🧪 Check if baseImage is a valid URL
-            const group = [validatedImages.find(img => img.url === baseImage), ...groups[baseImage]];
-            if (group.length > dominantGroup.length) {
-                dominantGroup = group;
-            }
-        }
-
-        logDebug(3, '');
-        logDebug(2, `🧩 Dominant group size: ${dominantGroup.length}`);
-        logDebug(3, ' ');
-
-        // 🚦 Validate group size
-        if (dominantGroup.length < galleryMinGroupSize) {
-            logDebug(2, `⚠️ Dominant group too small (${dominantGroup.length} < ${galleryMinGroupSize}).`);
-            logDebug(3, ' ');
-
-            if (!galleryEnableFallback) {
-                logDebug(1, '⛔ Fallback disabled. Aborting process.');
-                logDebug(3, '----------------------------------------');
-                respondSafe(sendResponse, { success: false, error: 'Group too small and fallback disabled.' });
+        const processNext = () => {
+            // 🧪 Check if there are no more images to process
+            if (validatedImages.length === 0) {
+                updateBadge(totalDownloaded, true);
+                logDebug(1, `🏁 Completed: ${totalDownloaded} images downloaded.`);
+                logTimingEnd(timing);
+                respondSafe(sendResponse, { success: true, downloads: totalDownloaded });
                 return;
             }
 
-            // 🛟 Retry with fallback threshold
-            logDebug(2, '🛟 Retrying with fallback threshold...');
-            const fallbackThreshold = Math.max(similarityThreshold - 10, 30);
-            const fallbackGroups = {};
-            visited.clear();
+            const next = validatedImages.shift();
 
-            // 🧪 Calculate path similarity for fallback grouping
-            for (let i = 0; i < validatedImages.length; i++) {
-                if (visited.has(i)) continue;
-                const base = validatedImages[i];
-
-                // 🧪 Check if already processed
-                for (let j = i + 1; j < validatedImages.length; j++) {
-                    if (visited.has(j)) continue;
-
-                    const similarity = calculatePathSimilarity(base.url, validatedImages[j].url);
-
-                    // 🧪 Check if similarity is above fallback threshold
-                    if (similarity >= fallbackThreshold) {
-                        if (!fallbackGroups[base.url]) fallbackGroups[base.url] = [];
-                        fallbackGroups[base.url].push(validatedImages[j]);
-                        visited.add(j);
-                    }
-                }
-                visited.add(i);
-            }
-
-            dominantGroup = [];
-            for (const baseImage in fallbackGroups) {
-                const group = [baseImage, ...fallbackGroups[baseImage]];
-                if (group.length > dominantGroup.length) {
-                    dominantGroup = group;
-                }
-            }
-
-            // 🧪 Log fallback group
-            if (dominantGroup.length < galleryMinGroupSize) {
-                logDebug(1, '❌ Fallback failed. Group still too small.');
-                logDebug(3, '----------------------------------------');
-                respondSafe(sendResponse, { success: false, error: 'Fallback group too small.' });
-                return;
-            }
-
-            logDebug(2, `✅ Fallback group accepted. Size: ${dominantGroup.length}`);
-        }
-
-        // 🚀 Process final group (open tabs or download)
-        logDebug(1, '🚀 Processing dominant group images...');
-        logDebug(3, '');
-        
-        // 🚀 Processing dominant group images with badge and filename customization
-        let badgeCount = 0;
-        updateBadge(badgeCount, false); // Initialize badge (green)
-
-    // 🖼️ Download or open images based on mode
-    let galleryFinished = false;     
-    if (extractGalleryMode === 'tab') {
-        logDebug(1, `🧭 Opening ${dominantGroup.length} image(s) in tabs (limit ${downloadLimit})...`);
-
-        await openTabsInBatches(dominantGroup, downloadLimit, () => {
-            badgeCount++;
-            logDebug(2, '📦 Updating Badge');
-            updateBadge(badgeCount, false);
-            logDebug(2, '🔗 Opened in tab');
-            logDebug(3, '');
-        }, delay);
-    } else if (extractGalleryMode === 'immediate') {
-    // 🚀 Download images immediately using controlled queue
-    for (const image of dominantGroup) {
-        await new Promise(resolve => setTimeout(resolve, delay)); // ⏱️ Delay per image
-
-        await enqueueDownload(async () => {
             try {
-                const urlObj = new URL(image.url);
-                let baseName = urlObj.pathname.split('/').pop() || 'image';
-                let extension = '';
+                const urlObj = new URL(next.url);
+                const pathname = urlObj.pathname;
+                const extension = pathname.split('.').pop() || 'jpg';
+                let baseName = pathname.split('/').pop() || 'image';
+
+                // 🧪 Ensure baseName is sanitized: remove any leading/trailing slashes and normalize
                 if (baseName.includes('.')) {
-                    const lastDot = baseName.lastIndexOf('.');
-                    extension = baseName.slice(lastDot);
-                    baseName = baseName.slice(0, lastDot);
+                    baseName = baseName.substring(0, baseName.lastIndexOf('.'));
                 }
 
-                const finalName = await generateFilename(baseName, extension);
-                const finalPath = (downloadFolder === 'custom' && customFolderPath)
-                    ? `${customFolderPath.replace(/\\/g, '/')}/${finalName}`
-                    : finalName;
+                const sanitizedBase = sanitizeFilenameComponent(baseName);
 
-                logDebug(2, `📁 Saving folder/file: ${finalPath}`);
-                logDebug(3, '');
+                // ✅ Always wait for BOTH settings (folder) and config (naming) before building filenames/paths
+                (async () => {
+                    try {
+                        // Gate: ensure storage-backed folder and configCache-based naming are ready
+                        await Promise.all([settingsReady, configReady]);
 
-                return new Promise(resolveDownload => {
-                    chrome.downloads.download({
-                        url: image.url,
-                        filename: finalPath,
-                        conflictAction: 'uniquify'
-                    }, (downloadId) => {
-                        if (downloadId) {
-                            badgeCount++;
-                            logDebug(3, '📦 Updating Badge');
-                            if (!galleryFinished) {
-                                updateBadge(badgeCount);
+                        // Generate final filename after gates (prefix/suffix/timestamp are now reliable)
+                        const finalName = await generateFilename(sanitizedBase, '.' + extension);
+
+                        // Normalize custom subfolder: trim, normalize slashes, and strip leading/trailing slashes
+                        const safeFolder = (downloadFolder === 'custom' && typeof customFolderPath === 'string' && customFolderPath.trim())
+                            ? customFolderPath.trim().replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')
+                            : '';
+
+                        const finalPath = safeFolder ? `${safeFolder}/${finalName}` : finalName;
+
+                        logDebug(2, `📥 Downloading image: ${next.url}`);
+                        logDebug(2, `📁 Final name/path: ${finalPath}`);
+
+                        // 🔒 Register desired filename so onDeterminingFilename can enforce it against server overrides
+                        pendingDownloadPaths.set(next.url, finalPath);
+
+                        // Start the download; listener will enforce finalPath regardless of server headers
+                        chrome.downloads.download({
+                            url: next.url,
+                            // filename is still passed; harmless as the listener will enforce it anyway
+                            filename: finalPath,
+                            conflictAction: 'uniquify'
+                        }, (downloadId) => {
+                            // ✅ Check if download was successful
+                            if (chrome.runtime.lastError) {
+                                logDebug(1, `❌ Download failed: ${chrome.runtime.lastError.message}`);
+                                // Cleanup mapping on failure
+                                pendingDownloadPaths.delete(next.url);
+                            } else {
+                                totalDownloaded++;
+                                updateBadge(totalDownloaded, false);
+                                logDebug(2, `⬇️ Downloaded: ${next.url}`);
                             }
-                            logDebug(1, `💾 Downloaded: ${finalName}`);
-                        } else {
-                            logDebug(1, '❌ Download failed');
-                        }
-                        resolveDownload();
-                    });
-                });
-            } catch (downloadError) {
-                logDebug(1, `❌ Error during download setup: ${downloadError.message}`);
-                logDebug(2, `🐛 Stacktrace: ${downloadError.stack}`);
+                            processNext();
+                        });
+                    } catch (err) {
+                        logDebug(1, `❌ Filename/path preparation failed: ${err.message}`);
+                        logDebug(2, `🐛 Stacktrace: ${err.stack}`);
+                        processNext();
+                    }
+                })();
+            } catch (err) {
+                logDebug(1, `❌ Error processing image: ${err.message}`);
+                logDebug(2, `🐛 Stacktrace: ${err.stack}`);
+                processNext();
             }
-        });
-        }   
-    }
+        };
 
-    // 🧹 Finalization after all images
-    setTimeout(() => {
-        logDebug(3, '📦 Updating Badge');
-        galleryFinished = true;
-        updateBadge(badgeCount, true); // Mark badge as complete (blue)        
-        logDebug(2, `🏁 Gallery Finder finished processing ${badgeCount} images.`);
-        logDebug(1, '🖼️ END: Extract Visual Gallery flow finished.');
-        logDebug(3, '----------------------------------------');
+        processNext();
 
-        // 🧹 Memory cleanup
-        validatedImages.length = 0;
-        dominantGroup.length = 0;
-
-        if (groups && typeof groups === 'object') {
-            for (const k in groups) delete groups[k];
-            logDebug(2, '🧹 Grouping map cleaned.');
-        }
-
-        if (typeof fallbackMap !== 'undefined' && typeof fallbackMap === 'object') {
-            for (const k in fallbackMap) delete fallbackMap[k];
-            logDebug(2, '🧹 Fallback map cleaned.');
-        }
-
-        logDebug(2, '🧹 Memory cleanup: dominantGroup and maps cleared.');
-
-        respondSafe(sendResponse, { success: true });
-    }, 2000);
-    } catch (error) {
-        logDebug(1, `❌ Critical error during Gallery Finder: ${error.message}`);
-        logDebug(2, `🐛 Stacktrace: ${error.stack}`);
-        logDebug(3, '----------------------------------------');
-        respondSafe(sendResponse, { success: false, error: 'Critical error during Gallery Finder.' });
+    } catch (err) {
+        logDebug(1, `❌ Exception in ExtractVisualGallery: ${err.message}`);
+        logDebug(2, `🐛 Stacktrace: ${err.stack}`);
+        respondSafe(sendResponse, { success: false, error: err.message });
     }
 }
 
+/**
+ * Returns current timestamp formatted as HHh:MMm:SSs.
+ * @returns {string}
+ */
+function getTimeStampString() {
+    try {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        return `${h}h:${m}m:${s}s`;
+    } catch (err) {
+        logDebug(1, `❌ Error generating current time string: ${err.message}`);
+        logDebug(3, `🐛 Stacktrace: ${err.stack}`);
+        return '--:--:--';
+    }
+}
+
+/**
+ * Calculates elapsed time in HHh:MMm:SSs format.
+ * @param {number} start - Start timestamp in milliseconds.
+ * @param {number} end - End timestamp in milliseconds.
+ * @returns {string}
+ */
+function calculateElapsedTime(start, end) {
+    try {
+        const delta = Math.max(0, end - start);
+        const seconds = Math.floor((delta / 1000) % 60);
+        const minutes = Math.floor((delta / (1000 * 60)) % 60);
+        const hours = Math.floor(delta / (1000 * 60 * 60));
+        return `${hours}h:${minutes}m:${seconds}s`;
+    } catch (err) {
+        logDebug(1, `❌ Error calculating elapsed time: ${err.message}`);
+        logDebug(3, `🐛 Stacktrace: ${err.stack}`);
+        return '--:--:--';
+    }
+}
+
+/**
+ * Logs the start of a download process.
+ * @param {string} flowName - A short name describing the flow (e.g., "bulkDownload").
+ * @returns {{flowName: string, startTime: number}} - Object with timestamp and name.
+ */
+function logTimingStart(flowName) {
+    try {
+        const startTime = Date.now();
+        const readableTime = getTimeStampString();
+        logDebug(1, `🕓 Start of ${flowName} process [time: ${readableTime}]`);
+        return { flowName, startTime };
+    } catch (err) {
+        logDebug(1, `❌ Error logging timing start: ${err.message}`);
+        logDebug(3, `🐛 Stacktrace: ${err.stack}`);
+        return { flowName, startTime: Date.now() };
+    }
+}
+
+/**
+ * Logs the end of a download process and its total duration.
+ * @param {{flowName: string, startTime: number}} timing - Object returned from logTimingStart.
+ */
+function logTimingEnd(timing) {
+    try {
+        const endTime = Date.now();
+        const endReadable = getTimeStampString();
+        const elapsed = calculateElapsedTime(timing.startTime, endTime);
+
+        logDebug(1, `🏁 End of ${timing.flowName} process [time: ${endReadable}]`);
+        logDebug(1, `⌛ ${timing.flowName} process took ${elapsed}`);
+    } catch (err) {
+        logDebug(1, `❌ Error logging timing end: ${err.message}`);
+        logDebug(3, `🐛 Stacktrace: ${err.stack}`);
+    }
+}
