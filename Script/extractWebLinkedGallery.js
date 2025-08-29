@@ -8,7 +8,6 @@
 
 // extractWebLinkedGallery.js - Extract images from <a href="html"> with <img> thumbnail
 
-
 // Immediately Invoked Function Expression (IIFE) to avoid global scope pollution
 (function () {
     

@@ -65,11 +65,13 @@
                 configCache.suffix = changes.suffix.newValue ?? '';
                 logDebug(2, `🔄 Suffix updated in cache: "${configCache.suffix}"`);
             }
+
             if (changes.filenameMode) {
                 // 🛠️ Patch: sync filenameMode so generateFilename sees new mode immediately
                 configCache.filenameMode = changes.filenameMode.newValue ?? 'none';
                 logDebug(2, `🔄 Filename mode updated in cache: "${configCache.filenameMode}"`);
             }
+
             if (changes.debugLogLevel) {
                 const oldLevel = configCache.debugLogLevel;
                 configCache.debugLogLevel = parseInt(changes.debugLogLevel.newValue ?? 1);
@@ -389,6 +391,7 @@
             // ✅ Validate extension against allowed formats
             const isValid = allowedExts.some(ext => filename.endsWith(ext));
             logDebug(3, `✨ "${filename}" ends with a valid image URL: ${isValid}`);
+
             return isValid;
             */
 

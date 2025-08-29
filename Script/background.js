@@ -354,7 +354,6 @@
             ? data.peekTransparencyLevel
             : 0.8;
             performancePreset = data.performancePreset || "medium";
-
             // Display current settings by console
             logDebug(3, '------------------------------');
             logDebug(1, '🔄 Retrieving settings from storage...');
@@ -666,7 +665,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                         logDebug(1, `🔗 BEGIN: Opening ${total} tabs...`);
                         logDebug(2, `⏱️ Delay between openings: ${delayBetweenTabs} ms`);
                         logDebug(3, '');
-
                         updateBadge(0); // 🟢 Initialize badge in green
 
                         // ✅ Capture base tab index once
@@ -1316,11 +1314,13 @@ async function handleExtractLinkedGallery(message, sendResponse) {
     // 🧠 Validate images input
     if (galleryEnableSmartGrouping && Array.isArray(images) && images.length <= MAX_GROUPING_CANDIDATES) {
         logDebug(2, `🤖 BEGIN: Smart grouping enabled. ${images.length} candidates within safe limit (${MAX_GROUPING_CANDIDATES}).`);
+
         for (let i = 0; i < images.length; i++) {
             for (let j = i + 1; j < images.length; j++) {
                 const similarity = calculatePathSimilarity(images[i], images[j]);
                 logDebug(2, `🕵 Similarity between image ${i} and ${j}: ${similarity}%`);
                 // 🧠 Check if similarity meets the threshold
+
                 if (similarity >= threshold) {
                     if (!similarityMap[images[i]]) similarityMap[images[i]] = [];
                     similarityMap[images[i]].push(images[j]);
@@ -1330,6 +1330,7 @@ async function handleExtractLinkedGallery(message, sendResponse) {
     } else if (galleryEnableSmartGrouping && images.length > MAX_GROUPING_CANDIDATES) {
         logDebug(1, `⚠️ Smart grouping skipped: too many candidates (${images.length} > ${MAX_GROUPING_CANDIDATES}). Using all detected images.`);
         dominantGroup = [...images];
+
     } else {
         logDebug(2, '🚀 Smart grouping disabled. Using all detected images.');
         dominantGroup = [...images];
@@ -1463,6 +1464,7 @@ async function handleExtractLinkedGallery(message, sendResponse) {
     // chrome.tabs.create is not optimized with Index
     // 🧠 Process images in batches with controlled concurrency
     async function openTabsInBatches(imageUrls, limit, onProgress) {
+
         let index = 0;
         const total = imageUrls.length;
 

@@ -135,8 +135,10 @@
      */
     function formatValue(val) {
         if (typeof val === "boolean") return val ? "Enabled" : "Disabled";
+        
         // If it's a number, return it directly
         // If it's a string, check for specific known values
+
         if (typeof val === "string") {
             switch (val) {
                 case "prefix": return "Prefix mode";

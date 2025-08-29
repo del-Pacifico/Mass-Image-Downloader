@@ -13,6 +13,7 @@
 ![License](https://img.shields.io/badge/license-MPL--2.0-green?style=flat-square)
 ![Status](https://img.shields.io/badge/status-active-brightgreen?style=flat-square)
 ![GitHub community standards](https://img.shields.io/badge/community%20standards-100%25-brightgreen?style=flat-square&logo=github)
+
 ![Star this project](https://img.shields.io/github/stars/del-Pacifico/Mass-Image-Downloader?style=flat-square&logo=github)
 
 ![Made with ❤️ by del-Pacifico](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F%20by%20del--Pacifico-orange?style=flat-square)
@@ -131,6 +132,21 @@ Mass Image Downloader is a Chromium (MV3) extension that helps you **collect and
 
 - Chromium-based browsers: Google Chrome, Microsoft Edge, Brave  
 - Minimum Chromium version: **93+** · Manifest: **V3**
+
+> Full breakdown of options is available in the **Options Page** of the extension.
+
+Includes:
+
+- 📁 Download folder (default or custom)
+- 🖼️ Allowed image formats
+- 📐 Minimum width & height filters
+- ✍️ Filename mode (prefix, suffix, timestamp)
+- 📋 Clipboard hotkeys (Ctrl+Alt+P / S)
+- 💬 Visual feedback toggle
+- 🧠 Smart grouping and fallback logic
+- ⚡ Rate limit for gallery processing
+- 🔢 Batch size and concurrency controls
+- 🔍 Debug log level (0–3)
 
 ---
 
@@ -962,6 +978,12 @@ Confirm exactly which thresholds, formats, and pacing rules are in effect withou
 - Use higher **Console log level** (1–2) when taking screenshots of Peek for bug reports or PRs.  
 - Adjust **Peek panel transparency** in Options to keep the page visible underneath while you audit settings.
 
+1. Open console (`Ctrl+Shift+I`) to see detailed logs.
+2. Adjust debug level (0–3) from Options.
+3. Prefix/suffix via clipboard helps batch renaming.
+4. Use fallback logic when galleries are irregular.
+5. Grouping uses path similarity (%) → tweak it from the Options page as needed.
+
 ---
 
 ## 🧰 Use cases
@@ -1071,6 +1093,8 @@ If it saves you hours or makes your workflow smoother, consider supporting ongoi
 
 > 🙏 Every bit of support is truly appreciated.  
 > 💬 Feel free to reach out with questions, ideas, or feedback — your input matters!
+
+> 🧪 Useful for testing robustness of fallback logic during gallery inconsistencies.
 
 ---
 

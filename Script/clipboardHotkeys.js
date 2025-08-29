@@ -208,7 +208,6 @@
                 return;
             }
 
-
             const update = {};
             update[type] = sanitized;
             // ✅ Check if the prefix/suffix is already set to the same value

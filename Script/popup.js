@@ -323,5 +323,4 @@ document.addEventListener("DOMContentLoaded", () => {
 		logDebug("🔴 Error - 'btn-peek' button not found.");
 	}
 
-
 });
