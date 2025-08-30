@@ -1,0 +1,24 @@
+name: Branch badge
+
+on:
+  push:
+    branches: [ main, dev ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update-badge:
+    runs-on: ubuntu-latest
+    steps:
+      # [Mass Image Downloader]: 🧩 Updating Gist JSON for dynamic branch badge (process in progress)
+      - name: Update dynamic branch badge
+        uses: schneegans/dynamic-badges-action@v1.6.0
+        with:
+          auth: ${{ secrets.GIST_TOKEN }}          # PAT with 'gist' scope
+          gistID: 3014a0e54dce77e7c67d3474cd94e7e0 # e.g. a1b2c3d4e5f6...
+          filename: branch-badge.json              # must match the file created in your Gist
+          label: branch                            # left side of badge
+          message: ${{ github.ref_name }}          # 'main' or 'dev'
+          color: blue                              # badge color
