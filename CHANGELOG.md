@@ -26,6 +26,7 @@ All notable changes between **2.07.159** and **2.08.127** are listed here.
   - **Yellow** → manual downloads in progress.
   - **Blue** → all downloads completed.
 - **Minimum Chromium version requirement enforced**: v93+.
+- README: removed the branch badge snippet to avoid stale branch indicators (no longer displayed on any branch).
 
 ---
 
@@ -51,6 +52,7 @@ All notable changes between **2.07.159** and **2.08.127** are listed here.
   - Console logs standardized with `[Mass image downloader]` prefix.
 - **General**
   - Code refactored for clarity and maintainability across modules.
+  - Deleted `.github/workflows/branch-badge.yml` and removed the stray `.github/workflow/` folder. Discontinued the branch-badge automation. (No impact on extension runtime.)
 
 ---
 
@@ -60,6 +62,8 @@ All notable changes between **2.07.159** and **2.08.127** are listed here.
   - Bulk Image Download improvements and stable badge behavior.
   - New/clarified gallery options and thresholds (`galleryMaxImages`, `gallerySimilarityLevel`).
   - Minimum Chromium version requirement (v93).
+  - README: removed all references to `.gif` (feature set does not support GIF).
+  - README: kept allowed formats strictly aligned with implementation — JPG/JPEG, PNG, WEBP, AVIF, BMP.
 - - Updated **CONTRIBUTING.md**:
   - Removed outdated “Resources” section (no wiki available yet).
   - Added new **AI-Assisted Contributions** policy, clarifying responsible use of Copilot, ChatGPT, Gemini, and DeepSeek.

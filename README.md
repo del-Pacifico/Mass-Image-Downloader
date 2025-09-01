@@ -2,9 +2,6 @@
 
 ![Chromium 93+](https://img.shields.io/badge/Chromium-93%2B-4285F4?logo=google-chrome&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-FF9800)
-<!--BRANCH_BADGE_START-->
-![Branch: dev](https://img.shields.io/badge/Branch-dev-6a1b9a)
-<!--BRANCH_BADGE_END-->
 ![Version 2.08.127](https://img.shields.io/badge/Version-2.08.127-1976d2)
 ![Chrome](https://img.shields.io/badge/Chrome-Supported-4285F4?logo=google-chrome&logoColor=white)
 ![Edge](https://img.shields.io/badge/Edge-Supported-0078D7?logo=microsoft-edge&logoColor=white)
@@ -120,7 +117,7 @@ Mass Image Downloader is a Chromium (MV3) extension that helps you **collect and
 **Core goals**
 
 - ⚡ **Speed** with control: bulk/tab scanning, gallery extractors (direct/visual/web-linked), and manual one-click saving.
-- 👌 **Quality** by design: filters for minimum size, allowed formats (PNG, JPG/JPEG, WEBP, GIF, AVIF, BMP), and path-similarity grouping to reduce duplicates.
+- 👌 **Quality** by design: filters for minimum size, allowed formats (PNG, JPG/JPEG, WEBP, AVIF, BMP), and path-similarity grouping to reduce duplicates.
 - 👨‍🔬 **Reproducibility**: deterministic file naming (prefix/suffix/timestamp) and optional clipboard hotkeys for dataset labeling.
 - 💪 **Stability**: pacing (max images per second), per-gallery caps, batching under MV3, and clear visual feedback (badge: green/yellow/blue).
 
@@ -257,7 +254,7 @@ Mass Image Downloader adapts to different page structures. You can either **down
 ### 2) 🌄 Galleries (with direct links)
 
 - **Structure:** thumbnails wrapped by anchors pointing **directly** to media files  
-  `(<a href="*.jpg|png|webp|gif|avif|bmp"><img ...></a>)`.
+  `(<a href="*.jpg|png|webp|avif|bmp"><img ...></a>)`.
 - **Behavior:** picks the best valid target per item (usually the full-size link), applies filters, and downloads.
 - **Immediate vs Tab mode:**
   - **Immediate download:** fastest path; saves directly.
