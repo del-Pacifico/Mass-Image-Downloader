@@ -784,7 +784,7 @@ Adapt behavior to the site, your machine, and your workflow—without touching c
 
 ### Formats & URL rules
 
-- **Allowed formats:** PNG, JPG, JPEG, WEBP, GIF, AVIF, BMP (toggles per format).  
+- **Allowed formats:** PNG, JPG, JPEG, WEBP, AVIF, BMP (toggles per format).  
   Applies to: All modes.  
   **Notes:** Disabling unused formats speeds validation. AVIF/BMP require browser support.
 
