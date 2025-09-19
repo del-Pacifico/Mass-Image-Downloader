@@ -2,26 +2,30 @@
 name: "🌟 Feature Request"
 about: "Propose a new feature or enhancement for Mass Image Downloader"
 title: "[Feature] <brief description>"
-labels: [enhancement]
+labels: ["type: feature", "needs: design"]
 assignees: []
 ---
 
-## 🌟 Feature Description
+## Problem Statement
+<!-- What user problem are we solving? Why now? -->
 
-_Describe the new functionality or behavior you’d like to see added._
+## Proposed Solution
+<!-- Describe the behavior, not implementation details. -->
 
-## 🎯 Motivation
+## Alternatives Considered
+<!-- Other options and why they were rejected. -->
 
-_Why is this feature useful? What problem does it solve or opportunity does it unlock?_
+## Risks / Trade-offs
+<!-- Performance, complexity, UX, security -->
 
-## 🧩 Suggested Implementation (Optional)
+## Acceptance Criteria
 
-_If applicable, describe how this feature might be implemented (UI changes, logic adjustments, etc)._
+- [ ] Criteria 1
+- [ ] Criteria 2
 
-## 📐 Scope and Constraints
+## Out of Scope (explicitly)
 
-_Any known limitations, performance implications, or required integrations._
+- ...
 
-## 💬 Additional Notes
-
-_Anything else that could help developers understand, evaluate, or prioritize this request._
+## Additional Context / References
+<!-- Links, mockups, prior issues/PRs -->
