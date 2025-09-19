@@ -4,6 +4,19 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased] - 2015-09-19
+
+### Added
+
+- **Docs/Templates:** Added `.github/ISSUE_TEMPLATE/hotfix.md` for production hotfix tracking.
+- **Docs/Templates:** Added `.github/ISSUE_TEMPLATE/release_checklist.md` to standardize release validation steps.
+
+### Changed
+
+- **Docs/Templates:** Updated `.github/ISSUE_TEMPLATE/feature_request.md` with improved structure and clarity.
+
+---
+
 ## [2.08.127] - 2025-08-28
 
 All notable changes between **2.07.159** and **2.08.127** are listed here.  
