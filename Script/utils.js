@@ -259,6 +259,33 @@
         }
     }
 
+    // New helper: setBadgeError
+    // Purpose: Show a clear "error" state on the extension badge (red background, white text).
+    function setBadgeError() {
+        try {
+            if (!chrome || !chrome.action || typeof chrome.action.setBadgeText !== "function") {
+                logDebug(1, "⚠️ setBadgeError - chrome.action is not available.");
+                return;
+            }
+
+            // Set red background
+            chrome.action.setBadgeBackgroundColor({ color: "#FF0000" }, () => {
+                if (chrome.runtime.lastError) {
+                    logDebug(1, `⚠️ setBadgeError backgroundColor error: ${chrome.runtime.lastError.message}`);
+                }
+            });
+
+            // Short "Err" label with white text
+            chrome.action.setBadgeText({ text: "Err" }, () => {
+                if (chrome.runtime.lastError) {
+                    logDebug(1, `⚠️ setBadgeError text error: ${chrome.runtime.lastError.message}`);
+                }
+            });
+        } catch (err) {
+            logDebug(1, `❌ setBadgeError unexpected error: ${err.message}`);
+        }
+    }
+
     /**
      * Closes a tab safely, avoiding duplicate closure attempts.
      * @param {number} tabId - The ID of the tab to close.
@@ -623,6 +650,7 @@
         isDirectImageUrl,
         isAllowedImageFormat,
         showUserMessage,
-        initConfigCache
+        initConfigCache,
+        setBadgeError
     };
     

@@ -129,6 +129,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const maxOpenTabsInput = document.getElementById("maxOpenTabs");
     const webLinkedGalleryDelayInput = document.getElementById("webLinkedGalleryDelay");
+
+    // 🕵️ Image Inspector (new)
+    const imageInspectorEnabledCheckbox   = document.getElementById("imageInspectorEnabled");
+    const imageInspectorDevModeCheckbox   = document.getElementById("imageInspectorDevMode");
+    const imageInspectorCloseOnSaveCheckbox = document.getElementById("imageInspectorCloseOnSave");
+
     let applyingPreset = false;
 
     galleryMaxImagesInput = document.getElementById("galleryMaxImages");
@@ -158,6 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // ⚙️ Performance Preset change handler
     presetRadios.forEach((radio) => {
         
         if (!radio.checked) return;
@@ -168,6 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             applyingPreset = true; // ⬅️ New: activate protection to prevent multiple preset applications
 
+            // Define preset configurations
             const presetConfigs = {
                 low: {
                     downloadLimit: 1,
@@ -323,7 +331,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 galleryMaxImagesInput,
                 extractGalleryModeSelect,
                 maxOpenTabsInput,
-                webLinkedGalleryDelayInput
+                webLinkedGalleryDelayInput,
+                imageInspectorEnabledCheckbox,
+                imageInspectorDevModeCheckbox,
+                imageInspectorCloseOnSaveCheckbox
             ];
 
             // 🧠 Bind change listener to inputs
@@ -355,6 +366,7 @@ document.addEventListener("DOMContentLoaded", () => {
         folderPathInput.value = "";
     });
 
+    // 📁 Custom folder selected
     customFolderRadio.addEventListener("change", () => {
         folderPathInput.disabled = false;
     });
@@ -386,13 +398,16 @@ document.addEventListener("DOMContentLoaded", () => {
             "galleryEnableSmartGrouping", "galleryEnableFallback",
             "showUserFeedbackMessages", "enableClipboardHotkeys",
             "maxOpenTabs", "webLinkedGalleryDelay", "peekTransparencyLevel",
-            "enableOneClickIcon", "performancePreset"
+            "enableOneClickIcon", "performancePreset",
+            "imageInspectorEnabled", "imageInspectorDevMode", "imageInspectorCloseOnSave"
         ], (data) => {
             logDebug(1, "🔍 Settings loaded from storage.");
 
         // 🆕 Restore Performance Preset
         const savedPreset = data.performancePreset ?? "medium";
         const presetRadioToCheck = document.querySelector(`input[name="performancePreset"][value="${savedPreset}"]`);
+        
+        // Check if the radio exists before setting it
         if (presetRadioToCheck) {
             presetRadioToCheck.checked = true;
             logDebug(2, `⚙️ Restored performancePreset: ${savedPreset}`);
@@ -428,7 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     folderPathInput.disabled = true;
                 }
     
-                // 
+                // ⬇️ Download Limit
                 if (downloadLimitInput) {
                     downloadLimitInput.value = data.downloadLimit ?? 2;
                 }
@@ -581,13 +596,27 @@ document.addEventListener("DOMContentLoaded", () => {
                     logDebug(2, "⚠️ maxOpenTabs input not found.");
                 }
 
+                // ⏱️ Web Linked Gallery Delay
                 if (webLinkedGalleryDelayInput) {
                     webLinkedGalleryDelayInput.value = data.webLinkedGalleryDelay ?? 500;
                     logDebug(2, "⏱️ Loaded webLinkedGalleryDelay:", webLinkedGalleryDelayInput.value);
                 } else {
                     logDebug(2, "⚠️ webLinkedGalleryDelay input not found.");
                 }
-                
+
+                // 🕵️ Image Inspector — defaults false
+                if (imageInspectorEnabledCheckbox) {
+                    imageInspectorEnabledCheckbox.checked = data.imageInspectorEnabled ?? false;
+                    logDebug(2, "🕵️ imageInspectorEnabled loaded:", imageInspectorEnabledCheckbox.checked);
+                }
+                if (imageInspectorDevModeCheckbox) {
+                    imageInspectorDevModeCheckbox.checked = data.imageInspectorDevMode ?? false;
+                    logDebug(2, "🕵️ imageInspectorDevMode loaded:", imageInspectorDevModeCheckbox.checked);
+                }
+                if (imageInspectorCloseOnSaveCheckbox) {
+                    imageInspectorCloseOnSaveCheckbox.checked = data.imageInspectorCloseOnSave ?? false;
+                    logDebug(2, "🕵️ imageInspectorCloseOnSave loaded:", imageInspectorCloseOnSaveCheckbox.checked);
+                }                
     
             } catch (uiError) {
                 logDebug(1, "❌ Error applying settings to UI:", uiError.message);
@@ -766,7 +795,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 logDebug(2, "⚠️ peekTransparencyLevel input not found during save. Using fallback 0.8");
             }
-
+            
             // 🆕 Get selected preset (low, medium, high)
             const selectedPresetRadio = document.querySelector('input[name="performancePreset"]:checked');
             const performancePreset = selectedPresetRadio ? selectedPresetRadio.value : "custom";
@@ -802,7 +831,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 enableOneClickIcon: enableOneClickIconCheckbox ? enableOneClickIconCheckbox.checked : false,
                 maxOpenTabs: maxOpenTabsInput ? Math.min(10, Math.max(1, parseInt(maxOpenTabsInput.value))) : 5,
                 webLinkedGalleryDelay: webLinkedGalleryDelayInput ? Math.min(3000, Math.max(100, parseInt(webLinkedGalleryDelayInput.value))) : 500,
-                peekTransparencyLevel, performancePreset
+                peekTransparencyLevel, performancePreset,
+                imageInspectorEnabled: imageInspectorEnabledCheckbox ? imageInspectorEnabledCheckbox.checked : false,
+                imageInspectorDevMode: imageInspectorDevModeCheckbox ? imageInspectorDevModeCheckbox.checked : false,
+                imageInspectorCloseOnSave: imageInspectorCloseOnSaveCheckbox ? imageInspectorCloseOnSaveCheckbox.checked : false,
 
             }, () => {
                 if (chrome.runtime.lastError) {

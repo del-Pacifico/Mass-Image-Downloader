@@ -4,6 +4,81 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [2.08.149] - 2025-01-28
+
+All notable changes between **2.08.128** and **2.08.149** are listed here.
+
+### ✨ Added
+
+- **Image Inspector Mode** (F1–F3.1c):  
+  Standalone image inspection layer activated with **Ctrl+Shift+M**, providing a non-intrusive, client-side way to inspect, preview, zoom, navigate and save single images directly from any webpage.
+- **🕵️ Hover Overlay**:  
+  Lightweight, dynamic overlay over valid images using event delegation. Zero layout shifts.
+- **Inspector Panel (Peek-Styled)**:  
+  Right-docked panel built using Shadow DOM, matching the Peek Settings UI (colors, spacing, fonts, border-radius).
+- **Preview Frame (220px)**:  
+  Includes ✚ Zoom In, – Zoom Out, and **⛶ Original Size** reset button with drag-to-pan support.
+- **Image Navigation**:  
+  Added **⬅️ Previous** and **➡️ Next** to cycle through all images in the page.  
+  Updates preview, metadata and developer mode dynamically.
+- **Dynamic Metadata & Developer Refresh**:  
+  Structured two-column layout for displaying image dimensions, MIME, URL, description, title, and node attributes.
+- **Dedicated Save Flow** (`imageInspectorSaveImage`):  
+  Inspector now saves using its own background action with independent success/error handling.
+- **User Feedback Integration**:  
+  All success/error/info messages routed through `showUserMsgSafe()` and respect user preference.
+
+---
+
+### 🔁 Changed
+
+- **Panel Layout**:  
+  Sections reordered to: **Preview → Visible Metadata → Developer** (if enabled).
+- **Button Placement (UX)**:  
+  Prev/Next buttons moved next to **✚ / – / ⛶** to unify all visual controls in one row.
+- **Actions Row Simplified**:  
+  Now includes only: **🔗 Open full image** and **💾 Save image**.
+- **Save Logic Separation**:  
+  Removed legacy use of `manualDownloadImage`/`downloadImage` from Inspector and replaced with dedicated action.
+- **Logging Consistency**:  
+  All console output uses `logDebug(level, ...)` and respects global `debugLogLevel`.
+
+---
+
+### 🐛 Fixed
+
+- **False "Could not start download" error**:  
+  Correct handling of MV3 `"message port closed"` behavior; Inspector now treats it as silent success when appropriate.
+- **Panel close behavior**:  
+  Inspector panel no longer attempts to close tabs; tab shutdown is now handled exclusively in background.js.
+- **Navigation safety**:  
+  Reset zoom automatically on image change via `zoomResetBtn.click()`.
+
+---
+
+### 🧹 Maintenance
+
+- **Cleanup on disable**:  
+  `teardownImageInspector()` fully clears DOM overlays, listeners, shadow roots and cursor changes.
+- **Option Live Sync**:  
+  Inspector listens for changes to: enabled state, dev mode, close-on-save, feedback messages and debug level.
+- **Privacy rules enforced**:  
+  Local/blob/data URLs are hidden in metadata for security.
+
+---
+
+### 📄 Documentation
+
+- Added detailed developer notes related to:
+  - Image Inspector Mode lifecycle (activation, overlay, panel).
+  - Zoom/pan behavior and boundaries.
+  - Navigation system and metadata refresh logic.
+  - Known edge cases:
+    - **NestedFigureResponsiveImg**
+    - **DirectImageOverlayPosition**
+
+---
+
 ## [Unreleased] - 2015-09-19
 
 ### Added
