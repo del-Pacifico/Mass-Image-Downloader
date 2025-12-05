@@ -4,6 +4,57 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [2.08.149] - 2025-12-04
+
+### 🚀 Overview
+
+Polish and stability improvements to **Image Inspector Mode**, fixing tooltip behavior, unified icon styling, improved visibility on initial render, and correcting minor inconsistencies discovered while testing on real websites. One syntax error found in field tests was also resolved. A new edge case (`InspectorOverlayOffset`) has been documented for future treatment.
+
+### ✨ Added
+
+- Added a new documented edge case: **InspectorOverlayOffset**  
+  (overlay misalignment in responsive, nested figure layouts). Pending treatment along with other inspector edge cases.
+
+- Added guidance in README on how to inspect **Image Inspector logs** via DevTools Console, including how to filter inspector-specific events.
+
+### 🔁 Changed
+
+- Unified all **Image Inspector icons** (✖, ✚, –, ⛶, ⬅️, ➡️, 🔗, 💾, 🕵️) to follow the same hover and background color behavior used by the One-click Download icon.  
+- Ensured icons render with consistent size and contrast on initial load (no more “blank until hover”).  
+- Updated tooltips inside Image Inspector to a **custom tooltip element** using the extension color palette with proper fade-out behavior.  
+- Improved alignment and centering of inspector icons using safer layout rules (`inline-flex`, centered alignment), eliminating the 1–2 px drift reported in some layouts.  
+- README updated with revised Image Inspector documentation, visual behavior notes, tooltip usage, and clarity around Inspector logging.
+
+### 🐛 Bug Fixes
+
+- **injectSaveIcon.js**: Fixed duplicate declaration error  
+  `Uncaught SyntaxError: Identifier 'debugLogLevelCache' has already been declared`  
+  by removing redundant initialization and reusing the shared cache.
+
+- **Image Inspector**: Fixed “sticky tooltip” issue where tooltips persisted after mouse leave due to conflicting lifecycle events inside Shadow DOM.
+
+- **Image Inspector**: Fixed missing icon visibility on initial render (icons appearing white until hover).
+
+- **Image Inspector**: Corrected minor positional drift in Inspector toolbar icons due to nested absolute-position stacking.
+
+### 📄 Documentation
+
+- Added new edge case: **InspectorOverlayOffset**, grouped with pending inspector edge cases (`NestedFigureResponsiveImg` and `DirectImageOverlayPosition`).  
+- Expanded Image Inspector explanation in README:  
+  - Icon behavior & sizing  
+  - Tooltip improvements  
+  - How to view inspector-level logs via DevTools  
+  - Prefix/Suffix persistence note when reloading configuration via Peek Settings
+
+### 🧹 Maintenance
+
+- Removed redundant `mouseleave` listeners in `injectSaveIcon.js`.  
+- Simplified icon hover logic across inspector and manual flows, improving atomicity and reducing DOM churn.  
+- Defensive default handling for `allowExtendedImageUrls` to prevent `ReferenceError` in content scripts.  
+- Cleaned small internal comments and aligned variable naming consistency in inspector helpers.
+
+---
+
 ## [2.08.149] - 2025-01-28
 
 All notable changes between **2.08.128** and **2.08.149** are listed here.

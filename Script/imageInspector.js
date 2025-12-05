@@ -1,14 +1,17 @@
-/* -----------------------------------------------------------------------------
- * Mass Image Downloader - Image Inspector (Content Script)
- * Version: 2.08.140-UxFix (Shadow DOM parity, scroll, header icon, DevMode gating, small buttons)
- * -----------------------------------------------------------------------------
- * - UX/CSS: Panel con Shadow DOM replicando estilos de Options.
- * - Scroll restaurado (estructura .root + .scroll).
- * - Icono de cabecera con chrome.runtime.getURL().
- * - Bloque "Mode: Developer" solo si iiDevMode === true.
- * - Botones compactos (.btn-sm) y botón cerrar "✖" únicamente.
- * - Reglas de negocio SIN cambios.
- * --------------------------------------------------------------------------- */
+// # This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+// # If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+// #
+// # Original Author: Sergio Palma Hidalgo
+// # Project URL: https://github.com/del-Pacifico/Mass-Image-Downloader
+// # Copyright (c) 2025 Sergio Palma Hidalgo
+// # All rights reserved.
+
+// imageInspector.js:
+// Image Inspector content script for Mass Image Downloader: shows a hover overlay and opens a fixed inspector sidebar for inspecting images.
+// Provides a safe preview with zoom/pan, visible metadata, prev/next navigation, and actions to open or save images.
+// Loads runtime settings from chrome.storage.sync and toggles activation via the Ctrl+Shift+M hotkey.
+// Sends robust messages to the background to initiate downloads with fallback handling and displays non-blocking user toasts.
+// Manages overlay and panel lifecycle, supports developer mode details, and respects a cached debug log level.
 
 // Runtime (storage-synced) 
 let iiEnabledFromOptions = false;
@@ -153,6 +156,67 @@ function showUserMsgSafe(text, type = "info") {
     }, duration);
   } catch (err) {
     logDebug(1, "❌ Failed to show user message:", err?.message || err);
+  }
+}
+
+// Simple tooltip helper to avoid native title behavior covering text.
+// Renders a fixed-position bubble slightly above the target element.
+function attachTooltip(element, text) {
+  try {
+    if (!element || !text) return;
+
+    // Accessibility hint; we control visuals ourselves.
+    element.setAttribute("aria-label", text);
+    element.removeAttribute("title");
+
+    let tooltipEl = null;
+
+    const showTooltip = () => {
+      try {
+        // Clean any previous tooltip created for this element
+        if (tooltipEl && tooltipEl.remove) {
+          try { tooltipEl.remove(); } catch (_) {}
+          tooltipEl = null;
+        }
+
+        const rect = element.getBoundingClientRect();
+        const top = Math.max(4, rect.top - 28); // a bit above the icon
+
+        tooltipEl = document.createElement("div");
+        tooltipEl.textContent = text;
+        tooltipEl.style.position = "fixed";
+        tooltipEl.style.left = `${rect.left + rect.width / 2}px`;
+        tooltipEl.style.top = `${top}px`;
+        tooltipEl.style.transform = "translateX(-50%)";
+        tooltipEl.style.backgroundColor = "#121b3e";
+        tooltipEl.style.color = "#f4f4f4";
+        tooltipEl.style.padding = "4px 8px";
+        tooltipEl.style.borderRadius = "4px";
+        tooltipEl.style.fontSize = "11px";
+        tooltipEl.style.whiteSpace = "nowrap";
+        tooltipEl.style.pointerEvents = "none";
+        tooltipEl.style.border = "1px solid #4f5984";
+        tooltipEl.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.35)";
+        tooltipEl.style.zIndex = "2147483647";
+        document.body.appendChild(tooltipEl);
+      } catch (_) {
+        // Tooltip is best-effort; do not break flows.
+      }
+    };
+
+    const hideTooltip = () => {
+      try {
+        if (tooltipEl) tooltipEl.remove();
+      } catch (_) {}
+      tooltipEl = null;
+    };
+
+    element.addEventListener("mouseenter", showTooltip);
+    element.addEventListener("mouseleave", hideTooltip);
+    element.addEventListener("focus", showTooltip);
+    element.addEventListener("blur", hideTooltip);
+  } catch (err) {
+    logDebug(2, "⚠️ attachTooltip failed:", err?.message || err);
   }
 }
 
@@ -302,25 +366,35 @@ function showOverlayForImage(img) {
     btn.setAttribute("aria-label", "Image info");
     btn.setAttribute("role", "button");
     btn.textContent = "🕵️";
-    btn.title = "[Mass image downloader]: Click to open the Image Inspector panel.";
+    // Tooltip
+    attachTooltip(
+      btn,
+      "[Mass image downloader]: Open this image in the Image Inspector panel by clicking on it."
+    );
+    
     btn.style.position = "absolute";
     btn.style.top = "6px";
     btn.style.right = "6px";
-    btn.style.fontSize = "10px";
-    btn.style.lineHeight = "12px";
-    btn.style.padding = "2px 4px";
-    btn.style.borderRadius = "4px";
-    btn.style.background = "rgba(255,255,255,0.95)";
-    btn.style.color = "#121b3e";
-    btn.style.border = "1px solid #4f5984";
-    btn.style.boxShadow = "0 1px 4px rgba(0,0,0,0.25)";
+    btn.style.fontSize = "14px";
+    btn.style.lineHeight = "20px";
+    btn.style.padding = "2px 8px";
+    btn.style.borderRadius = "6px";
+    btn.style.backgroundColor = "#F8F8F8";
+    btn.style.color = "#FFFFFF";
+    btn.style.border = "3px solid #768591";
+    btn.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.2)";
     btn.style.cursor = "pointer";
     btn.style.zIndex = "2147483646";
-    btn.style.transform = "scale(1)";
-    btn.style.transition = "transform .12s ease, opacity .12s ease";
+    btn.style.transition = "all 0.2s ease-in-out";
 
-    btn.addEventListener("mouseenter", () => { btn.style.transform = "scale(1.08)"; });
-    btn.addEventListener("mouseleave", () => { btn.style.transform = "scale(1)"; });
+    // Hover behavior aligned with injectSaveIcon
+    btn.addEventListener("mouseenter", () => {
+      btn.style.backgroundColor = "#4f5984";
+    });
+
+    btn.addEventListener("mouseleave", () => {
+      btn.style.backgroundColor = "#F8F8F8";
+    });
     btn.addEventListener("mousedown", (e) => { e.stopPropagation(); }, true);
     btn.addEventListener("click", (e) => {
       e.preventDefault(); e.stopPropagation();
@@ -473,26 +547,54 @@ function openInspectorPanelForImage(img) {
         opacity: 0.8;
         white-space: pre-wrap;
       }
-      button {
-        padding: 10px;
-        font-size: 10px;
-        font-weight: bold;
-        background-color: #007EE3;
-        border: 2px solid #768591;
+      button, .icon-btn {
+        padding: 4px 8px;
+        margin-left: 4px;
+        border-radius: 4px;
+        border: 1px solid #768591;
+        background-color: #F8F8F8;
         color: #FFFFFF;
-        border-radius: 6px;
         cursor: pointer;
-        transition: all 0.3s ease;
+        font-size: 12px;
       }
+
       button:hover {
-        background-color: #768591;
-        border-color: #007EE3;
-        color: #FFFFFF;
+          background-color: #4f5984;   
+          color: #f4f4f4;              
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
       }
       .btn-sm {
-        padding: 6px 10px;
-        font-size: 10px;
-        font-weight: bold;
+        /* Fixed square size for icon buttons */
+        width: 26px;
+        height: 26px;
+        min-width: 26px;
+        min-height: 26px;
+
+        /* Center emoji exactly inside the square */
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        /* Icon visual scale */
+        font-size: 18px;
+        line-height: 1;
+
+        /* No extra offset around the glyph */
+        padding: 0;
+        box-sizing: border-box;
+      }
+      .icon-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 16px;
+        border-radius: 4px;
+        color: #4f5984; 
+      }
+      .icon-btn:hover {
+        background-color: #4f5984;
+        border-color: #768591;
+        color: #FFFFFF;
       }
       .row {
         display: flex; 
@@ -552,7 +654,8 @@ function openInspectorPanelForImage(img) {
     // Close button, compact "✖"
     const closeBtn = document.createElement("button");
     closeBtn.textContent = "✖";
-    closeBtn.className = "btn-sm";
+    closeBtn.className = "btn-sm icon-btn";
+    attachTooltip(closeBtn, "Close Image Inspector");
     closeBtn.style.alignSelf = "flex-start";
     closeBtn.style.marginBottom = "8px";
     closeBtn.addEventListener("click", (e) => {
@@ -672,29 +775,29 @@ function openInspectorPanelForImage(img) {
 
     const zoomInBtn = document.createElement("button");
     zoomInBtn.textContent = "✚";
-    zoomInBtn.title = "Zoom in";
-    zoomInBtn.className = "btn-sm";
+    zoomInBtn.className = "btn-sm icon-btn";
+    attachTooltip(zoomInBtn, "Zoom in");
 
     const zoomOutBtn = document.createElement("button");
     zoomOutBtn.textContent = "–";
-    zoomOutBtn.title = "Zoom out";
-    zoomOutBtn.className = "btn-sm";
+    zoomOutBtn.className = "btn-sm icon-btn";
+    attachTooltip(zoomOutBtn, "Zoom out");
 
     const zoomResetBtn = document.createElement("button");
     zoomResetBtn.textContent = "⛶";
-    zoomResetBtn.title = "Original size";
-    zoomResetBtn.className = "btn-sm";
+    zoomResetBtn.className = "btn-sm icon-btn";
+    attachTooltip(zoomResetBtn, "Original size");
 
     // NEW — Navigation buttons (following EXACT same pattern)
     const prevBtn = document.createElement("button");
     prevBtn.textContent = "⬅️";
-    prevBtn.title = "Previous image";
-    prevBtn.className = "btn-sm";
+    attachTooltip(prevBtn, "Previous image");
+    prevBtn.className = "btn-sm icon-btn";
 
     const nextBtn = document.createElement("button");
     nextBtn.textContent = "➡️";
-    nextBtn.title = "Next image";
-    nextBtn.className = "btn-sm";
+    attachTooltip(nextBtn, "Next image");
+    nextBtn.className = "btn-sm icon-btn";
 
     // Order: ZoomIn / ZoomOut / Reset / Prev / Next
     rowZoom.appendChild(zoomInBtn);
@@ -717,13 +820,13 @@ function openInspectorPanelForImage(img) {
     
     const openBtn = document.createElement("button");
     openBtn.textContent = "🔗";
-    openBtn.title = "Open image in new tab";
-    openBtn.className = "btn-sm";
+    attachTooltip(openBtn, "Open image in new tab");
+    openBtn.className = "btn-sm icon-btn";
 
     const saveBtn = document.createElement("button");
     saveBtn.textContent = "💾";
-    saveBtn.title = "Save image using your global download rules";
-    saveBtn.className = "btn-sm";
+    attachTooltip(saveBtn, "Save image using your global download rules");
+    saveBtn.className = "btn-sm icon-btn";
     
     rowActions.appendChild(openBtn);
     rowActions.appendChild(saveBtn);

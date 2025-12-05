@@ -1,11 +1,10 @@
-# Mass Image Downloader
 
 ![Chromium 93+](https://img.shields.io/badge/Chromium-93%2B-4285F4?logo=google-chrome&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-FF9800)
-![Version 2.08.127](https://img.shields.io/badge/Version-2.08.127-1976d2)
-![Chrome](https://img.shields.io/badge/Chrome-Supported-4285F4?logo=google-chrome&logoColor=white)
-![Edge](https://img.shields.io/badge/Edge-Supported-0078D7?logo=microsoft-edge&logoColor=white)
-![Brave](https://img.shields.io/badge/Brave-Supported-FB542B?logo=brave&logoColor=white)
+![Version 2.08.149](https://img.shields.io/badge/Version-2.08.149-1976d2)
+![Chrome](https://img.shields.io/badge/Chrome-Not%20Fully%20Tested-9E9E9E?logo=google-chrome&logoColor=white)
+![Edge](https://img.shields.io/badge/Edge-Not%20Fully%20Tested-9E9E9E?logo=microsoft-edge&logoColor=white)
+![Brave](https://img.shields.io/badge/Brave-Tested-FB542B?logo=brave&logoColor=white)
 <!--Standards-->
 ![License](https://img.shields.io/badge/license-MPL--2.0-green?style=flat-square)
 ![Status](https://img.shields.io/badge/status-active-brightgreen?style=flat-square)
@@ -20,10 +19,8 @@
 ## 📚 Table of Contents
 
 - [Mass Image Downloader](#mass-image-downloader)
-  - [📚 Table of Contents](#-table-of-contents)
-- [Mass Image Downloader](#mass-image-downloader-1)
   - [🌐 Overview](#-overview)
-  - [🚀 Highlights in this release (v2.08.127)](#-highlights-in-this-release-v208127)
+  - [🔥 Highlights in this release (v2.08.149)](#-highlights-in-this-release-v208149)
   - [✨ Features](#-features)
   - [🧩 Installation (Developer Mode / Unpacked)](#-installation-developer-mode--unpacked)
     - [Steps (Chrome / Edge / Brave)](#steps-chrome--edge--brave)
@@ -34,6 +31,8 @@
     - [3) 🖼️ Galleries (without links)](#3-️-galleries-without-links)
     - [4) 🔗 Web-linked galleries](#4--web-linked-galleries)
     - [Manual \& hotkey workflows](#manual--hotkey-workflows)
+    - [Image Inspector Mode (🕵️)](#image-inspector-mode-️)
+    - [Peek Settings (view-only UI)](#peek-settings-view-only-ui)
     - [Grouping \& bounding (why it matters)](#grouping--bounding-why-it-matters)
     - [Why pacing exists (and how to tune it)](#why-pacing-exists-and-how-to-tune-it)
     - [Quick self-tests (no special toggles required)](#quick-self-tests-no-special-toggles-required)
@@ -43,7 +42,8 @@
     - [🌍 Global Settings](#-global-settings)
       - [📁 File system](#-file-system)
       - [📋 Clipboard Hotkeys](#-clipboard-hotkeys)
-      - [🖱️ One-click Download Icon](#️-one-click-download-icon)
+      - [🕵️ Image Inspector](#️-image-inspector)
+    - [🖱️ One-click Download Icon](#️-one-click-download-icon)
       - [🖼️ Galleries](#️-galleries)
         - [📐 Image size](#-image-size)
     - [📢 Notifications](#-notifications)
@@ -61,6 +61,7 @@
     - [6) Throughput \& stability](#6-throughput--stability)
     - [7) Quick troubleshooting](#7-quick-troubleshooting)
   - [✅ Requirements](#-requirements)
+    - [Browser testing status (v2.08.149)](#browser-testing-status-v208149)
   - [🧠 Technical design](#-technical-design)
     - [Architecture overview](#architecture-overview)
     - [File-by-file map](#file-by-file-map)
@@ -87,6 +88,7 @@
   - [🔧 Recommended setup](#-recommended-setup)
   - [🧪 Advanced / Developer tips](#-advanced--developer-tips)
     - [View live flow details](#view-live-flow-details)
+      - [Logging for Image Inspector Mode (🕵️)](#logging-for-image-inspector-mode-️)
     - [Test image thresholds (quick sanity check)](#test-image-thresholds-quick-sanity-check)
     - [Simulate extraction failures (for diagnosis)](#simulate-extraction-failures-for-diagnosis)
     - [Reproduce issues reliably](#reproduce-issues-reliably)
@@ -147,20 +149,13 @@ Includes:
 
 ---
 
-## 🚀 Highlights in this release (v2.08.127)
+## 🔥 Highlights in this release (v2.08.149)
 
-- **New mode:** Extract **Web-linked Galleries** (opens linked HTML pages with bounded concurrency and extracts the best valid image from each).
-- **New option:** **Allow extended image URLs** — accepts suffixes like `:large`, `:orig` (Twitter/X, Pixiv) as valid media.
-- **New formats:** **AVIF** and **BMP** added to the allowed formats list.
-- **Badge stability clarified:**  
-  - 🟢 **Green** (white numbers) → bulk downloads in progress  
-  - 🟡 **Yellow** → manual downloads in progress  
-  - 🔵 **Blue** → all downloads completed
-- **Options reorganized:** clearer sections (Galleries, Image Size, File System/URL, Naming, Performance, Diagnostics).
-- **Throughput controls improved:** smoother gallery pacing with **Max images per second**.
-- **Bulk reliability fixes:** resolved async filename (`undefined finalName`) and premature “Done” state; cumulative counter preserved.
-- **Service Worker hygiene:** reduced memory footprint and safer listeners under MV3.
-- **Minimum environment enforced:** Chromium **93+** (MV3).
+- Added Image Inspector Mode: hover overlay (🕵️), side panel with Shadow DOM, zoom controls (✚ / – / ⛶), metadata, navigation (⬅️ / ➡️), and integrated save workflow
+- Integrated Inspector settings into Options and Peek Settings (Developer Mode, Close-on-save, toggle hotkey)
+- Improved manual save handling, badge error (red state) reporting, and UI consistency
+- Optimized panel rendering, teardown logic, and logDebug() instrumentation
+- Updated documentation and clarified browser testing status for this release
 
 ---
 
@@ -185,6 +180,15 @@ Includes:
   - **Ctrl+Alt+P** — set **filename prefix** from clipboard.  
   - **Ctrl+Alt+S** — set **filename suffix** from clipboard.
   > Great for dataset runs: copy a label/tag once and apply it to all subsequent files.
+
+- 🕵️ **Image Inspector Mode (hover + side panel)**
+  - **Ctrl+Shift+M** — toggles Inspector Mode. Hover displays a small 🕵️ overlay; clicking opens a right-docked panel with:
+    - Safe preview with zoom (✚ / – / ⛶) and drag-to-pan
+    - Visible metadata (dimensions, title, alt, URLs)
+    - Optional Developer Mode with technical details
+    - Save workflow with close-on-save (optional)
+    - Navigation arrows (⬅️ / ➡️) to browse all images on the current page
+  > Perfect for single-image review, debugging, and high-precision workflows.
 
 - 📶 **Throughput & pacing for galleries**
   - **Max images per second** — smooths extraction on heavy pages to avoid site throttling and CPU spikes.
@@ -283,6 +287,26 @@ Mass Image Downloader adapts to different page structures. You can either **down
 
 > Tip: For curation, combine **prefix/suffix** labels with **Alt+Shift+I** and save only the images you want.
 
+### Image Inspector Mode (🕵️)
+
+- **Ctrl+Shift+M** toggles Inspector Mode on/off.
+- Hovering an eligible image displays a small 🕵️ overlay in the top-left corner.
+- Clicking the overlay opens a right-docked panel built with a Shadow DOM host.
+- The panel includes:
+  - Safe preview with zoom controls (✚ / – / ⛶)  
+  - Drag-to-pan when zoomed  
+  - Visible metadata (dimensions, alt, title, URLs)  
+  - Optional Developer Mode (node type, full URL, debug metadata)  
+  - Navigation arrows (⬅️ / ➡️) to browse all images on the current page  
+  - Save workflow that integrates with global naming, folders and conflict rules
+- Inspector controls (🕵️ ✖ ✚ – ⛶ ⬅️ ➡️ 🔗 💾) share the same hover/active styling as the one-click download icon: a light neutral background, a clear highlight on hover, and inline tooltips that disappear as soon as the cursor leaves.
+- When **Close page after saving** is enabled, the current tab closes automatically after a successful Inspector-initiated download.
+
+### Peek Settings (view-only UI)
+
+Peek Settings lets you preview all option values without altering them.
+Useful when debugging a failing extraction or validating global rules.
+
 ### Grouping & bounding (why it matters)
 
 - **Path similarity threshold:** clusters “near-duplicate” URLs so resized/cached variants don’t flood your dataset.
@@ -321,6 +345,7 @@ Different modes have different resilience when you switch tabs, navigate away, o
   - **Max open tabs per gallery** — limits concurrent background tabs to prevent a tab storm.
   - **Delay between tab openings (ms)** — spreads fan-out to be gentler on the site and your CPU.
   - **Max images per second** — throttles extractor rate to avoid server-side rate limits.
+- **Inspector-specific tip:** finish or cancel any in-panel saves before closing or navigating the tab; the panel is page-bound, but once a save is dispatched, the download pipeline is fully background-driven.
 - **Watch the badge**:  
   - **Green** (white numbers) → bulk in progress  
   - **Yellow** → manual in progress (e.g., Alt+Shift+I overlay flow)  
@@ -370,7 +395,26 @@ Enables quick, consistent labeling of files by setting prefix/suffix from the cl
   Hotkeys: `Ctrl + Alt + P` → set **Prefix**, `Ctrl + Alt + S` → set **Suffix**  
   **Notes:** Requires this toggle enabled; operates in the active tab context.
 
-#### 🖱️ One-click Download Icon
+#### 🕵️ Image Inspector
+
+Controls how **Image Inspector Mode** behaves when inspecting and saving images from the side panel.
+
+- **Enable Image Inspector Mode**  
+  Turns the **Ctrl + Shift + M** shortcut on or off. When disabled, Inspector Mode cannot be activated and no hover overlay or panel is injected.  
+  Applies to: Image Inspector Mode only.  
+  **Notes:** Recommended to keep enabled if you routinely debug image metadata or need high-precision single-image review.
+
+- **Developer Mode**  
+  Adds an extra “developer” section inside the inspector panel with technical details such as normalized URL, detected format, and debug hints.  
+  Applies to: Image Inspector Mode only.  
+  **Notes:** Ideal for QA, contributors, or advanced users who want to understand why some images are skipped or how rules are applied.
+
+- **Close page after saving image**  
+  If enabled, the current tab is closed automatically after a successful save triggered from Image Inspector Mode.  
+  Applies to: Image Inspector Mode only.  
+  **Notes:** This is separate from panel close behavior; the panel itself can still be closed manually even when this toggle is off.
+
+### 🖱️ One-click Download Icon
 
 Provides a manual, no-popup workflow to save the focused image instantly via hotkey.
 
@@ -553,6 +597,7 @@ Unless changed in the Options page, these defaults apply globally:
 ### 5) Manual & hotkeys (curation)
 
 - **Alt + Shift + I** — toggle the **one-click download icon** over the focused image and save instantly (no popup).
+- **Ctrl + Shift + M** — toggle **Image Inspector Mode**; hover an image to see the 🕵️ overlay and click it to open the side panel with zoom, metadata, and navigation.
 - **Ctrl + Alt + P / S** — set **filename prefix / suffix** from the clipboard to label a batch.
 
 > Perfect for cherry-picking a few images while keeping names consistent.
@@ -574,11 +619,14 @@ Unless changed in the Options page, these defaults apply globally:
       ```
      [Mass image downloader]
      ```
+
      This shows only messages emitted by the extension.
      - Optional: enable the **regex** toggle and use:
+
        ```
        ^\[Mass image downloader\]
        ```
+
        to match logs that **start** with the prefix.
        
   4) You can also press **Ctrl/Cmd + F** to find occurrences in the visible output.
@@ -609,6 +657,16 @@ Unless changed in the Options page, these defaults apply globally:
 - **Recommended browser setting**  
   🚨 Disable **“Ask where to save each file before downloading”** for uninterrupted bulk downloads
 
+- **Node.js** (optional, for linting or bundling tasks)
+
+### Browser testing status (v2.08.149)
+
+- **Brave** → Fully tested 👍🏼 
+- **Chrome** → Not fully tested on this release 🚨 
+- **Edge** → Not fully tested on this release  🚨
+
+The extension should run normally across all Chromium-based browsers, but this version has only been validated on Brave during QA. Additional cross-browser verification is planned for the next iteration.  
+
 - **Notes**  
   - Enterprise/managed browsers may restrict the Downloads API or filename handling  
   - Custom subfolders are sanitized and resolved under the default Downloads directory  
@@ -623,7 +681,7 @@ This section outlines the architecture, core flows, and the responsibilities of 
 ### Architecture overview
 
 - **Service Worker (MV3)** — `background.js` orchestrates flows, validates environment (Chromium ≥ 93), loads settings, manages downloads, and audits completion.  
-- **Content scripts** — `extractLinkedGallery.js` and `extractVisualGallery.js` inspect page DOMs, discover candidates (URLs or `<img>`), and report back to the Service Worker.  
+- **Content scripts** — `extractLinkedGallery.js` and `extractVisualGallery.js` inspect page DOMs, discover candidates (URLs or `<img>`), and report back to the Service Worker; `imageInspector.js` manages the Image Inspector overlay and side panel on the active page.  
 - **UI surfaces** — `popup.html/js` trigger flows and expose entry points; `options.html/js` persist configuration via `chrome.storage.sync`; **Peek** pages offer read-only visibility of the active config.  
 - **Utilities** — `utils.js` centralizes URL/format/size validation, deterministic naming, badge/notifications, and small robustness helpers.
 
@@ -636,6 +694,7 @@ This section outlines the architecture, core flows, and the responsibilities of 
 | `utils.js` | Utilities | Validate URL/format/dimensions; normalize paths; build filenames (prefix/suffix/timestamp); badge updates; toasts; defensive helpers | `chrome.action.*`, `chrome.storage.*` |
 | `extractLinkedGallery.js` | Gallery extractor (with direct links) | Find anchors to media files; apply rules; group by similarity; send candidates to SW | `chrome.runtime.sendMessage` |
 | `extractVisualGallery.js` | Gallery extractor (without direct links) | Collect visible `<img>` that meet thresholds; optional grouping; send candidates to SW | `chrome.runtime.sendMessage` |
+| `imageInspector.js` | Image Inspector content script | Manage Inspector Mode lifecycle: toggle overlay via hotkey, handle hover detection, render the right-docked panel (Shadow DOM), provide zoom/pan/navigation, extract metadata, and dispatch save requests to the Service Worker | `chrome.runtime.sendMessage`, `chrome.storage.sync`, DOM events |
 | `popup.html` | Popup UI | Entry points to Bulk / Galleries / Web-linked / Settings / Peek | — |
 | `popup.js` | Popup logic | Wire UI actions to background flows; open Options/Peek | `chrome.runtime.*`, `chrome.tabs.*` |
 | `options.html` | Options UI | Structured settings (Global, Galleries, Size, FS/URL/Naming, Notifications, Debug) | — |
@@ -866,27 +925,57 @@ Legend: Practical guidance for diagnostics, testing, and contributions. Use thes
 
 ### View live flow details
 
-- Open **DevTools → Console** (F12 or Ctrl/Cmd + Shift + I) and set **log level** to 1–2 in Options.
+- Open **DevTools → Console** (F12 or Ctrl/Cmd + Shift + I) and set **log level** to 1–3 in Options.
 - Filter extension logs quickly:
   1) Set the Console level dropdown to **All levels**.  
   2) In the **Console filter** box, type:
 
-     ```
+     ```text
      [Mass image downloader]
      ```
-     Optional (regex on):
-     ```
-     ^\[Mass image downloader\]
-     ```
-- Example messages:
-```
 
+     Optional (regex on):
+
+     ```text
+     ^\[Mass image downloader\]
+     
+- Example messages:
+
+```text
 [Mass image downloader]: ✅ accepted URL https://.../full.jpg (800x1200, jpg)
 [Mass image downloader]: ⏩ grouped 6 candidates under /gallery/2025/...
 [Mass image downloader]: ⛔ skipped (too small) 240x240 < min 300x500
 [Mass image downloader]: ⛔ skipped (format not allowed) avif
 [Mass image downloader]: 💤 throttling (max 3 img/s), scheduling next batch...
 ```
+
+#### Logging for Image Inspector Mode (🕵️)
+
+Image Inspector runs as a content script, so its logs appear in the **page’s DevTools**, not in the Service Worker console.
+
+To view inspector-specific activity:
+
+1) Open **DevTools → Console** on the page you are inspecting  
+   (right-click the page → “Inspect” or press **Ctrl+Shift+I**).
+
+2) Ensure the Console level is set to **3**.
+
+3) Filter logs by typing:
+
+    ```text
+     [Mass image downloader]
+     ```
+
+4) Look for messages related to inspector lifecycle:
+
+- Overlay activation/deactivation  
+- Hover detection  
+- Panel attach/detach  
+- Zoom/pan state  
+- Metadata resolution  
+- Save dispatch to the background worker  
+
+These messages help verify why an image was accepted or rejected, confirm event flow correctness, and diagnose issues with panel behavior.
 
 ### Test image thresholds (quick sanity check)
 
@@ -934,6 +1023,7 @@ Keyboard shortcuts speed up labeling and manual saves. If a shortcut conflicts w
 | Shortcut | Action | Notes |
 |---|---|---|
 | **Alt + Shift + I** | Toggle the **one-click download icon** over the focused image and save instantly (no popup) | Great for manual curation; respects your size/format rules |
+| **Ctrl + Shift + M** | Toggle **Image Inspector Mode** (hover overlay + side panel) | Hover an eligible image to show the 🕵️ overlay, click it to open the inspector with zoom, metadata, and navigation |
 | **Ctrl + Alt + P** | Set filename **Prefix** from clipboard | Enable **Clipboard Hotkeys** in Options |
 | **Ctrl + Alt + S** | Set filename **Suffix** from clipboard | Enable **Clipboard Hotkeys** in Options |
 
@@ -941,6 +1031,9 @@ Keyboard shortcuts speed up labeling and manual saves. If a shortcut conflicts w
 
 - Copy a label once (e.g., “datasetA”) and press **Ctrl+Alt+P** to apply it as a prefix for the whole batch (result: “datasetA_”).
 - Use **Alt+Shift+I** to cherry-pick an image from a page without opening the popup.
+- Use **Ctrl+Shift+M** when you need to inspect a single image in depth—check dimensions, alt/title, and URL variants before saving, all without leaving the current tab.
+
+> Debugging tip: To inspect Image Inspector logs (hover detection, overlay events, panel lifecycle, metadata resolution, save dispatch), open **DevTools → Console** on the current page and filter messages by `[Mass image downloader]`. Inspector logs appear in the page context, not in the background worker.
 
 ---
 
@@ -1017,6 +1110,11 @@ Real-world scenarios where Mass Image Downloader shines. Each example highlights
   Recommended: **Galleries (without links)** to capture inline `<img>` variants.  
   Options to tune: **Minimum width/height**, **Allowed formats**, **Log level 1–2** for clear skip reasons.
 
+- **Precision inspection & debugging**  
+  Perform high-precision checks on individual images (dimensions, alt/title, URL variants) before saving.  
+  Recommended: **Image Inspector Mode (🕵️)** via **Ctrl+Shift+M**.  
+  Options to tune: **Developer Mode**, **Close page after saving image**, **Minimum width/height**, **Allowed formats**, **Log level 1–2** for deeper insight into why items are accepted or skipped.  
+
 - **Personal curation / moodboards**  
   Cherry-pick a handful of images from visually dense pages without opening the popup.  
   Recommended: **One-click Download Icon** via **Alt+Shift+I**.  
@@ -1067,6 +1165,22 @@ Situations and caveats that can affect extraction/downloading. Review this list 
 
 - **Non-standard markup**  
   If direct/visual modes miss items, try **Web-linked galleries** as an alternative.
+
+- **Image Inspector overlay placement**  
+  Responsive layouts (e.g., `<figure>` wrappers or full-viewport images) can affect where the 🕵️ overlay appears. In some edge cases the overlay may need a hover retry or minor scroll adjustment for ideal positioning.
+
+- **InspectorOverlayOffset (edge case)**  
+  On certain pages that use complex responsive wrappers (nested `<figure>` blocks, aspect-ratio containers, or captioned layouts), the 🕵️ overlay may appear slightly offset relative to the true top-right corner of the image.  
+  This is a visual-only condition: hover detection, click handling, and Inspector workflows remain fully functional.  
+  The condition is documented and scheduled for a future refinement alongside existing Inspector edge cases (`NestedFigureResponsiveImg`, `DirectImageOverlayPosition`).
+
+- **Inspector metadata redaction**  
+  For security and privacy reasons, the inspector hides local/blob/data URLs in its metadata view. The underlying validation and download pipeline can still operate on them when permitted, but raw values are not exposed in the panel.  
+
+- **Prefix/Suffix persistence (clipboard hotkeys)**  
+  Clipboard-based naming (Ctrl+Alt+P / Ctrl+Alt+S) persists across flows, but in some MV3 lifecycle conditions the extension may revert to the last stored values in `chrome.storage.sync`.  
+  If a naming label appears to be “missing” after a long idle period, simply open **Peek Settings** once — this refreshes the in-memory configuration and restores the active prefix/suffix for subsequent downloads.  
+  This behavior is benign and tied to MV3’s transient worker model; your saved values are never lost.
 
 > Can’t resolve your issue? You’re welcome to open a Pull Request (PR) so the team can review and patch it. See more details on crafting a good PR in **[🙌 Contributions](#-contributions)**.
 
@@ -1147,7 +1261,7 @@ This project targets **Chromium 93+** and **Manifest V3**, with code written in 
 ## 📝 Changelog
 
 See the full release notes in **[CHANGELOG.md](./CHANGELOG.md)**.  
-Current version: **v2.08.127**.
+Current version: **v2.08.149**.
 
 ---
 
@@ -1191,3 +1305,4 @@ This project is offered for legitimate, responsible use. By using it, you agree 
 ![ES Modules](https://img.shields.io/badge/ESM-Enabled-success?style=flat-square&logo=javascript)
 ![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen?style=flat-square&logo=github)
 ![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen?style=flat-square)
+![Atomic Architecture](https://img.shields.io/badge/Code-Atomic-blue?style=flat-square)
