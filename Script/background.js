@@ -33,7 +33,8 @@
         sanitizeFilenameComponent,
         isDirectImageUrl,
         isAllowedImageFormat,
-        initConfigCache
+        initConfigCache,
+        setBadgeError
     } from "./utils.js";
 
     // 🔧 Gate configuration for utils/configCache
@@ -100,6 +101,10 @@
     let peekTransparencyLevel = 0.8; // 🖼️ Transparency level for the peek overlay
     let enableOneClickIcon = false; // 🖱️ Enable One-click download icon
     let performancePreset = "medium"; // 📊 Performance preset (default to medium)
+    // 🕵️ Image Inspector – Global flags (default false; set on install and loadSettings)
+    let imageInspectorEnabled = false;              // Hotkey toggle allowed?
+    let imageInspectorDeveloperMode = false;        // Show dev-only fields in panel?
+    let imageInspectorCloseOnSave = false;          // Close tab after save?
 
     /** 
      * One-time settings gate. Ensures options are loaded before first use.
@@ -212,7 +217,11 @@
                 webLinkedGalleryDelay: 500, // 🕒 Delay between opening tabs for Web-Linked Gallery
                 peekTransparencyLevel: 0.8, // 🖼️ Transparency level for the peek overlay
                 enableOneClickIcon: false, // 🖱️ Enable One-click download icon
-                performancePreset: "medium" // 📊 Performance preset (default to medium)
+                performancePreset: "medium", // 📊 Performance preset (default to medium)                
+                // 🕵️ Image Inspector defaults
+                imageInspectorEnabled: false,
+                imageInspectorDeveloperMode: false,
+                imageInspectorCloseOnSave: false
             }, () => {
                 logDebug(3, '------------------------------');
                 logDebug(1, '✅ Default settings applied successfully.');
@@ -240,6 +249,12 @@
                 logDebug(3, '   📋 Clipboard hotkeys: false');
                 logDebug(3, '   🖱️ One-click Download Icon: false');
                 logDebug(3, '   📌 Max Simultaneous Downloads: 1');
+
+                // 🕵️ Inspector Panel
+                logDebug(3, '   🕵️ Image Inspector Panel');
+                logDebug(3, '      📐 Enable Image Inspector Mode (hotkey toggle): false');
+                logDebug(3, '      🛠️ Developer Mode: false');
+                logDebug(3, '      ❌ Close Panel After Save: false');
 
                 // 🧠 Galleries
                 logDebug(3, '   🧠 Gallery Grouping');
@@ -298,7 +313,9 @@
             "enableClipboardHotkeys",
             "maxOpenTabs", "webLinkedGalleryDelay",
             "peekTransparencyLevel", "enableOneClickIcon",
-            "performancePreset"
+            "performancePreset",
+            "imageInspectorEnabled", "imageInspectorDeveloperMode", 
+            "imageInspectorCloseOnSave"
         ], (data) => {
 
             if (chrome.runtime.lastError) {
@@ -354,6 +371,11 @@
             ? data.peekTransparencyLevel
             : 0.8;
             performancePreset = data.performancePreset || "medium";
+            // 🕵️ Image Inspector settings
+            imageInspectorEnabled = !!data.imageInspectorEnabled;
+            imageInspectorDeveloperMode = !!data.imageInspectorDeveloperMode;
+            imageInspectorCloseOnSave = !!data.imageInspectorCloseOnSave;
+            
             // Display current settings by console
             logDebug(3, '------------------------------');
             logDebug(1, '🔄 Retrieving settings from storage...');
@@ -383,6 +405,13 @@
             logDebug(3, `      📋 Clipboard hotkeys: ${enableClipboardHotkeys}`);
             logDebug(3, `      🖱️ One-click Download Icon: ${enableOneClickIcon}`);
             logDebug(3, `   📌 Max Simultaneous Downloads: ${downloadLimit}`);
+            
+            // 🕵️ Inspector Panel
+            logDebug(2, '   🕵️ Image Inspector Panel.');
+            logDebug(3, `      📐 Enable Image Inspector Mode (hotkey toggle): ${imageInspectorEnabled}`);
+            logDebug(3, `      🛠️ Developer Mode: ${imageInspectorDeveloperMode}`);
+            logDebug(3, `      ❌ Close tab After Save: ${imageInspectorCloseOnSave}`);
+            
 
             // 🌍 Galleries
             logDebug(2, '   🧠 Galleries.');
@@ -479,10 +508,16 @@ chrome.storage.onChanged.addListener((changes) => {
             case "peekTransparencyLevel": peekTransparencyLevel = newValue; break;
             case "enableOneClickIcon": enableOneClickIcon = newValue; break;
             case "performancePreset": performancePreset = newValue; break;
+
+            // 🕵️ Image Inspector settings
+            case "imageInspectorEnabled": imageInspectorEnabled = !!newValue; break;
+            case "imageInspectorDeveloperMode": imageInspectorDeveloperMode = !!newValue; break;
+            case "imageInspectorCloseOnSave": imageInspectorCloseOnSave = !!newValue; break;
+
             default: logDebug(2, `⚠️ Unknown setting changed: ${key}`); break;
         }
 
-        updatedDetails.push(`${key}: ${JSON.stringify(oldValue)} → ${JSON.stringify(newValue)}`);
+        updatedDetails.push(`Key changed: ${key}: From ${JSON.stringify(oldValue)} → To ${JSON.stringify(newValue)}`);
     }
 
     logDebug(2, `🆕 Settings updated in memory:\n 📌 ${updatedDetails.join('\n - ')}`);
@@ -757,6 +792,137 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             return true;
         }
 
+        // ✅ Handle Image Inspector save (single image, inspector panel)
+        if (message.action === 'imageInspectorSaveImage') {
+            logDebug(3, '');
+            logDebug(1, '🕵️ BEGIN: Image Inspector save requested.');
+
+            setBadgeProcessing();
+
+            try {
+                const imageUrl = message.imageUrl;
+                if (!imageUrl || typeof imageUrl !== 'string') {
+                    throw new Error("Invalid image URL received.");
+                }
+
+                const allowExtended = allowExtendedImageUrls ?? false;
+                const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
+                const hasExtendedSuffix = extendedSuffixPattern.test(imageUrl);
+
+                let urlForDownload;
+                if (allowExtended && hasExtendedSuffix) {
+                    urlForDownload = normalizeImageUrl(imageUrl);
+                    logDebug(2, `🔵 Extended suffix detected and allowed. Using normalized URL: ${urlForDownload}`);
+                } else {
+                    urlForDownload = imageUrl;
+                    logDebug(2, `🟢 No extended suffix detected or not allowed. Using original URL.`);
+                }
+
+                logDebug(2, `🔗 Processing URL: ${urlForDownload}`);
+
+                const urlObj = new URL(urlForDownload);
+                let baseName = urlObj.pathname.split('/').pop() || 'image';
+                let extension = '';
+                if (baseName.includes('.')) {
+                    const lastDot = baseName.lastIndexOf('.');
+                    extension = baseName.slice(lastDot);
+                    baseName = baseName.slice(0, lastDot);
+                }
+
+                // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
+                await Promise.all([configReady, settingsReady]);
+
+                (async () => {
+                    try {
+                        // Generate final filename with prefix/suffix/timestamp (from utils/configCache)
+                        const finalName = await generateFilename(baseName, extension);
+
+                        // Normalize custom subfolder (relative under default Downloads)
+                        const safeFolder = (downloadFolder === 'custom' && typeof customFolderPath === 'string' && customFolderPath.trim())
+                            ? customFolderPath.trim().replace(/\\/g, '/').replace(/\/+$/, '')
+                            : '';
+
+                        const finalPath = safeFolder ? `${safeFolder}/${finalName}` : finalName;
+                        logDebug(2, `Saving folder/file (requested): ${finalPath}`);
+
+                        // 🔒 Register the desired filename so the listener can enforce it
+                        pendingDownloadPaths.set(urlForDownload, finalPath);
+
+                        chrome.downloads.download({
+                            url: urlForDownload,
+                            // filename is still passed (harmless); listener will enforce it anyway
+                            filename: finalPath,
+                            conflictAction: 'uniquify'
+                        }, (downloadId) => {
+                            if (downloadId) {
+                                // ACK early to keep message port healthy in MV3
+                                respondSafe(sendResponse, { success: true });
+
+                                try {
+                                    chrome.downloads.search({ id: downloadId }, (items) => {
+                                        const resolved = items && items[0] ? items[0].filename : finalPath;
+                                        logDebug(1, '🕵️ Image Inspector download (resolved path): ', resolved);
+                                    });
+                                } catch (auditErr) {
+                                    logDebug(1, `⚠️ Could not audit saved path: ${auditErr.message}`);
+                                    logDebug(3, `🐛 Stacktrace: ${auditErr.stack}`);
+                                }
+
+                                // ✅ Badge: 1 image processed (green) and then finished (blue)
+                                try {
+                                    updateBadge(1, false); // green with count=1
+                                    setTimeout(() => {
+                                        try {
+                                            updateBadge(1, true); // blue with final count
+                                        } catch (badgeEndErr) {
+                                            logDebug(1, `⚠️ Badge finalize error: ${badgeEndErr.message}`);
+                                        }
+                                    }, 300);
+                                } catch (badgeErr) {
+                                    logDebug(1, `⚠️ Badge update error: ${badgeErr.message}`);
+                                }
+
+                                const tabId = sender?.tab?.id;
+                                if (tabId) {
+                                    if (imageInspectorCloseOnSave === true) {
+                                        closeTabSafely(tabId, () => {
+                                            logDebug(1, `💥 tab ${tabId} closed after save (per option).`);
+                                        });
+                                    } else {
+                                        logDebug(2, "ℹ️ tab retained after save (option disabled).");
+                                    }
+                                } else {
+                                    logDebug(2, "ℹ️ no sender tabId, nothing to close.");
+                                }
+
+                                logDebug(2, '🕵️ END: Image Inspector save.');
+                                logDebug(3, '');
+                            } else {
+                                logDebug(1, `❌ Image Inspector download failed for: ${urlForDownload}`);
+                                setBadgeError();
+                                respondSafe(sendResponse, { success: false, error: "Download failed" });
+                                // Cleanup on failure
+                                pendingDownloadPaths.delete(urlForDownload);
+                            }
+                        });
+                    } catch (err) {
+                        logDebug(1, `❌ Failed to prepare Image Inspector download: ${err.message}`);
+                        logDebug(3, `🐛 Stacktrace: ${err.stack}`);
+                        setBadgeError();
+                        respondSafe(sendResponse, { success: false, error: err.message });
+                    }
+                })();
+
+            } catch (e) {
+                logDebug(1, `❌ Error handling Image Inspector save: ${e.message}`);
+                logDebug(3, `🐛 Stacktrace: ${e.stack}`);
+                setBadgeError();
+                respondSafe(sendResponse, { success: false, error: e.message });
+            }
+
+            return true;
+        }
+
         // ✅ Handle manual image download from 💾 overlay
         if (message.action === 'manualDownloadImage') {
             logDebug(3, '');
@@ -862,8 +1028,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
             return true;
         }
-
-
 
         respondSafe(sendResponse, { success: false, error: "Unknown action." });
 

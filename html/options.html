@@ -269,7 +269,42 @@
             Only on active tabs.</p>
     </div>
 
-    <!-- 🖱️ Global Settings: One-click Download Icon -->
+    <!-- 🕵️ Interface: Image Inspector -->
+    <h2>🕵️ Interface: Image Inspector</h2>
+    <p class="description">Enable or configure how the Image Inspector Mode behaves on hover and in its panel.</p>
+
+    <div class="option-group">
+        <label class="inline-checkbox">
+            <input type="checkbox" id="imageInspectorEnabled">
+            Enable Image Inspector Mode (Ctrl+Shift+M)
+        </label>
+        <p class="info-text">
+            Use Ctrl+Shift+M to toggle the Image Inspector overlay 🕵️ on images while hovering.<br>
+            Clicking the overlay opens a right-docked inspector panel with a safe image preview and basic metadata. Default: Disabled.
+        </p>
+    </div>
+
+    <div class="option-group">
+        <label class="inline-checkbox">
+            <input type="checkbox" id="imageInspectorDevMode">
+            Developer Mode (extra technical metadata)
+        </label>
+        <p class="info-text">
+            Add an extra "Developer" section inside the inspector panel with technical fields (full URL, node type, debug data). Default: Disabled.
+        </p>
+    </div>
+
+    <div class="option-group">
+        <label class="inline-checkbox">
+            <input type="checkbox" id="imageInspectorCloseOnSave">
+            Close page after saving image
+        </label>
+        <p class="info-text">
+            If enabled, the current tab will be closed automatically after an image is saved successfully from the inspector panel. The panel itself is closed manually. Default: Disabled.
+        </p>
+    </div>
+
+<!-- 🖱️ Global Settings: One-click Download Icon -->
     <h2>🖱️ One-click Download Icon</h2>
     <p class="description">Activate the floating download icon on a high-resolution image using a keyboard shortcut:</p>
     <div class="option-group">

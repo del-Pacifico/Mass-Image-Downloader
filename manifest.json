@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Mass image downloader",
-  "version": "2.08.127",
+  "version": "2.08.149",
   "minimum_chrome_version": "93",
   "short_name": "MID",
   "description": "Download images from tabs or galleries. With filters, naming rules, batch control, and a lot options!",
@@ -23,8 +23,11 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["script/clipboardHotkeys.js",
-      "script/settingsPeek.js"],
+      "js": [
+        "script/clipboardHotkeys.js",
+        "script/settingsPeek.js",
+        "script/imageInspector.js"
+      ],
       "run_at": "document_idle"
     }
   ],

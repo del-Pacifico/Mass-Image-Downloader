@@ -17,13 +17,17 @@
     document.addEventListener("DOMContentLoaded", async () => {
         try {
             await initConfig();
+            
+            // 🕵️ Virtual value for Image Inspector hotkey (read-only in Peek)
+            configCache.imageInspectorHotkey = "Ctrl+Shift+M";
+            
             applyTransparency();
             renderSettings();
             bindCopyJsonButton();
             setVersion();
         } catch (err) {
             logDebug(1, "❌ Unhandled error in initialization:", err.message);
-            logDebug(2, "Stacktrace: ", err.stack);
+            logDebug(2, "🐛 Stacktrace: ", err.stack);
         }
     });
 
@@ -62,7 +66,7 @@
                     resolve();
                 } catch (err) {
                     logDebug(1, "❌ Failed to cache configuration:", err.message);
-                    logDebug(2, "Stacktrace: ", err.stack);
+                    logDebug(2, "🐛 Stacktrace: ", err.stack);
                     resolve();
                 }
             });
@@ -80,7 +84,7 @@
             logDebug(2, `🫥 Applied transparency level: ${alpha}`);
         } catch (err) {
             logDebug(1, `❌ Error applying transparency: ${err.message}`);
-            logDebug(2, "Stacktrace: ", err.stack);
+            logDebug(2, "🐛 Stacktrace: ", err.stack);
         }
     }
 
@@ -178,6 +182,12 @@
                 enableClipboardHotkeys: "Enable Clipboard Hotkeys",
                 enableOneClickIcon: "One-click Download Icon"
             },
+            "🕵️ Image Inspector Mode": {
+                imageInspectorEnabled: "Enable Image Inspector",
+                imageInspectorHotkey: "Toggle Hotkey",
+                imageInspectorDevMode: "Developer Mode",
+                imageInspectorCloseOnSave: "Close on Save"
+            },
             "🖼️ Galleries": {
                 gallerySimilarityLevel: "Gallery Similarity Level",
                 galleryMinGroupSize: "Minimum Group Size",
@@ -223,7 +233,7 @@
             }
         } catch (err) {
             logDebug(1, `❌ Failed to set extension version: ${err.message}`);
-            logDebug(2, "Stacktrace: ", err.stack);
+            logDebug(2, "🐛 Stacktrace: ", err.stack);
         }
     }
 
@@ -259,7 +269,7 @@
             } catch (err) {
                 showMessage("❌ Unexpected error during copy", "error");
                 logDebug(1, "❌ Exception during JSON copy:", err.message);
-                logDebug(2, "Stacktrace: ", err.stack);
+                logDebug(2, "🐛 Stacktrace: ", err.stack);
             }
         });
     }
@@ -297,7 +307,7 @@
             }, duration);
         } catch (err) {
             logDebug(1, "❌ Failed to show message:", err.message);
-            logDebug(2, "Stacktrace: ", err.stack);
+            logDebug(2, "🐛 Stacktrace: ", err.stack);
         }
     }
 
@@ -322,7 +332,7 @@
             }
         } catch (err) {
             console.log("[Mass image downloader]: ❌ Logging failed:", err.message);
-            console.log("[Mass image downloader]: Stacktrace:", err.stack);
+            console.log("[Mass image downloader]: 🐛 Stacktrace:", err.stack);
         }
     }
 })();
