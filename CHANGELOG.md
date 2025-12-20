@@ -4,6 +4,15 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased] - 2015-12-12
+
+### Added
+
+- **Docs/Templates:** Added `.github/ISSUE_TEMPLATE/edge_case.yml` to standardize non-blocking, context-dependent edge case reporting (layout/responsive/DOM-driven behaviors).
+- **Docs/Templates:** Added `.github/ISSUE_TEMPLATE/investigation.md` to standardize technical investigations (repro steps, hypotheses, instrumentation, findings, and decision logs).
+
+---
+
 ## [2.08.149] - 2025-12-04
 
 ### 🚀 Overview
