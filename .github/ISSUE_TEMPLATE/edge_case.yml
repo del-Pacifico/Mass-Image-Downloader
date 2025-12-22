@@ -1,0 +1,145 @@
+name: Edge Case Report
+description: Report a non-blocking, context-dependent behavior that occurs only under specific conditions
+title: "[EdgeCase] <short-name>"
+labels:
+  - type: edge-case
+  - needs: triage
+  - priority: normal
+  - status: backlog
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🤔 Edge Case Report
+
+        Use this template to document non-blocking behaviors that appear only under specific
+        conditions such as DOM structure, responsive layouts, CSS transforms, or MV3 lifecycle timing.
+
+        If the issue blocks downloads or breaks a core flow, please use **Bug Report** instead.
+
+        Notes:
+        - Keep the description objective and reproducible.
+        - Prefer visual-only edge cases here. If this blocks downloads or breaks a flow, use "Bug Report".
+
+  - type: dropdown
+    id: feature
+    attributes:
+      label: Related Feature / Module
+      options:
+        - Image Inspector Mode
+        - One-click Download Icon
+        - Peek Settings
+        - Bulk Image Download
+        - Galleries (with direct links)
+        - Galleries (without links)
+        - Web-linked galleries
+        - Options / Storage
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: summary
+    attributes:
+      label: Short Summary
+      description: One concise sentence describing what happens and under which condition.
+      placeholder: "Inspector overlay appears offset inside nested responsive <figure> wrappers."
+    validations:
+      required: true
+
+  - type: textarea
+    id: conditions
+    attributes:
+      label: Conditions / Context
+      description: Describe the exact conditions required for this behavior to occur.
+      placeholder: |
+        - Nested <figure>/<picture> wrappers
+        - Responsive layout with CSS transform
+        - Full-document image view
+        - Lazy-loaded image
+        - iframe (same-origin)
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1) Open the page
+        2) Enable Image Inspector Mode (Ctrl+Shift+M)
+        3) Hover the target image
+        4) Observe overlay placement
+    validations:
+      required: true
+
+  - type: input
+    id: example_url
+    attributes:
+      label: Example URL or Pattern
+      placeholder: "https://example.com/gallery/*"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: "Overlay should align to the top-left of the hovered image."
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      placeholder: "Overlay appears offset or partially behind the image."
+
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact Level
+      options:
+        - Visual only (no functional impact)
+        - Minor UX degradation
+        - Functional limitation in specific contexts
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options:
+        - Brave
+        - Chrome
+        - Edge
+        - Other Chromium-based
+    validations:
+      required: true
+
+  - type: input
+    id: chromium_version
+    attributes:
+      label: Chromium Version
+      placeholder: "143.0.xxxx.xxx"
+    validations:
+      required: true
+
+  - type: input
+    id: extension_version
+    attributes:
+      label: Extension Version
+      placeholder: "2.08.149"
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Technical Notes (optional)
+      description: Any hypotheses or implementation notes worth preserving.
+      placeholder: |
+        - Possibly related to offsetParent inside transformed container
+        - BoundingClientRect vs offset calculations
+
