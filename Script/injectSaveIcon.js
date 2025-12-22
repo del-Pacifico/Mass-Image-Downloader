@@ -45,9 +45,54 @@ function logDebug(levelOfLog, ...args) {
     }
 } 
 
-// 🔧 Local cache for debug log level
-if (typeof debugLogLevelCache === 'undefined') {
-    var debugLogLevelCache = 1;
+// Local tooltip helper for the one-click icon.
+// Shows a small bubble above the icon instead of relying on native title behavior.
+function attachTooltipForIcon(element, text) {
+    try {
+        if (!element || !text) return;
+
+        element.setAttribute("aria-label", text);
+        element.removeAttribute("title");
+
+        let tooltipEl = null;
+
+        const show = () => {
+            try {
+                const rect = element.getBoundingClientRect();
+                const top = Math.max(4, rect.top - 28);
+
+                tooltipEl = document.createElement("div");
+                tooltipEl.textContent = text;
+                tooltipEl.style.position = "fixed";
+                tooltipEl.style.left = `${rect.left + rect.width / 2}px`;
+                tooltipEl.style.top = `${top}px`;
+                tooltipEl.style.transform = "translateX(-50%)";
+                tooltipEl.style.backgroundColor = "rgba(18,27,62,0.95)";
+                tooltipEl.style.color = "#FFFFFF";
+                tooltipEl.style.padding = "4px 8px";
+                tooltipEl.style.borderRadius = "4px";
+                tooltipEl.style.fontSize = "11px";
+                tooltipEl.style.whiteSpace = "nowrap";
+                tooltipEl.style.pointerEvents = "none";
+                tooltipEl.style.zIndex = "9999";
+                document.body.appendChild(tooltipEl);
+            } catch (_) {}
+        };
+
+        const hide = () => {
+            try {
+                if (tooltipEl) tooltipEl.remove();
+            } catch (_) {}
+            tooltipEl = null;
+        };
+
+        element.addEventListener("mouseenter", show);
+        element.addEventListener("mouseleave", hide);
+        element.addEventListener("focus", show);
+        element.addEventListener("blur", hide);
+    } catch (err) {
+        logDebug(2, `⚠️ attachTooltipForIcon failed: ${err.message}`);
+    }
 }
 
 // 🔧 Local config cache for injectSaveIcon.js
@@ -190,7 +235,7 @@ function createAndShowSaveIcon(targetUrl, normalizedUrl, position = "fixed", pos
     try {
         const icon = document.createElement("div");
         icon.textContent = "💾";
-        icon.title = "[Mass image downloader]: Save this image";
+        attachTooltipForIcon(icon, "[Mass image downloader]: Save this image (based on rules)");
         icon.style.position = position;
         icon.style.zIndex = "9999";
         icon.style.fontSize = "14px";
@@ -213,12 +258,9 @@ function createAndShowSaveIcon(targetUrl, normalizedUrl, position = "fixed", pos
             icon.style.right = "10px";
         }
 
+        // Add hover effects
         icon.addEventListener("mouseenter", () => {
             icon.style.backgroundColor = "#4f5984";
-        });
-
-        icon.addEventListener("mouseleave", () => {
-            icon.style.backgroundColor = "#F8F8F8";
         });
 
         // Remove hover effects when mouse leaves
@@ -309,7 +351,7 @@ function proceedWithInjection() {
             const hasMinSize = img.naturalWidth >= configCache.minWidth && img.naturalHeight >= configCache.minHeight;
 
             // ✅ Advanced logic: normal vs extended suffix
-            const allowExtended = typeof allowExtendedImageUrls !== "undefined" ? allowExtendedImageUrls : false;
+            const allowExtended = configCache.allowExtendedImageUrls === true;
             const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|gif|avif))(:[a-zA-Z0-9]{2,10})$/i;
             const hasExtendedSuffix = extendedSuffixPattern.test(src.toLowerCase());
 
