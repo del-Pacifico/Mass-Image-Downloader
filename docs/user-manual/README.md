@@ -1315,3 +1315,76 @@ This design ensures:
 - No reconstruction of user activity over time
 
 > Mass Image Downloader focuses on **stateless execution**, where each run is isolated and independent.
+
+---
+
+## 🆘 14. Getting Help and Providing Feedback
+
+Mass Image Downloader is an open-source project, and user feedback plays an important role in its improvement.
+
+This section explains **where to ask for help**, **how to report issues**, and **how to provide constructive feedback**.
+
+---
+
+### 💬 14.1 Where to Ask Questions
+
+If you have questions about how the extension works or how to use a specific feature:
+
+- Use **GitHub Discussions**
+- Choose the category that best matches your question
+- Describe what you are trying to do and what you expected to happen
+
+Before posting:
+- Check existing discussions
+- Review the User Manual sections related to your question
+
+GitHub Discussions is the preferred place for:
+- Usage questions
+- Configuration help
+- Feature clarification
+
+---
+
+### 🐞 14.2 Reporting Issues
+
+If you believe you have found a bug or unexpected behavior, please use **GitHub Issues**.
+
+When reporting an issue, include:
+
+- The extension version you are using
+- Your browser and version
+- The feature you were using
+- A short description of what happened
+- What you expected to happen instead
+
+Helpful additions:
+- Screenshots (if applicable)
+- Console messages (if you are comfortable sharing them)
+- Relevant settings values
+
+> Clear and complete reports help issues get resolved faster.
+
+---
+
+### 🤝 14.3 Contributing Feedback
+
+Suggestions and improvement ideas are welcome.
+
+If you want to suggest:
+- UX improvements
+- Documentation clarifications
+- Feature enhancements
+
+Use GitHub Discussions to start the conversation.
+
+> Even small feedback helps improve the project for everyone.
+
+---
+
+### 🙏 14.4 Final Notes
+
+Thank you for using **Mass Image Downloader**.
+
+This User Manual is part of an ongoing documentation effort and may evolve over time as the extension grows.
+
+> Your feedback helps shape future releases.
