@@ -501,3 +501,159 @@ If no qualifying images are found:
 - No downloads occur
 - Temporary state is cleared immediately
 
+---
+
+### 🔗 4.4 Extract Images from Web-Linked Galleries
+
+This feature targets galleries where **thumbnails link to HTML pages**, and the actual images are embedded inside those pages.
+
+In this flow, the extension must **navigate linked pages**, identify the best image available, **inject a download icon over that image**, and then complete the download process.
+
+---
+
+#### 🧭 4.4.1 Page-Opening Strategy
+
+The flow starts when the user selects **Extract Images from Web-Linked Galleries**.
+
+The content script:
+- Scans the gallery page for anchor (`<a>`) elements
+- Filters links that point to HTML pages (not direct image files)
+- Builds a list of candidate page URLs
+
+The background layer then:
+- Opens linked pages in background tabs
+- Applies a controlled fan-out strategy
+- Ensures the original gallery page remains unaffected
+
+> Pages are opened only as part of the active execution and are never reused.
+
+---
+
+#### ⏱️ 4.4.2 Concurrency and Delay Control
+
+To protect browser stability and avoid site throttling, this flow applies strict controls:
+
+- A maximum number of tabs can be opened concurrently
+- A configurable delay is applied between tab openings
+- Limits are enforced globally for the duration of the run
+
+If limits are reached:
+- Remaining pages are queued
+- Processing resumes as tabs complete and close
+
+> This ensures predictable behavior even on large galleries.
+
+---
+
+#### 🖼️ 4.4.3 Image Detection and Download Icon Injection
+
+Once a linked page is fully loaded, the content script:
+
+- Scans the page for image candidates
+- Applies size, format, and resolution validation
+- Selects the best image available on the page
+- **Injects a visible download icon directly over the selected image** (💾)
+
+This injected icon:
+- Is part of the extension package
+- Is scoped only to the current page
+- Allows a clear visual confirmation of the selected image
+- Acts as the trigger for the download action
+
+> The icon is injected only during the active execution and is removed when the page is closed.
+
+---
+
+#### 📥 4.4.4 Download Trigger and Background Handling
+
+When the download icon is activated:
+
+- A message is sent to the background layer
+- Global rules and filename settings are applied
+- The image is downloaded under controlled limits
+
+> Only one image per linked page is downloaded.
+
+---
+
+#### 🏷️ 4.4.5 Execution, Cleanup, and Feedback
+
+During execution:
+- 🟢 Green badge indicates active processing
+- The badge counter reflects completed page extractions
+
+After a successful download:
+- The temporary tab is closed automatically
+- Injected UI elements are removed
+- Temporary state for that page is cleared
+
+On completion:
+- 🔵 Blue badge indicates a clean finish
+- All temporary tabs are closed
+- No execution state is retained
+
+If no valid images are found on a page:
+- No icon is injected
+- The page is closed
+- Processing continues with remaining links
+
+---
+
+#### ⚙️ 4.4.6 One-click Download Icon Options and Behavior
+
+The behavior of the injected download icon is controlled by the **One-click Download Icon** settings.
+
+> This feature is **disabled by default** and only becomes active when explicitly enabled by the user.
+
+##### Enable One-click download icon (via hotkey)
+
+When this option is enabled:
+
+- The extension listens for the **Alt+Shift+I** keyboard shortcut
+- Pressing the shortcut triggers image analysis on the current page
+- If a valid image is detected, the download icon is injected over it (💾)
+
+If this option is disabled:
+- The hotkey has no effect
+- No icon is injected
+- The page remains untouched
+
+---
+
+##### Image Eligibility Rules
+
+The download icon is injected **only if all standard validation rules are met**:
+
+- The image meets the minimum width and height thresholds
+- The image format is allowed
+- Extended image URLs are normalized if enabled
+- The image is not considered decorative or low-value
+
+If no image meets these criteria:
+- No icon is injected
+- No background download is triggered
+
+---
+
+##### Scope and Lifetime of the Icon
+
+The injected icon (💾):
+
+- Exists only on the current page
+- Is removed when the page is closed or reloaded
+- Does not persist across navigations
+- Does not modify the underlying image or page content
+
+> The icon is purely a **temporary interaction overlay**.
+
+---
+
+##### Relationship with Web-Linked Gallery Flow
+
+In the **Web-Linked Galleries** feature:
+
+- The same icon injection logic is reused
+- Each opened page is treated independently
+- Only one icon (and one image) is processed per page
+
+> This ensures consistency between manual one-click usage and automated gallery extraction.
