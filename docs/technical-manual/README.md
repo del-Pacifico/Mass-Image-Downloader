@@ -38,7 +38,7 @@ This manual is intended for:
 - QA engineers and testers
 - Integrators and reviewers familiar with browser-based tools
 
-It is not intended for basic users or contributors modifying the codebase.
+> It is not intended for basic users or contributors modifying the codebase.
 
 ---
 
@@ -50,7 +50,7 @@ This manual documents **only** the following scope:
 - Released and tested code from the `main` branch
 - Features, settings, and behaviors present in this release
 
-Any behavior not present in this version is considered out of scope.
+> Any behavior not present in this version is considered out of scope.
 
 ---
 
@@ -124,3 +124,90 @@ Any behavior not present in this version is considered out of scope.
   - 📋 10.1 Settings Reference Table
   - 🏷️ 10.2 Badge States Reference
   - 🗂️ 10.3 Recommended Technical Presets
+
+---
+
+## 🧱 2. System Overview
+
+This section provides a **technical overview of how Mass Image Downloader is structured and operates internally**.
+
+The goal is to help technical users understand **how components interact**, **where logic runs**, and **how actions flow through the system**, without diving into source code.
+
+---
+
+### 🧩 2.1 Main Components
+
+Mass Image Downloader is composed of several clearly separated components, each with a specific responsibility.
+
+**Popup**
+- Acts as the user entry point
+- Triggers features explicitly selected by the user
+- Does not perform heavy logic or long-running operations
+
+**Options Page**
+- Provides configuration and feature enablement
+- Stores persistent settings using browser storage
+- Does not trigger downloads directly
+
+**Content Scripts**
+- Execute in the context of web pages
+- Analyze page structure, images, and DOM
+- Inject overlays when required (Image Inspector, One-click icon)
+- Never persist data beyond the current execution
+
+**Background / Service Worker**
+- Orchestrates all download-related operations
+- Applies global rules and filters
+- Manages batching, concurrency, and flow control
+- Controls badge state and lifecycle
+- Cleans up state after each execution
+
+> Each component is isolated by design to reduce side effects and improve stability.
+
+---
+
+### 🔁 2.2 High-Level Event Flow
+
+At a high level, all operations follow the same execution pattern:
+
+1. The user initiates an action (popup, hotkey, or UI interaction)
+2. A message is sent to the background layer
+3. The background validates the request and loads current settings
+4. Content scripts are engaged if page analysis is required
+5. Image candidates are filtered and validated
+6. Downloads are executed under controlled limits
+7. Visual feedback (badge and messages) is updated
+8. Temporary state is cleared once the process ends
+
+> No automatic or background-triggered actions occur without explicit user input.
+
+---
+
+### 📦 2.3 What Runs Where
+
+Understanding **where logic runs** is key to troubleshooting and configuration.
+
+**Runs in the Popup**
+- User interaction handling
+- Feature selection
+- Lightweight validation
+
+**Runs in Content Scripts**
+- DOM inspection
+- Image detection and qualification
+- Overlay rendering
+- Page-specific logic
+
+**Runs in the Background**
+- Download execution
+- Batch and rate control
+- State tracking during execution
+- Badge updates and cleanup
+- Error handling and recovery
+
+This separation ensures that:
+- Page analysis remains fast and contextual
+- Downloads remain reliable and controlled
+- UI remains responsive
+
+> The system favors **stateless, execution-scoped logic** over persistent background activity.
