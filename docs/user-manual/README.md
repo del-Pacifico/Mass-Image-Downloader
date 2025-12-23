@@ -937,3 +937,114 @@ For basic users:
 For troubleshooting:
 - Increase to **2 (Verbose)** and retry your action
 - Use **3 (Detailed)** only if you are comfortable reading technical logs
+
+---
+
+## 🏷️ 10. Badge and Visual Feedback
+
+Mass Image Downloader provides **visual feedback** to help you understand the current state of a download process.
+
+This feedback is designed to be simple, non-intrusive, and easy to recognize at a glance.
+
+---
+
+## 🏷️ 10. Badge and Visual Feedback
+
+Mass Image Downloader uses the extension badge to provide **quick visual feedback** about what the extension is doing.
+
+The badge helps you understand the current state of a process without opening logs or settings.
+
+---
+
+### 🔢 10.1 Badge Counter Meaning
+
+The number shown on the extension icon represents **progress information**.
+
+Depending on the feature, the counter may indicate:
+
+- How many images have been processed
+- How many images have been downloaded so far
+
+The counter updates automatically during active operations.
+
+---
+
+### 🎨 10.2 Badge Colors Explained
+
+The badge color indicates the **current state** of the extension.
+
+#### 🟢 Green — Active / In Progress
+- The extension is actively processing images
+- Downloads are running normally
+- This is the most common state during operations
+
+This state is used globally across features.
+
+---
+
+#### 🔵 Blue — Completed
+- The process finished successfully
+- All images were processed or downloaded
+- No further action is required
+
+This state is used globally and indicates a clean completion.
+
+---
+
+#### 🟡 Yellow — Processing / Preparing
+- The extension is preparing data or analyzing content
+- This may appear briefly before downloads begin
+
+Note:
+- This state exists but is currently used only in specific flows
+- Not all features display this state yet
+
+---
+
+#### 🔴 Red — Error
+- An error occurred during processing
+- The operation could not complete as expected
+
+Note:
+- Error badge support exists but is not yet applied consistently across all features
+- In some cases, errors are shown only as on-screen messages
+
+---
+
+### 💬 10.3 User Feedback Messages
+
+When enabled in Settings, the extension shows **on-screen messages** to provide additional feedback.
+
+These messages may inform you about:
+
+- Successful downloads
+- Errors or invalid images
+- Disabled features or missing permissions
+
+Messages appear temporarily and disappear automatically.
+
+---
+
+### 🧭 10.4 What to Do If the Badge Looks Unexpected
+
+If something does not look right:
+
+- 🟢 Badge but no downloads  
+  → The flow is currently processing images, implementing the options, and downloading.
+
+- 🔵 Badge appears immediately  
+  → The process is now complete.
+
+- 🟡 Badge stays too long  
+  → The page may be heavy or slow to analyze
+
+- 🔴 Badge appears  
+  → Check on-screen messages for details
+
+The badge is a guide. Settings and page content determine the final result.
+
+
+- No badge activity at all  
+  → Ensure you selected the correct feature and that the extension is enabled
+
+Visual feedback is meant to guide you, but settings always determine the final behavior.
