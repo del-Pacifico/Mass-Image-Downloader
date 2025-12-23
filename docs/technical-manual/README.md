@@ -56,74 +56,74 @@ This manual documents **only** the following scope:
 
 ## 📑 Table of Contents
 
-- 🧭 1. Introduction
-  - 🎯 1.1 Purpose of This Manual
-  - 👥 1.2 Intended Audience
-  - 🧾 1.3 Version Scope and Source of Truth
+- [🧭 1. Introduction](#-1-introduction)
+  - [🎯 1.1 Purpose of This Manual](#-11-purpose-of-this-manual)
+  - [👥 1.2 Intended Audience](#-12-intended-audience)
+  - [🧾 1.3 Version Scope and Source of Truth](#-13-version-scope-and-source-of-truth)
 
-- 🧱 2. System Overview
-  - 🧩 2.1 Main Components
-  - 🔁 2.2 High-Level Event Flow
-  - 📦 2.3 What Runs Where
+- [🧱 2. System Overview](#-2-system-overview)
+  - [🧩 2.1 Main Components](#-21-main-components)
+  - [🔁 2.2 High-Level Event Flow](#-22-high-level-event-flow)
+  - [📦 2.3 What Runs Where](#-23-what-runs-where)
 
-- 🗃️ 3. State and Data Model
-  - 💾 3.1 Persistent Settings
-  - 🧠 3.2 In-Run Temporary State
-  - 🚫 3.3 What Is Not Stored
+- [🗃️ 3. State and Data Model](#-3-state-and-data-model)
+  - [💾 3.1 Persistent Settings](#-31-persistent-settings)
+  - [🧠 3.2 In-Run Temporary State](#-32-in-run-temporary-state)
+  - [🚫 3.3 What Is Not Stored](#-33-what-is-not-stored)
 
-- 🧩 4. Feature Flows
-  - 📸 4.1 Bulk Image Download
-  - 🌄 4.2 Extract Images from Galleries (With Direct Links)
-  - 🖼️ 4.3 Extract Images from Galleries (Without Links)
-  - 🔗 4.4 Extract Images from Web-Linked Galleries
-  - 🔎 4.5 View Settings (Peek)
-  - 🕵️ 4.6 Image Inspector
-  - 🖱️ 4.7 One-click Download Icon
+- [🧩 4. Feature Flows](#-4-feature-flows)
+  - [📸 4.1 Bulk Image Download](#-41-bulk-image-download)
+  - [🌄 4.2 Extract Images from Galleries (With Direct Links)](#-42-extract-images-from-galleries-with-direct-links)
+  - [🖼️ 4.3 Extract Images from Galleries (Without Links)](#-43-extract-images-from-galleries-without-links)
+  - [🔗 4.4 Extract Images from Web-Linked Galleries](#-44-extract-images-from-web-linked-galleries)
+  - [🔎 4.5 View Settings (Peek)](#-45-view-settings-peek)
+  - [🕵️ 4.6 Image Inspector](#-46-image-inspector)
+  - [🖱️ 4.7 One-click Download Icon](#-47-one-click-download-icon)
 
-- ⚙️ 5. Settings Deep Dive
-  - 🧪 5.1 Performance Presets
-  - 📐 5.2 Global Image Size Filters
-  - 🧾 5.3 Allowed Image Formats
-  - 🔗 5.4 Extended Image URLs
-  - 📁 5.5 Download Folder Selection
-  - 🏷️ 5.6 Filename Customization
-  - 📸 5.7 Bulk Image Download Options
-  - 🖼️ 5.8 Gallery Options (Direct and Visual)
-  - 🔗 5.9 Web-Linked Gallery Options
-  - 🕵️ 5.10 Image Inspector Options
-  - 🖱️ 5.11 One-click Download Icon Option
-  - 📋 5.12 Clipboard Hotkeys Option
-  - 🔎 5.13 Peek Panel Option
-  - 📢 5.14 User Feedback Messages
-  - 🐛 5.15 Console Log Level
+- [⚙️ 5. Settings Deep Dive](#-5-settings-deep-dive)
+  - [🧪 5.1 Performance Presets](#-51-performance-presets)
+  - [📐 5.2 Global Image Size Filters](#-52-global-image-size-filters)
+  - [🧾 5.3 Allowed Image Formats](#-53-allowed-image-formats)
+  - [🔗 5.4 Extended Image URLs](#-54-extended-image-urls)
+  - [📁 5.5 Download Folder Selection](#-55-download-folder-selection)
+  - [🏷️ 5.6 Filename Customization](#-56-filename-customization)
+  - [📸 5.7 Bulk Image Download Options](#-57-bulk-image-download-options)
+  - [🖼️ 5.8 Gallery Options (Direct and Visual)](#-58-gallery-options-direct-and-visual)
+  - [🔗 5.9 Web-Linked Gallery Options](#-59-web-linked-gallery-options)
+  - [🕵️ 5.10 Image Inspector Options](#-510-image-inspector-options)
+  - [🖱️ 5.11 One-click Download Icon Option](#-511-one-click-download-icon-option)
+  - [📋 5.12 Clipboard Hotkeys Option](#-512-clipboard-hotkeys-option)
+  - [🔎 5.13 Peek Panel Option](#-513-peek-panel-option)
+  - [📢 5.14 User Feedback Messages](#-514-user-feedback-messages)
+  - [🐛 5.15 Console Log Level](#-515-console-log-level)
 
-- ⌨️ 6. Hotkeys and Commands Reference
-  - 🖱️ 6.1 Alt+Shift+I — One-click Download Icon
-  - 🕵️ 6.2 Ctrl+Shift+M — Image Inspector
-  - 📋 6.3 Ctrl+Alt+P / Ctrl+Alt+S — Clipboard Prefix / Suffix
-  - 🧩 6.4 Common Limitations and Conflicts
+- [⌨️ 6. Hotkeys and Commands Reference](#-6-hotkeys-and-commands-reference)
+  - [🖱️ 6.1 Alt+Shift+I — One-click Download Icon](#-61-altshifti--one-click-download-icon)
+  - [🕵️ 6.2 Ctrl+Shift+M — Image Inspector](#-62-ctrlshiftm--image-inspector)
+  - [📋 6.3 Ctrl+Alt+P / Ctrl+Alt+S — Clipboard Prefix / Suffix](#-63-ctrlaltp--ctrlalts--clipboard-prefix--suffix)
+  - [🧩 6.4 Common Limitations and Conflicts](#-64-common-limitations-and-conflicts)
 
-- 🩺 7. Troubleshooting Without Code Changes
-  - 🚫 7.1 No Images Downloaded
-  - 🎯 7.2 Unexpected Images Downloaded
-  - 🟡 7.3 Processing Appears Stuck
-  - 🔴 7.4 Error States and What to Collect
-  - 📜 7.5 Using Log Level for Diagnosis
+- [🩺 7. Troubleshooting Without Code Changes](#-7-troubleshooting-without-code-changes)
+  - [🚫 7.1 No Images Downloaded](#-71-no-images-downloaded)
+  - [🎯 7.2 Unexpected Images Downloaded](#-72-unexpected-images-downloaded)
+  - [🟡 7.3 Processing Appears Stuck](#-73-processing-appears-stuck)
+  - [🔴 7.4 Error States and What to Collect](#-74-error-states-and-what-to-collect)
+  - [📜 7.5 Using Log Level for Diagnosis](#-75-using-log-level-for-diagnosis)
 
-- ⚡ 8. Performance and Stability
-  - 🧠 8.1 Concurrency vs Rate Limiting
-  - 📦 8.2 Batch Size Guidance
-  - 💻 8.3 Resource Impact (RAM / CPU)
+- [⚡ 8. Performance and Stability](#-8-performance-and-stability)
+  - [🧠 8.1 Concurrency vs Rate Limiting](#-81-concurrency-vs-rate-limiting)
+  - [📦 8.2 Batch Size Guidance](#-82-batch-size-guidance)
+  - [💻 8.3 Resource Impact (RAM / CPU)](#-83-resource-impact-ram--cpu)
 
-- 🔒 9. Security and Privacy (Technical)
-  - 🛡️ 9.1 Script Injection Boundaries
-  - 🚫 9.2 No Persistent Download History
-  - 🔐 9.3 Permissions Rationale
+- [🔒 9. Security and Privacy (Technical)](#-9-security-and-privacy-technical)
+  - [🛡️ 9.1 Script Injection Boundaries](#-91-script-injection-boundaries)
+  - [🚫 9.2 No Persistent Download History](#-92-no-persistent-download-history)
+  - [🔐 9.3 Permissions Rationale](#-93-permissions-rationale)
 
-- 📎 10. Appendices
-  - 📋 10.1 Settings Reference Table
-  - 🏷️ 10.2 Badge States Reference
-  - 🗂️ 10.3 Recommended Technical Presets
+- [📎 10. Appendices](#-10-appendices)
+  - [📋 10.1 Settings Reference Table](#-101-settings-reference-table)
+  - [🏷️ 10.2 Badge States Reference](#-102-badge-states-reference)
+  - [🗂️ 10.3 Recommended Technical Presets](#-103-recommended-technical-presets)
 
 ---
 
