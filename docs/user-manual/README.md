@@ -227,6 +227,63 @@ For best results, ensure that:
 
 Once installation is complete, you are ready to start using the extension.
 
+---
+
+## 🪟 3. Popup Overview
+
+The popup is the **main control panel** of Mass Image Downloader.  
+From here, you can access all available features and start download processes.
+
+Understanding the popup layout will help you choose the right action and avoid unexpected behavior.
+
+---
+
+### 🔓 3.1 Opening the Extension Popup
+
+To open the popup:
+
+1. Locate the 🏔️ **Mass Image Downloader** icon in your browser toolbar.
+2. Click the icon once.
+
+The popup will appear immediately and display the available actions.
+
+If you do not see the icon:
+- Click the Extensions menu (🧩 puzzle icon)
+- Pin 🏔️ **Mass Image Downloader** to the toolbar for easier access
+
+---
+
+### 🧭 3.2 Overview of the Popup Layout
+
+The popup is designed to be **simple and action-focused**.
+
+Inside the popup, you will typically find:
+
+- Action buttons to start different download modes
+- Short labels describing each feature
+- Access to settings and auxiliary tools
+
+Each button represents a **specific feature** of the extension.
+You do not need to configure anything before clicking a button if default settings are in place.
+
+---
+
+### 🎯 3.3 How to Use the Popup Safely
+
+Before starting a download process, keep these recommendations in mind:
+
+- Make sure the current tab contains relevant content
+- Avoid clicking multiple actions at the same time
+- Allow the process to finish before starting a new one
+- Do not close the browser while downloads are running
+
+The popup does not show progress bars.
+Instead, progress and status are communicated through:
+- The extension badge
+- Visual feedback messages (when enabled)
+
+More details about these indicators are explained later in this manual.
+
 
 It is recommended to always keep your browser updated to ensure:
 - Best performance
