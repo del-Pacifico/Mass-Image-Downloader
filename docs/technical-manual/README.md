@@ -290,3 +290,84 @@ This design ensures:
 - Fully isolated and repeatable runs
 
 > Every operation is treated as an independent, stateless execution.
+
+---
+
+## 🧩 4. Feature Flows
+
+This section describes **how each major feature operates internally**, focusing on execution flow, decision points, and interactions between components.
+
+Each feature is explained independently, but all of them follow the same core principles:
+- Explicit user-triggered execution
+- Centralized orchestration in the background layer
+- Temporary, execution-scoped state
+- Consistent application of global rules and filters
+
+---
+
+### 📸 4.1 Bulk Image Download
+
+Bulk Image Download is designed to process **multiple open tabs that already display images directly**.
+
+This feature does not analyze page structure. Instead, it operates on the assumption that:
+- Each target tab represents a single image
+- The image is already loaded or accessible in the tab context
+
+---
+
+#### 🚀 4.1.1 Trigger and Preconditions
+
+The flow starts when the user selects **Bulk Image Download** from the popup.
+
+Preconditions:
+- At least one browser tab is open
+- Target tabs contain direct image content (not HTML pages)
+- The extension has permission to access the active window tabs
+
+Before processing begins, the background layer:
+- Loads current persistent settings
+- Initializes a clean temporary state
+- Resets badge counters and visual feedback
+
+---
+
+#### 🔎 4.1.2 Selection and Validation Rules
+
+For each candidate tab, the background process applies validation rules:
+
+- The URL must resolve to a supported image format
+- The image must meet minimum width and height thresholds
+- Extended image URLs are normalized if enabled
+- Previously processed images within the same run are skipped
+
+> Tabs that fail validation are ignored without stopping the overall process.
+
+---
+
+#### 📥 4.1.3 Download and Tab Handling
+
+Validated images are downloaded using controlled batching.
+
+Key behaviors:
+- Downloads are grouped according to the configured batch size
+- Concurrency limits are enforced to prevent browser overload
+- Optional automatic tab closing is applied after successful download
+
+If a download fails:
+- The error is recorded in the current execution context
+- The process continues with remaining tabs
+
+---
+
+#### 🏷️ 4.1.4 Badge and Feedback Behavior
+
+During Bulk Image Download:
+- 🟢 Green badge indicates active processing
+- The badge counter reflects progress
+- 🔵 Blue badge is shown when all tabs are processed
+
+On partial failures:
+- Errors are reported via user feedback messages
+- The badge still transitions to completion if the flow finishes
+
+> No badge state persists after the operation ends.
