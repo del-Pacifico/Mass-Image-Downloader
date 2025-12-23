@@ -150,6 +150,84 @@ Chromium 93 or newer
 
 If you are using an older browser version, some features may not work correctly or may not be available.
 
+---
+
+## 📦 2. Installation
+
+This section explains how to download and install **Mass Image Downloader** manually from GitHub, and how to prepare your browser for correct operation.
+
+---
+
+### ⬇️ 2.1 Downloading the Extension from GitHub
+
+Mass Image Downloader is distributed as **open-source software** through GitHub.
+
+To download it:
+
+1. Open the project repository on GitHub.
+2. Go to the **Releases** section.
+3. Locate the release that matches the version indicated at the top of this manual.
+4. Download the source code package (ZIP file).
+5. Extract the ZIP file to a folder on your computer.
+
+Choose a permanent location for this folder.  
+Do not delete or move it after installation, as the browser will reference it.
+
+---
+
+### 🧩 2.2 Installing the Extension in the Browser
+
+Mass Image Downloader is installed using the **“Load unpacked”** method available in Chromium-based browsers.
+
+Follow these steps:
+
+1. Open your browser.
+2. Navigate to the Extensions page:
+   - In the address bar, type `chrome://extensions`
+3. Enable **Developer mode** (toggle in the top-right corner).
+4. Click **Load unpacked**.
+5. Select the folder where you extracted the extension files.
+6. Confirm the selection.
+
+Once installed, the extension icon should appear in your browser toolbar.
+
+If you do not see the icon:
+- Click the Extensions menu (puzzle icon)
+- Pin **Mass Image Downloader** to the toolbar
+
+---
+
+### ⚙️ 2.3 Required Browser Settings
+
+To ensure smooth and automatic downloads, a few browser settings are recommended.
+
+#### Disable “Ask where to save each file”
+
+This setting prevents the browser from asking for confirmation on every download.
+
+To disable it:
+
+1. Open browser **Settings**.
+2. Go to **Downloads**.
+3. Turn **off** the option:
+   - “Ask where to save each file before downloading”
+
+This allows the extension to download images automatically without interruptions.
+
+---
+
+#### Recommended Settings Summary
+
+For best results, ensure that:
+
+- Developer mode is enabled
+- The extension folder remains unchanged
+- Automatic downloads are allowed
+- The browser is updated to a supported version
+
+Once installation is complete, you are ready to start using the extension.
+
+
 It is recommended to always keep your browser updated to ensure:
 - Best performance
 - Compatibility with new features
