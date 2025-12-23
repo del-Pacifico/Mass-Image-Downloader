@@ -1190,3 +1190,128 @@ If something does not work:
 3. Retry with adjusted values
 
 Patience and small adjustments usually solve most issues.
+
+---
+
+## 🔒 13. Privacy and Data Handling
+
+Mass Image Downloader is designed with **privacy and transparency** as core principles.
+
+This section explains how the extension handles your data and what it does *not* do.
+
+---
+
+### 🏠 13.1 Local-Only Operation
+
+All processing performed by Mass Image Downloader happens **locally in your browser**.
+
+This means:
+
+- Images are downloaded directly from the website to your computer
+- No image data is sent to external servers
+- No content is uploaded or shared by the extension
+
+> The extension does not require accounts, logins, or external services.
+
+---
+
+### 🚫 13.2 Data Collection Policy
+
+Mass Image Downloader **does not collect personal data**.
+
+Specifically:
+
+- No browsing history is tracked
+- No images are analyzed outside your browser
+- No usage statistics are sent anywhere
+- No identifiers or fingerprints are created
+
+> All configuration settings are stored locally using the browser’s storage mechanisms.
+
+---
+
+### 🔐 13.3 Permissions Explained
+
+The extension requires certain browser permissions to function correctly.
+
+These permissions are used only to:
+
+- Access active tabs when you trigger an action
+- Download images to your computer
+- Display visual feedback and overlays
+
+> Permissions are not used for tracking or analytics purposes.
+
+---
+
+### 🧭 13.4 What This Means for You
+
+As a user, this means:
+
+- You remain in full control of your data
+- The extension operates only when you initiate actions
+- Nothing runs silently in the background without your input
+
+> If privacy is important to you, Mass Image Downloader is designed to respect it.
+
+---
+
+### 🛡️ 13.5 Script Injection and Security Guarantees
+
+Mass Image Downloader **does not load third-party scripts** and **does not inject malicious code** into web pages.
+
+Specifically:
+
+- The extension only injects its **own internal scripts**, and only when required by a feature
+- No external JavaScript libraries are downloaded or executed
+- No remote code is fetched at runtime
+- No hidden background scripts run outside documented flows
+
+All injected scripts are:
+- Part of the extension package
+- Scoped to the current page
+- Triggered explicitly by user actions
+
+Mass Image Downloader **does not perform**:
+- Tracking
+- Data exfiltration
+- Crypto mining
+- Hidden automation
+- Exploit-based behavior (worms, hacks, or unauthorized access)
+- Or something along those lines!
+
+If a feature requires script injection (for example, Image Inspector or One-click Download Icon), it is:
+- Clearly documented
+- User-enabled
+- Limited to its intended purpose
+
+> Security and transparency are treated as first-class concerns in the design of the extension.
+
+---
+
+### 🧠 13.6 No Download History or Persistent Tracking
+
+Mass Image Downloader **does not keep a history of downloaded images**.
+
+The extension does not store:
+- A list of previously downloaded images
+- Image URLs from past sessions
+- Any form of long-term download log
+
+During an active operation, the extension may temporarily keep track of images **only within the current execution flow**.
+
+This temporary tracking is used exclusively to:
+- Avoid processing the same image more than once
+- Prevent duplicate downloads during the same operation
+
+Once the process finishes:
+- All temporary references are discarded
+- No historical data remains stored
+- The next operation always starts from a clean state
+
+This design ensures:
+- No persistent tracking
+- No accumulation of usage data
+- No reconstruction of user activity over time
+
+> Mass Image Downloader focuses on **stateless execution**, where each run is isolated and independent.
