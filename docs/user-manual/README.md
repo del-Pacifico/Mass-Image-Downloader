@@ -597,3 +597,69 @@ After completion:
 
 If no images meet the criteria, no downloads will occur.
 This indicates that the images on the page are too small or do not match the filters.
+
+---
+
+## 🔗 8. Extract Images from Web-Linked Galleries
+
+This feature is designed for galleries where **thumbnails link to separate web pages**, not directly to image files.
+
+In these cases, the image you want is usually embedded inside a content page.  
+The extension automatically opens those pages, finds the best image available, and downloads it.
+
+---
+
+### 🌐 8.1 What Are Web-Linked Galleries
+
+A web-linked gallery typically works like this:
+
+- A page shows a list or grid of thumbnails
+- Each thumbnail links to a **detail page**
+- The actual image is displayed inside that page, often with additional content
+
+This structure is common in:
+- Photography websites
+- Art portfolios
+- Media platforms
+- Product or item detail pages
+
+---
+
+### 🧭 8.2 When to Use This Mode
+
+Use this feature when:
+
+- Clicking a thumbnail opens a new page
+- The image is not directly downloadable from the gallery view
+- Other gallery modes do not extract images correctly
+
+This mode is especially useful for modern websites that separate previews from content pages.
+
+---
+
+### 🪜 8.3 Step-by-Step Usage
+
+To extract images from web-linked galleries:
+
+1. Open the page that contains the gallery.
+2. Ensure that thumbnails link to content pages.
+3. Open the **Mass Image Downloader** popup.
+4. Select **Extract Images from Web-Linked Galleries**.
+5. Wait while the extension processes the gallery.
+
+The extension will automatically:
+- Open linked pages in the background
+- Detect the main image
+- Download it based on your settings
+
+---
+
+### 📥 8.4 Expected Results
+
+After completion:
+
+- Images are downloaded to your default download folder
+- Temporary tabs opened during the process are closed automatically
+- File names are generated to avoid duplicates
+
+If no images are downloaded, it usually means that the linked pages do not contain valid images matching the configured criteria.
