@@ -1048,3 +1048,87 @@ The badge is a guide. Settings and page content determine the final result.
   → Ensure you selected the correct feature and that the extension is enabled
 
 Visual feedback is meant to guide you, but settings always determine the final behavior.
+
+---
+
+## 💡 11. Common Use Cases
+
+This section describes **real-world scenarios** where Mass Image Downloader is especially useful.
+
+These examples can help you decide **which feature to use** and **how to configure it** depending on your goal.
+
+---
+
+### 🎨 11.1 Design and Creative Research
+
+Designers and creative professionals often need to collect visual references quickly.
+
+Typical use cases include:
+- Mood boards
+- Color and style exploration
+- Visual inspiration for layouts or illustrations
+
+Recommended features:
+- 📸 Bulk Image Download (when images are already open in tabs)
+- 🌄 Gallery extraction with direct links (for image boards and portfolios)
+
+Recommended tips:
+- Increase minimum image size to avoid thumbnails
+- Use filename prefixes to organize by project or theme
+
+---
+
+### 🗄️ 11.2 Media and Content Archiving
+
+When archiving visual content for later use, consistency and completeness matter.
+
+Typical use cases include:
+- Saving product images
+- Archiving documentation visuals
+- Collecting reference material
+
+Recommended features:
+- 🌄 Galleries with direct links
+- 🔗 Web-linked galleries
+
+Recommended tips:
+- Enable similarity grouping to avoid duplicates
+- Limit max images per gallery to keep archives manageable
+
+---
+
+### 🎓 11.3 Academic and Research Use
+
+Researchers and students often need to collect images as **reference material**, not for redistribution.
+
+Typical use cases include:
+- Historical image references
+- Diagrams and figures
+- Visual examples for analysis
+
+Recommended features:
+- 🖼️ Visual gallery extraction
+- 🕵️ Image Inspector (for careful, single-image selection)
+
+Recommended tips:
+- Keep image size filters moderate
+- Disable automatic tab closing when reviewing content
+
+---
+
+### 🛍️ 11.4 Product and Catalog Browsing
+
+When browsing catalogs or listings, images are often distributed across many pages.
+
+Typical use cases include:
+- Product comparison
+- Market research
+- Feature and design analysis
+
+Recommended features:
+- 🔗 Web-linked gallery extraction
+- 📸 Bulk Image Download (for product images opened in tabs)
+
+Recommended tips:
+- Limit parallel tabs for web-linked galleries
+- Increase delay between tab openings on slower sites
