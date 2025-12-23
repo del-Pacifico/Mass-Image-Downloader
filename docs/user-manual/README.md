@@ -526,3 +526,74 @@ After completion:
 - No additional pages remain open
 
 If the gallery does not contain valid direct image links, no images will be downloaded.
+
+---
+
+## 🖼️ 7. Extract Images from Galleries (Without Links)
+
+This feature is designed for **visual galleries** where images are displayed directly on the page and **do not link to image files**.
+
+Instead of following links, the extension analyzes the page content and selects images based on visual and size criteria.
+
+---
+
+### 👁️ 7.1 What Is a Visual Gallery
+
+A visual gallery typically has the following characteristics:
+
+- Images are displayed inline on the page
+- Thumbnails are not clickable, or clicking them does not open the image file
+- Images may be part of a layout, grid, or article content
+
+This type of gallery is common in blogs, portfolios, news sites, and modern web layouts.
+
+---
+
+### 🧭 7.2 When to Use This Mode
+
+Use this feature when:
+
+- There are no direct links to image files
+- Images are embedded directly in the page
+- Other gallery extraction modes do not detect images correctly
+
+This mode is especially useful when the page relies on layout-based image presentation.
+
+---
+
+### 🪜 7.3 Step-by-Step Usage
+
+To extract images from a visual gallery:
+
+1. Open the page that contains the gallery.
+2. Ensure the images are visible and fully loaded.
+3. Open the **Mass Image Downloader** popup.
+4. Select **Extract Images from Galleries (Without Links)**.
+5. Wait while the extension analyzes the page.
+
+The extraction process runs automatically.
+
+---
+
+### 🎯 7.4 How Images Are Chosen
+
+During analysis, the extension:
+
+- Scans all visible images on the page
+- Applies minimum size and format rules
+- Ignores icons, logos, and decorative images
+
+Only images that meet the criteria are selected for download.
+
+---
+
+### ✅ 7.5 Expected Results
+
+After completion:
+
+- Valid images are downloaded to your default download folder
+- Files are named automatically
+- No extra tabs are opened
+
+If no images meet the criteria, no downloads will occur.
+This indicates that the images on the page are too small or do not match the filters.
