@@ -1132,3 +1132,61 @@ Recommended features:
 Recommended tips:
 - Limit parallel tabs for web-linked galleries
 - Increase delay between tab openings on slower sites
+
+---
+
+## ⚠️ 12. Best Practices and Warnings
+
+This section highlights **recommended practices** and **important warnings** to help you use Mass Image Downloader effectively and safely.
+
+Following these guidelines will reduce errors and improve results.
+
+---
+
+### ✅ 12.1 Best Practices for Reliable Downloads
+
+To get consistent and predictable results:
+
+- Start with **default settings** and adjust gradually
+- Test features on a small page before large extractions
+- Let one process finish before starting another
+- Keep your browser updated to a supported version
+- Use gallery-specific modes instead of Bulk Download when possible
+
+For best performance:
+- Close unnecessary tabs
+- Avoid running multiple heavy browser extensions at the same time
+- Reduce batch sizes on slower machines
+
+---
+
+### 🚫 12.2 Known Limitations
+
+Mass Image Downloader operates **within browser limitations**.
+
+Be aware of the following:
+
+- Some websites load images dynamically and may require visual gallery modes
+- Very strict image size filters may result in no downloads
+- Some sites limit how quickly pages can be opened
+- Browser security policies may prevent access to certain image sources
+
+These behaviors are expected and not errors.
+
+---
+
+### ❗ 12.3 Common Mistakes to Avoid
+
+Avoid these frequent mistakes:
+
+- Using Bulk Image Download on pages that are not image tabs
+- Forgetting to enable required settings (such as automatic downloads)
+- Running multiple extraction modes simultaneously
+- Assuming every page structure is supported
+
+If something does not work:
+1. Stop the current process
+2. Review settings
+3. Retry with adjusted values
+
+Patience and small adjustments usually solve most issues.
