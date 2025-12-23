@@ -371,3 +371,70 @@ On partial failures:
 - The badge still transitions to completion if the flow finishes
 
 > No badge state persists after the operation ends.
+
+---
+
+### 🌄 4.2 Extract Images from Galleries (With Direct Links)
+
+This feature targets galleries where **thumbnail elements link directly to image files**.
+
+Unlike Bulk Image Download, this flow analyzes page structure to discover image links, but it does **not** need to open additional pages.
+
+---
+
+#### 🔗 4.2.1 Link-Based Extraction Logic
+
+The flow starts when the user selects **Extract Images from Galleries (With Direct Links)**.
+
+The content script:
+- Scans the page for anchor (`<a>`) elements
+- Identifies links pointing directly to image resources
+- Normalizes URLs when extended image URLs are enabled
+
+> Only links that resolve directly to image files are considered.
+
+---
+
+#### 🎛️ 4.2.2 Filtering and Qualification Rules
+
+Before an image is accepted, the following checks are applied:
+
+- File extension matches an allowed image format
+- Image dimensions meet minimum width and height thresholds
+- Duplicate URLs within the same execution are skipped
+- Similarity grouping rules are applied if enabled
+
+These rules ensure that:
+- Thumbnails and decorative images are ignored
+- Only meaningful gallery images are processed
+
+---
+
+#### 🧠 4.2.3 Background Orchestration
+
+Once candidate image URLs are collected, control is handed to the background layer.
+
+The background process:
+- Applies global and gallery-specific limits
+- Enforces rate limits and concurrency rules
+- Tracks per-run processed images
+- Updates badge state and progress counters
+
+> The gallery is treated as a single logical execution unit.
+
+---
+
+#### 🏷️ 4.2.4 Completion and Feedback
+
+During execution:
+- 🟢 Green badge indicates active extraction
+- The badge counter reflects processed images
+
+On completion:
+- 🔵 Blue badge indicates a successful finish
+- Temporary state is discarded
+
+If no valid images are found:
+- The process exits cleanly
+- No downloads occur
+- Informational feedback may be shown to the user
