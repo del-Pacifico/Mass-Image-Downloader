@@ -849,3 +849,85 @@ If an image does not qualify:
 - No badge state is persisted
 
 > Image Inspector operations are fully isolated from other features and do not reuse execution state.
+
+---
+
+### 🖱️ 4.7 One-click Download Icon
+
+The One-click Download Icon feature provides a **fast, keyboard-driven way to download the best image on the current page**.
+
+It is designed for situations where the user wants a quick action without entering Image Inspector mode or running gallery/bulk flows.
+
+---
+
+#### ⌨️ 4.7.1 Activation and Enablement
+
+This feature is **disabled by default** and must be explicitly enabled in Settings.
+
+When enabled:
+
+- The extension listens for the **Alt+Shift+I** hotkey
+- Pressing the hotkey triggers an immediate analysis of the current page
+- If a valid image is found, a floating download icon is injected over it (💾)
+
+If the option is disabled:
+- The hotkey has no effect
+- No icon is injected
+- The page remains unchanged
+
+> The feature operates only on the active tab.
+
+---
+
+#### 🧠 4.7.2 Best Image Selection Rules
+
+When the hotkey is pressed, the content script evaluates image candidates on the page.
+
+The selection logic applies the same global validation rules used by other features:
+
+- Minimum width and height thresholds
+- Allowed image formats
+- Extended image URL normalization (if enabled)
+- Exclusion of decorative or low-value images
+
+Among all valid candidates, the image with the **highest effective resolution** is selected.
+
+> Only one image is selected per activation.
+
+---
+
+#### 🖼️ 4.7.3 Icon Injection and User Interaction
+
+Once the best image is identified:
+
+- A floating download icon is injected directly over the image
+- The icon is clearly visible and clickable
+- No page navigation or reload is performed
+
+The icon:
+- Is part of the extension package
+- Is scoped to the current page
+- Does not modify the image or page layout
+- Is removed when the page is reloaded, closed, or after the download completes
+
+---
+
+#### 📥 4.7.4 Download Trigger and Completion
+
+When the user clicks the injected icon:
+
+- A download request is sent to the background layer
+- Filename rules and folder settings are applied
+- The image is downloaded under standard limits
+
+On successful completion:
+- The icon is removed
+- 🟢 Green badge may briefly indicate activity
+- 🔵 Blue badge indicates completion
+
+If no valid image is found:
+- No icon is injected
+- No download is triggered
+- Informational feedback may be shown
+
+> Each activation is independent and does not reuse state from previous runs.
