@@ -438,3 +438,66 @@ If no valid images are found:
 - The process exits cleanly
 - No downloads occur
 - Informational feedback may be shown to the user
+
+---
+
+### 🖼️ 4.3 Extract Images from Galleries (Without Links)
+
+This feature targets **visual galleries** where images are displayed directly on the page and **do not link to image files**.
+
+In this flow, the extension relies on **DOM inspection and visual qualification**, rather than link traversal.
+
+---
+
+#### 👁️ 4.3.1 Visual Detection Logic
+
+The flow starts when the user selects **Extract Images from Galleries (Without Links)**.
+
+The content script:
+- Scans the DOM for `<img>` elements
+- Evaluates only images that are visible and fully loaded
+- Ignores images that are likely decorative (icons, UI assets)
+
+> No navigation or page opening is performed in this mode.
+
+---
+
+#### 🎯 4.3.2 Image Qualification Rules
+
+Each detected image is validated using the following criteria:
+
+- Minimum width and height thresholds
+- Allowed image formats
+- Extended image URL normalization (if enabled)
+- Duplicate detection within the same execution
+
+> Images that do not meet all criteria are excluded silently.
+
+---
+
+#### 🧠 4.3.3 Similarity Grouping and Selection
+
+When enabled, similarity grouping is applied to reduce noise.
+
+This logic:
+- Groups images based on structural and path similarity
+- Requires a minimum group size to qualify as a gallery
+- Optionally applies fallback grouping when patterns are inconsistent
+
+> Only images belonging to a qualified group are passed to the download phase.
+
+---
+
+#### 🏷️ 4.3.4 Execution and Feedback
+
+Once images are selected:
+- The background layer enforces gallery limits and rate controls
+- Downloads are executed in a controlled sequence
+- 🟢 Green badge indicates active processing
+- 🔵 Blue badge indicates completion
+
+If no qualifying images are found:
+- The process exits without error
+- No downloads occur
+- Temporary state is cleared immediately
+
