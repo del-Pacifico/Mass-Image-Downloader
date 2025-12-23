@@ -663,3 +663,277 @@ After completion:
 - File names are generated to avoid duplicates
 
 If no images are downloaded, it usually means that the linked pages do not contain valid images matching the configured criteria.
+
+---
+
+## ⚙️ 9. Settings (User View)
+
+The Settings page lets you control **what counts as a “valid image”**, how fast the extension works, and how downloads are named and saved.
+
+If something is not downloading as expected, the answer is usually here.
+
+---
+
+### 🔓 9.1 Accessing the Settings Page
+
+1. Open the **Mass Image Downloader** popup.
+2. Click **Settings**.
+3. A new tab opens with the full configuration panel.
+4. Click **💾 Save Settings** when you are done.
+
+Tip: You can keep the settings tab open while testing different sites.
+
+---
+
+### ⚙️ 9.2 Performance Presets (Recommended Starting Point)
+
+Before changing individual options, choose a preset:
+
+- **Low Spec** — safer for older laptops (slow, minimal parallel work)
+- **Medium Spec** — balanced default for most computers
+- **High Spec** — fastest, more parallel work (requires more RAM/CPU)
+- **Custom (auto-set)** — activates automatically when you manually tweak any option
+
+Presets update multiple settings at once (batching, concurrency, filters, gallery behavior).  
+If you are unsure: start with **Medium Spec**.
+
+---
+
+### 📁 9.3 File System (Where and What Gets Saved)
+
+#### Choose Download Folder
+- **Default system folder** (recommended): downloads go to your browser/system Downloads folder.
+- **Custom folder**: enables a text field where you provide a folder path.
+
+Notes:
+- If you use a custom folder, keep it stable (do not rename/move it frequently).
+- If you see downloads going to an unexpected place, double-check which radio is selected.
+
+#### Allowed Image Formats
+Select which formats are considered valid:
+- **JPG / JPEG / PNG / WEBP** (commonly used)
+- **AVIF / BMP** (optional)
+
+Recommendation:
+- Keep JPG/JPEG/PNG enabled for the best compatibility.
+- Enable AVIF only if you know your target sites provide AVIF images.
+
+#### Allow extended image URLs
+Enable this if you download from sites that use URL modifiers like `:large` or `:orig` (for example Twitter/X or Pixiv).
+If you mainly download from “classic” galleries, you can keep it off.
+
+---
+
+### 🏷️ 9.4 Filename Customization (Prefix / Suffix / Timestamp)
+
+Use this to keep your downloads organized.
+
+Modes:
+- **None**: keep original naming (recommended to start)
+- **Prefix**: adds text before the filename
+- **Suffix**: adds text after the filename
+- **Both**: adds both prefix and suffix
+- **Timestamp**: adds a timestamp to reduce naming collisions
+
+Examples:
+- Prefix: `project_001.jpg`
+- Suffix: `001_reference.jpg`
+- Timestamp: `001_20251223-153012.jpg`
+
+Tip:
+- Use short, readable values (e.g., `ref`, `moodboard`, `catalog`).
+- Use the clipboard buttons (📋 / ❌) to paste or clear quickly.
+
+---
+
+### 📐 9.5 Image Size Filters (Most Common Reason for “No Downloads”)
+
+These two values define the minimum size an image must have to be downloaded:
+
+- **Minimum Image Width (px)** (default: 800)
+- **Minimum Image Height (px)** (default: 600)
+
+If nothing downloads:
+1. Lower the minimum width/height slightly
+2. Save settings
+3. Retry on the same page
+
+Recommendations:
+- For high-quality photos: keep defaults or increase them
+- For smaller galleries or older sites: lower them carefully
+
+Avoid setting them too low, or you may download icons, logos, and decorative images.
+
+---
+
+### 🖼️ 9.6 Galleries (Direct Links + Without Links)
+
+These settings affect all gallery extraction modes.
+
+#### Gallery Image Handling
+Choose what happens after gallery images are detected:
+- **Download immediately**: fastest, downloads in the background
+- **Open in new tab before downloading**: more visual and controlled (slower), useful when sites load images dynamically
+
+#### Max images per second
+Limits how fast gallery images are processed:
+- Range: **1 to 10**
+- Default: **3**
+
+Recommendations:
+- Lower values (1–2) if a site is sensitive or your PC is slower
+- Higher values (4–6) if the site is stable and your PC is strong
+
+#### Similarity Grouping (Optional, but Useful)
+These options help the extension detect “which images belong together” as a gallery:
+
+- **Gallery Similarity Level (%)** (30–100, default: 70)
+  - Higher = stricter grouping (fewer, more related images)
+  - Lower = more permissive grouping (more images, higher risk of unrelated results)
+
+- **Minimum Group Size** (2–50, default: 3)
+  - How many similar images must exist before a group is considered a real gallery
+
+- **Enable smart similarity grouping**
+  - Recommended when gallery pages contain many thumbnails and repeated patterns
+
+- **Enable fallback grouping**
+  - Helpful when sites have inconsistent URL patterns (tries again with a more permissive grouping)
+
+Practical guidance:
+- If you get too few images: slightly lower similarity or enable fallback
+- If you get unrelated images: increase similarity and/or increase minimum group size
+
+---
+
+### 🔗 9.7 Web-Linked Galleries (Thumbnails Open a Page)
+
+These settings matter when thumbnails link to HTML pages (not direct image files).
+
+#### Max open tabs per gallery
+Controls how many linked pages can be opened in parallel:
+- Range: **1 to 10**
+- Default: **5**
+
+Recommendations:
+- Use 2–4 on slower machines
+- Use 5–8 on stronger machines
+- If your browser becomes slow, lower this first
+
+#### Delay between tab openings (ms)
+Controls how quickly pages are opened:
+- Range: **100 to 3000 ms**
+- Default: **500 ms**
+
+Recommendations:
+- Increase delay if a website blocks or rate-limits you
+- Decrease delay only if the site is stable and responsive
+
+---
+
+### 📸 9.8 Bulk Image Download (Tabs)
+
+These settings apply to Bulk Image Download.
+
+#### Max images per batch
+Controls how many images/tabs are processed at once:
+- Range: **1 to 50**
+- Recommended: 10–25 for most systems
+
+If your browser freezes or becomes unresponsive, reduce this value.
+
+#### Continue from where it left off
+When enabled, the extension tries to resume after interruptions or skipped items.
+Enable it for long sessions.
+
+---
+
+### 🔎 9.9 View Settings (Peek)
+
+Peek allows you to quickly review your current configuration without opening the full Settings page.
+
+#### Peek panel transparency
+- Range: **0.2 to 1.0**
+- Default: **0.8**
+
+Higher values improve readability. Lower values allow more background visibility.
+
+Note:
+- In the current version, Peek is accessed from the extension interface.
+- There is no dedicated keyboard shortcut for Peek in this release.
+
+---
+
+### 🖱️ 9.10 One-click Download Icon
+
+The One-click Download Icon allows you to quickly download the **best image detected on the current page** using a keyboard shortcut.
+
+#### How it works
+- When activated, a small 💾 icon is injected over the highest-resolution valid image.
+- Clicking the icon sends the image to the background downloader.
+- All standard rules apply (minimum size, allowed formats, extended URLs).
+
+#### How to enable
+1. Open **Settings**
+2. Go to **One-click Download Icon**
+3. Enable **“Enable One-click download icon (via hotkey)”**
+4. Save settings
+
+#### Keyboard shortcut
+- **Alt+Shift+I** — injects the one-click download icon
+
+Notes:
+- This shortcut works **only if the option is enabled**
+- If no valid images are detected, the icon will not appear
+- This feature is ideal for downloading a single image quickly without using galleries or bulk modes
+
+---
+
+### 📋 9.11 Clipboard Hotkeys (Optional)
+
+Clipboard hotkeys allow you to quickly apply naming rules using text already copied to your clipboard.
+
+#### How it works
+When enabled, the extension reads the clipboard content and applies it as a prefix or suffix.
+
+#### How to enable
+1. Open **Settings**
+2. Go to **Clipboard Hotkeys**
+3. Enable **“Enable clipboard shortcuts for prefix/suffix”**
+4. Save settings
+
+#### Keyboard shortcuts
+- **Ctrl+Alt+P** — set prefix from clipboard (when prefix mode is active)
+- **Ctrl+Alt+S** — set suffix from clipboard (when suffix mode is active)
+
+Notes:
+- These shortcuts only work on the active tab
+- The corresponding filename mode (prefix/suffix/both) must be selected
+
+---
+
+### 📢 9.12 Notifications
+
+#### Show user feedback messages
+When enabled, the extension shows visual messages for:
+- Success
+- Progress
+- Errors
+
+Recommendation:
+- Keep this enabled while learning the tool
+- Disable it only if you want a quieter UI
+
+---
+
+### 🐛 9.13 Debugging (Optional)
+
+#### Console log level (0–3)
+Controls how much information is written to the browser console.
+
+For basic users:
+- Keep it at **1 (Basic)**
+
+For troubleshooting:
+- Increase to **2 (Verbose)** and retry your action
+- Use **3 (Detailed)** only if you are comfortable reading technical logs
