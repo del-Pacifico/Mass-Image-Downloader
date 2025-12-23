@@ -657,3 +657,119 @@ In the **Web-Linked Galleries** feature:
 - Only one icon (and one image) is processed per page
 
 > This ensures consistency between manual one-click usage and automated gallery extraction.
+
+---
+
+### 🔎 4.5 View Settings (Peek)
+
+View Settings (Peek) provides a **read-only, lightweight view of the current effective configuration**.
+
+Its purpose is to allow technical users to **quickly verify active settings** without navigating to the full Options page or interrupting an ongoing workflow.
+
+---
+
+#### 👁️ 4.5.1 What Peek Shows
+
+Peek displays a **read-only snapshot** of the current configuration stored by the extension and currently available at runtime.
+
+The UI is organized into grouped sections and includes:
+
+- **📁 File system**
+  - Download folder mode (default vs custom)
+  - Custom folder path (if configured)
+  - Filename mode (prefix / suffix / both / timestamp)
+  - Current prefix and suffix values
+  - Allowed formats (toggles), including:
+    - JPG, JPEG, PNG, WEBP, AVIF, BMP
+
+- **🐦 Allow extended image URLs**
+  - Whether extended image URL variants are allowed (for example, platform-specific variants like `:large` / `:orig`)
+
+- **📋 Clipboard Hotkeys**
+  - Clipboard hotkeys enablement
+  - One-click Download Icon enablement (feature flag visibility inside Peek)
+
+- **🕵️ Image Inspector Mode**
+  - Image Inspector enablement
+  - Toggle hotkey (displayed as a read-only value in Peek)
+  - Developer Mode toggle
+  - Close-on-save toggle (when applicable)
+
+- **🖼️ Galleries**
+  - Similarity level (threshold)
+  - Minimum group size
+  - Smart grouping toggle
+  - Fallback grouping toggle
+  - Extract gallery mode (when applicable)
+  - Gallery max images rate/limit value (as displayed in Peek)
+
+- **📐 Image size**
+  - Minimum width
+  - Minimum height
+
+- **📢 Notifications**
+  - User feedback messages toggle
+  - Peek panel transparency level
+
+- **🐛 Debugging**
+  - Console log level (debug verbosity)
+
+- **📸 Download in tabs**
+  - Max bulk batch size
+  - Continue from last batch toggle
+
+- **🔗 Web-Linked Gallery**
+  - Max open tabs (concurrency limit)
+  - Linked gallery delay (milliseconds)
+
+- **⚙️ Performance Preset**
+  - Current preset value (as stored in settings)
+
+Additionally, Peek includes:
+- A **“📋 Copy as JSON”** button to copy the full settings snapshot to the clipboard
+- The **extension version** shown in the footer
+
+Peek also supports live refresh behavior:
+- If settings change while Peek is open, the displayed values update automatically (read-only).
+
+---
+
+#### 🧠 4.5.2 Read-Only and Non-Intrusive Design
+
+Peek is intentionally designed as:
+
+- Read-only
+- Non-editable
+- Non-blocking
+
+This means:
+- No settings can be changed from Peek
+- No execution state is modified
+- No downloads or background actions are triggered
+
+Peek does not write to storage and does not alter runtime behavior.
+
+---
+
+#### 🎚️ 4.5.3 Transparency and Visibility Controls
+
+The Peek panel supports a configurable transparency level.
+
+This allows users to:
+- Inspect settings while still seeing the underlying page
+- Adjust readability without losing page context
+
+Transparency affects only the visual presentation and has no impact on logic or performance.
+
+---
+
+#### 🧭 4.5.4 When to Use Peek
+
+Peek is especially useful when:
+
+- Verifying configuration before starting a large operation
+- Confirming which settings are active after switching presets
+- Diagnosing why a feature behaves differently than expected
+- Preparing accurate bug reports or support questions
+
+Peek acts as a **technical confirmation tool**, bridging the gap between UI configuration and runtime behavior.
