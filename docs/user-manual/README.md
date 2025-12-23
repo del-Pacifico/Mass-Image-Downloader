@@ -377,3 +377,82 @@ Use this feature when:
 - You want to download a single image
 - You need to verify image details before saving
 - Automatic extraction is not suitable for the page
+
+---
+
+## 📸 5. Bulk Image Download
+
+Bulk Image Download is designed to help you **download images from multiple open tabs automatically**, without manual intervention.
+
+This feature is fast, efficient, and ideal when working with many image pages at the same time.
+
+---
+
+### ❓ 5.1 What Bulk Image Download Does
+
+When you start Bulk Image Download, the extension:
+
+- Scans all currently open browser tabs
+- Identifies tabs that contain valid image content
+- Applies size and format filters
+- Downloads the images automatically
+- Closes tabs when the process finishes (depending on configuration)
+
+The process runs in the background and requires no further interaction once started.
+
+---
+
+### 🕒 5.2 When to Use Bulk Image Download
+
+Use this feature when:
+
+- You have many tabs open, each displaying an image
+- You want to save images quickly and consistently
+- Images are already loaded in their own tabs
+- Manual saving would be slow or repetitive
+
+Typical scenarios include:
+- Browsing image search results
+- Reviewing product images in separate tabs
+- Collecting reference material
+
+---
+
+### 🪜 5.3 Step-by-Step Usage
+
+To use Bulk Image Download:
+
+1. Open all tabs that contain the images you want to save.
+2. Make sure each tab displays a valid image.
+3. Open the 🏔️ **Mass Image Downloader** popup.
+4. Click 📸 **Bulk Image Download**.
+5. Wait while the extension processes the tabs.
+
+No confirmation dialogs are required if browser download settings are correctly configured.
+
+---
+
+### 🔄 5.4 What Happens During the Process
+
+While the process is running:
+
+- Tabs are evaluated one by one
+- Images are downloaded in batches
+- Progress is shown using the extension badge
+- Tabs may close automatically after successful download
+
+The browser remains usable during this time, but it is recommended not to interfere until the process completes.
+
+---
+
+### ✅ 5.5 Expected Results
+
+After completion:
+
+- Images are saved in your default download folder
+- File names are generated automatically to avoid overwriting
+- The extension badge updates to reflect completion
+
+If no valid images are found, no downloads will occur.
+
+This behavior is normal and indicates that the open tabs did not meet the required criteria.
