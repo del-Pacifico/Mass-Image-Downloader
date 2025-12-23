@@ -456,3 +456,73 @@ After completion:
 If no valid images are found, no downloads will occur.
 
 This behavior is normal and indicates that the open tabs did not meet the required criteria.
+
+---
+
+## 🌄 6. Extract Images from Galleries (With Direct Links)
+
+This feature is optimized for galleries where **thumbnails link directly to image files** (for example, clicking a thumbnail opens the image itself).
+
+It provides a fast and reliable way to download images without opening unnecessary pages.
+
+---
+
+### 🔗 6.1 What This Mode Is For
+
+Use this mode when:
+
+- Thumbnails are wrapped in links pointing directly to image files
+- Clicking a thumbnail opens the image (not an intermediate page)
+- The gallery structure is simple and consistent
+
+In these cases, the extension can follow the links and download images efficiently.
+
+---
+
+### 🧪 6.2 Typical Gallery Example
+
+A typical supported gallery looks like this:
+
+- A grid of thumbnails
+- Each thumbnail is clickable
+- The link behind each thumbnail points directly to an image file (JPG, PNG, WEBP, etc.)
+
+This structure is common in image boards, media libraries, and product galleries.
+
+---
+
+### 🪜 6.3 Step-by-Step Usage
+
+To extract images from a gallery with direct links:
+
+1. Open the web page that contains the gallery.
+2. Ensure the thumbnails link directly to image files.
+3. Open the **Mass Image Downloader** popup.
+4. Select **Extract Images from Galleries (With Direct Links)**.
+5. Wait while the extension processes the gallery.
+
+The process runs automatically and does not require further input.
+
+---
+
+### 🧠 6.4 How Images Are Selected
+
+During extraction, the extension:
+
+- Follows the links associated with gallery thumbnails
+- Filters images based on size and format rules
+- Skips images that do not meet the criteria
+
+Only valid images are selected and downloaded.
+
+---
+
+### 📥 6.5 Expected Results
+
+After completion:
+
+- Images are downloaded to your default download folder
+- Files are named automatically to avoid duplicates
+- No additional pages remain open
+
+If the gallery does not contain valid direct image links, no images will be downloaded.
