@@ -680,7 +680,7 @@ The UI is organized into grouped sections and includes:
   - Filename mode (prefix / suffix / both / timestamp)
   - Current prefix and suffix values
   - Allowed formats (toggles), including:
-    - JPG, JPEG, PNG, WEBP, AVIF, BMP
+  - JPG, JPEG, PNG, WEBP, AVIF, BMP
 
 - **🐦 Allow extended image URLs**
   - Whether extended image URL variants are allowed (for example, platform-specific variants like `:large` / `:orig`)
@@ -747,7 +747,7 @@ This means:
 - No execution state is modified
 - No downloads or background actions are triggered
 
-Peek does not write to storage and does not alter runtime behavior.
+> Peek does not write to storage and does not alter runtime behavior.
 
 ---
 
@@ -759,7 +759,7 @@ This allows users to:
 - Inspect settings while still seeing the underlying page
 - Adjust readability without losing page context
 
-Transparency affects only the visual presentation and has no impact on logic or performance.
+> Transparency affects only the visual presentation and has no impact on logic or performance.
 
 ---
 
@@ -772,4 +772,80 @@ Peek is especially useful when:
 - Diagnosing why a feature behaves differently than expected
 - Preparing accurate bug reports or support questions
 
-Peek acts as a **technical confirmation tool**, bridging the gap between UI configuration and runtime behavior.
+> Peek acts as a **technical confirmation tool**, bridging the gap between UI configuration and runtime behavior.
+
+---
+
+### 🕵️ 4.6 Image Inspector
+
+Image Inspector is a **manual, image-focused inspection and download tool** designed for precision use cases.
+
+Unlike automated gallery or bulk flows, Image Inspector allows the user to **explicitly inspect, validate, and download a single image** directly from the page.
+
+---
+
+#### 🧷 4.6.1 Activation and Overlay Behavior
+
+Image Inspector is activated when the feature is enabled in Settings and the user presses the associated hotkey (Ctrl+Shift+M).
+
+Once active:
+
+- The extension enters an inspection mode scoped to the current page
+- Hovering over images highlights eligible candidates
+- Only images that pass standard validation rules are considered
+
+The overlay:
+- Is injected dynamically
+- Does not alter the underlying page content
+- Is removed when the mode is exited or the page changes
+
+> Image Inspector never runs automatically and requires explicit user action.
+
+---
+
+#### 🔍 4.6.2 Image Qualification and Metadata Display
+
+For each inspected image, the overlay evaluates and may display:
+
+- Image resolution (width × height)
+- File format
+- Source URL (normalized if extended URLs are enabled)
+- Whether the image meets minimum size requirements
+
+When **Developer Mode** is enabled, additional technical metadata may be shown to assist debugging and verification.
+
+> This information allows users to confirm that the selected image is the intended target before downloading.
+
+---
+
+#### 📥 4.6.3 Download Action and Optional Auto-Close
+
+When the user confirms the download action:
+
+- A message is sent to the background layer
+- Global filename and folder rules are applied
+- The image is downloaded under standard constraints
+
+If the **Close page after saving image** option is enabled:
+- The current tab is closed automatically after a successful download
+
+If disabled:
+- The page remains open
+- No additional actions are taken
+
+---
+
+#### 🏷️ 4.6.4 Badge and Feedback Behavior
+
+During Image Inspector operations:
+
+- 🟢 Green badge indicates an active download
+- The badge counter may reflect the single download event
+- 🔵 Blue badge indicates completion
+
+If an image does not qualify:
+- No download occurs
+- Informational feedback may be shown
+- No badge state is persisted
+
+> Image Inspector operations are fully isolated from other features and do not reuse execution state.
