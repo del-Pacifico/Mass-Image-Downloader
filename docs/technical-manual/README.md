@@ -211,3 +211,82 @@ This separation ensures that:
 - UI remains responsive
 
 > The system favors **stateless, execution-scoped logic** over persistent background activity.
+
+---
+
+## 🗃️ 3. State and Data Model
+
+This section explains **how Mass Image Downloader manages state and data** during execution.
+
+Understanding what is stored, where it is stored, and for how long is essential for:
+- Predictable behavior
+- Correct configuration
+- Reliable troubleshooting
+
+> The extension is designed to minimize persistence and favor **execution-scoped state**.
+
+---
+
+### 💾 3.1 Persistent Settings
+
+Persistent settings are stored using the browser storage API and survive:
+- Browser restarts
+- Extension reloads
+- System reboots
+
+> These settings represent **user intent and configuration**, not runtime data.
+
+Examples of persistent settings include:
+- Enabled features (e.g. Image Inspector, One-click icon)
+- Image size thresholds
+- Allowed image formats
+- Gallery and bulk limits
+- Performance presets
+- Filename customization rules
+
+Persistent settings are:
+- Read at the start of each operation
+- Never modified implicitly by runtime behavior
+- Only changed through the Options page
+
+> No historical execution data is stored alongside settings.
+
+---
+
+### 🧠 3.2 In-Run Temporary State
+
+During an active operation, the extension maintains **temporary in-memory state**.
+
+This state exists only for the duration of the current execution flow and is used to:
+- Track images already processed in the current run
+- Prevent duplicate downloads within the same operation
+- Coordinate batching and concurrency
+- Maintain progress counters for badge updates
+
+Characteristics of temporary state:
+- Exists only while a feature is running
+- Is cleared immediately after completion or failure
+- Is never written to persistent storage
+
+> Each execution starts with a clean temporary state, regardless of previous runs.
+
+---
+
+### 🚫 3.3 What Is Not Stored
+
+To preserve privacy and reduce complexity, Mass Image Downloader explicitly avoids storing:
+
+- Download history
+- Image URLs from past runs
+- Page URLs previously visited
+- Per-site behavior profiles
+- User activity timelines
+
+> The extension does not attempt to “remember” previous executions.
+
+This design ensures:
+- No long-term tracking
+- No accumulation of usage data
+- Fully isolated and repeatable runs
+
+> Every operation is treated as an independent, stateless execution.
