@@ -289,3 +289,91 @@ It is recommended to always keep your browser updated to ensure:
 - Best performance
 - Compatibility with new features
 - Proper security behavior
+
+---
+
+## 🧩 4. Available Features (Overview)
+
+Mass Image Downloader provides several features designed to handle different image extraction scenarios.
+
+This section gives a **high-level overview** of each feature, helping you understand:
+- What each feature is for
+- When to use it
+- What kind of results to expect
+
+Detailed step-by-step instructions are provided in later sections.
+
+---
+
+### 📸 4.1 Bulk Image Download
+
+This feature allows you to **download images from multiple open tabs at once**.
+
+It scans the currently open browser tabs, identifies valid images, and downloads them automatically based on your settings.
+
+Use this feature when:
+- You have several tabs open, each containing an image
+- You want to save images quickly without opening them one by one
+
+---
+
+### 🌄 4.2 Extract Images from Galleries (With Direct Links)
+
+This feature is designed for galleries where **thumbnails link directly to image files**.
+
+The extension follows those links and downloads the images efficiently, without opening unnecessary pages.
+
+Use this feature when:
+- Clicking a thumbnail opens the image directly
+- The gallery consists of linked image files
+
+---
+
+### 🖼️ 4.3 Extract Images from Galleries (Without Links)
+
+This feature works with **visual galleries** where images are displayed directly on the page, without direct links.
+
+The extension analyzes the page and selects images that match size and format criteria.
+
+Use this feature when:
+- Images are shown inline on the page
+- There are no direct links to image files
+
+---
+
+### 🔗 4.4 Extract Images from Web-Linked Galleries
+
+This feature handles galleries where **thumbnails link to separate web pages**, not directly to images.
+
+The extension opens those pages automatically, detects the best image available, and downloads it.
+
+Use this feature when:
+- Clicking a thumbnail opens a new page with the image
+- The image is loaded dynamically or embedded in content pages
+
+---
+
+### 🔎 4.5 View Settings (Peek)
+
+This feature allows you to **quickly view your current settings** without opening the full settings page.
+
+It helps you verify:
+- Active configuration values
+- Limits and filters currently in use
+
+Use this feature when:
+- You want to double-check settings before starting a download
+- You need quick confirmation without interrupting your workflow
+
+---
+
+### 🕵️ 4.6 Image Inspector
+
+The Image Inspector allows you to **manually inspect and download a specific image** from the current page.
+
+It provides a focused view of image details and gives you full control over the download action.
+
+Use this feature when:
+- You want to download a single image
+- You need to verify image details before saving
+- Automatic extraction is not suitable for the page
