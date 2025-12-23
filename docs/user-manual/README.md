@@ -89,3 +89,68 @@ This manual is intended for end users and explains how to install, configure, an
 - [🆘 14. Getting Help and Providing Feedback](#-14-getting-help-and-providing-feedback)
   - [💬 14.1 Where to Ask Questions](#-141-where-to-ask-questions)
   - [🐞 14.2 Reporting Issues](#-142-reporting-issues)
+
+---
+
+## 🧭 1. Introduction
+
+### 🏔️ 1.1 What is Mass Image Downloader
+
+**Mass Image Downloader** is a browser extension designed to help you **download multiple images efficiently from web pages**, without doing repetitive manual work.
+
+Instead of saving images one by one, the extension allows you to:
+
+- Download images from multiple open tabs at once
+- Extract images from galleries and collections
+- Automatically filter images by size and format
+- Save images directly to your local download folder
+
+The extension works entirely **inside your browser** and focuses on being fast, predictable, and respectful of your workflow.
+
+It is especially useful when dealing with websites that contain:
+- Large image collections
+- Product catalogs
+- Photo galleries
+- Research or reference material
+
+---
+
+### 👤 1.2 Who This Manual Is For
+
+This **User Manual (Basic)** is written for:
+
+- General users with no technical background
+- Designers, illustrators, and creative professionals
+- Researchers, students, and educators
+- Anyone who needs to collect images efficiently for legitimate use
+
+You **do not need** to understand how the extension is built internally.
+This manual focuses on:
+- What each feature does
+- When to use it
+- How to use it safely and correctly
+
+If you are looking for deeper technical explanations or internal behavior details, those are covered in separate manuals.
+
+---
+
+### 🌐 1.3 Supported Browsers
+
+Mass Image Downloader works on **Chromium-based browsers**.
+
+Supported browsers include:
+
+- Google Chrome
+- Microsoft Edge
+- Brave
+- Other Chromium-based browsers
+
+**Minimum supported browser version:**  
+Chromium 93 or newer
+
+If you are using an older browser version, some features may not work correctly or may not be available.
+
+It is recommended to always keep your browser updated to ensure:
+- Best performance
+- Compatibility with new features
+- Proper security behavior
