@@ -205,3 +205,100 @@ This ensures:
 - Predictable, stateless behavior
 
 > The extension treats each execution as disposable and isolated.
+
+---
+
+## ⚖️ 3. Trade-offs and Engineering Decisions
+
+Every feature in Mass Image Downloader reflects **explicit engineering trade-offs**.
+
+This section makes those trade-offs visible, explaining why certain choices were favored and what is intentionally sacrificed as a result.
+
+There are no “free” decisions — each gain comes with a cost.
+
+---
+
+### 🚀 3.1 Speed vs Accuracy
+
+One of the most visible trade-offs is between **execution speed** and **image selection accuracy**.
+
+Faster configurations:
+- Use lower similarity thresholds
+- Allow smaller image sizes
+- Favor direct URL extraction
+
+More accurate configurations:
+- Enforce stricter size thresholds
+- Use similarity grouping
+- Limit batch size and concurrency
+
+Design choice:
+- The system defaults favor **accuracy over speed**
+- Speed can be increased deliberately by relaxing constraints
+
+> This prevents accidental over-download of low-value or decorative images.
+
+---
+
+### 🧵 3.2 Concurrency vs Stability
+
+Concurrency improves throughput but directly impacts browser stability.
+
+High concurrency:
+- Opens more tabs simultaneously
+- Increases memory and CPU usage
+- Risks site throttling or crashes
+
+Low concurrency:
+- Reduces system pressure
+- Improves predictability
+- Increases total execution time
+
+Design choice:
+- Concurrency is always bounded
+- There is no “unlimited” mode
+- Rate limiting complements concurrency to smooth execution
+
+> Stability is prioritized over raw performance.
+
+---
+
+### 🧠 3.3 Automation vs Manual Control
+
+The extension deliberately offers **both automated and manual flows**.
+
+Automated flows:
+- Bulk Image Download
+- Gallery extraction modes
+
+Manual flows:
+- Image Inspector
+- One-click Download Icon
+
+Design choice:
+- Automation handles common, repeatable patterns
+- Manual tools exist for precision and verification
+
+> This avoids forcing automation in scenarios where human judgment is required.
+
+---
+
+### 📊 3.4 Global Rules vs Feature-Specific Rules
+
+Global rules simplify consistency but reduce flexibility.
+
+Examples of global rules:
+- Minimum image size
+- Allowed formats
+- Filename conventions
+
+Feature-specific rules:
+- Gallery similarity thresholds
+- Web-linked gallery concurrency
+- Bulk batch limits
+
+Design choice:
+- Global rules define a baseline contract
+- Feature-specific rules refine behavior locally
+
+> This balance prevents configuration explosion while preserving control.
