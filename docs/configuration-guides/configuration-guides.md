@@ -580,3 +580,106 @@ When you activate **Extract Gallery Images**:
 ---
 
 ➡️ Next: **Gallery Extraction Using Background Tabs**
+
+---
+
+### 🗂️ 3.2 Gallery Extraction Using Background Tabs
+
+#### 🎯 Goal
+
+Extract images from direct-link galleries while **opening each target image in a background tab before downloading**, allowing for safer handling of uncertain or dynamic galleries.
+
+This configuration prioritizes:
+- Higher compatibility with complex sites
+- Safer extraction when images are modified at load time
+- Reduced risk of missing the true high-resolution asset
+
+---
+
+#### 🧭 When to Use This
+
+Use this configuration when:
+
+- The immediate download mode yields incomplete or low-quality images
+- The final image is rendered or altered after the page loads
+- You want a safer extraction path without manual interaction
+- The gallery structure is partially inconsistent
+
+> This setup trades speed for **higher extraction reliability**.
+
+---
+
+#### 📋 Prerequisites
+
+Before applying this configuration:
+
+- Thumbnails link directly to image URLs
+- The site allows background tab loading
+- Your system can handle opening multiple tabs temporarily
+
+---
+
+#### ⚙️ Step-by-Step Configuration
+
+Open the **Options** page and apply the following values:
+
+**Global Settings**
+- Allowed formats:  
+  - JPG ✅  
+  - JPEG ✅  
+  - PNG ✅  
+  - WEBP ✅
+- Minimum width: `800`
+- Minimum height: `600`
+
+**Extract Gallery Images Settings**
+- Extract mode: `Open in background tab`
+- Gallery max images: `5`
+
+**Gallery Finder Settings**
+- Path similarity level: `80%`
+
+**Filename Settings**
+- Filename mode: `Original`
+- Prefix / Suffix: *(optional)*
+
+> Avoid increasing gallery limits before validating stability.
+
+---
+
+#### ✅ Expected Result
+
+When you activate **Extract Gallery Images**:
+
+- Each candidate image opens in a background tab
+- The final rendered image is evaluated
+- Only the highest-resolution valid image is downloaded
+- Background tabs close automatically after download
+- The badge counter reflects cumulative progress
+
+---
+
+#### ⚠️ Common Mistakes
+
+- Using high gallery limits on slow systems
+- Combining background-tab mode with aggressive concurrency
+- Assuming this mode is faster than immediate download
+
+> If tabs remain open or downloads stall, reduce the gallery limit.
+
+---
+
+#### ⚡ Performance & Stability Notes
+
+- Background-tab mode is more resilient on complex sites
+- Temporary tab usage increases memory pressure
+- Best suited for:
+  - Dynamic or script-heavy galleries
+  - Medium-sized collections
+  - Situations where correctness matters more than speed
+
+> For maximum speed on simple galleries, prefer **Immediate Download** mode.
+
+---
+
+➡️ Next: **Handling Large Linked Galleries Safely**
