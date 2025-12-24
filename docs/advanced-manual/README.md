@@ -302,3 +302,91 @@ Design choice:
 - Feature-specific rules refine behavior locally
 
 > This balance prevents configuration explosion while preserving control.
+
+---
+
+## 🔗 4. Cross-Feature Interactions
+
+Although features in Mass Image Downloader are designed to be atomic, they are **not isolated in perception**.
+
+Some elements intentionally act as **shared signals** or **shared references**, allowing users to understand system state across different execution modes.
+
+This section explains how features interact indirectly and what assumptions can safely be made.
+
+---
+
+### 🏷️ 4.1 Badge State as a Shared Signal
+
+The extension badge acts as a **global execution indicator**.
+
+Key characteristics:
+- Badge state reflects the **current active execution**, not a specific feature
+- Only one execution flow is active at a time
+- Badge color and counter are reset at the start of each operation
+
+Implications:
+- Badge behavior is consistent across features
+- Users can rely on badge color to infer system state
+- Feature-specific details are intentionally abstracted away
+
+Design choice:
+- The badge communicates *status*, not *context*
+- Detailed context belongs in logs or Peek
+
+---
+
+### 🔎 4.2 Peek as the Runtime Source of Truth
+
+The Peek panel is the **authoritative view of effective configuration** at runtime.
+
+Important properties:
+- Peek reflects settings as loaded by the background layer
+- It does not display unsaved UI state
+- It updates dynamically when settings change
+
+Cross-feature relevance:
+- All features consume the same global configuration snapshot
+- Peek provides a single point of verification regardless of feature used
+
+Design choice:
+- One runtime truth prevents configuration ambiguity
+- Peek is informational, not interactive
+
+---
+
+### ⚙️ 4.3 Global Settings Impact Across Features
+
+Some settings intentionally affect **multiple features simultaneously**.
+
+Examples:
+- Minimum image size applies to all extraction modes
+- Allowed formats affect every download path
+- Filename rules are enforced globally
+
+Consequences:
+- Changing a global setting may alter behavior in unexpected places
+- Feature-level tuning must respect global constraints
+
+Design choice:
+- Shared rules enforce consistency
+- Users must reason globally, not per feature
+
+---
+
+### 🧠 4.4 Temporary State Reuse and Isolation
+
+Temporary state is **execution-scoped**, not feature-scoped.
+
+Rules:
+- State exists only during a single execution
+- No state survives between executions
+- State is not reused across features
+
+This ensures:
+- Predictable behavior
+- No hidden coupling between features
+- Clean restarts for every action
+
+Design choice:
+- Isolation over convenience
+- Repeatability over optimization
