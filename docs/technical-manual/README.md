@@ -1295,3 +1295,90 @@ If a hotkey does not respond:
 - Verify the feature is enabled
 - Ensure focus is on the page content
 - Check for OS or browser-level conflicts
+
+---
+
+## 🩺 7. Troubleshooting Without Code Changes
+
+This section explains **how to diagnose and resolve common issues** using configuration, visual feedback, and logs — without modifying source code.
+
+The troubleshooting approach is based on observing behavior, validating assumptions, and narrowing the execution scope.
+
+---
+
+### 🚫 7.1 No Images Downloaded
+
+This is the most common reported scenario.
+
+Checklist:
+- Verify minimum width and height are not overly restrictive
+- Confirm at least one allowed image format is enabled
+- Ensure the selected feature matches the page type:
+  - Bulk Image Download → direct image tabs
+  - Gallery modes → HTML pages with images
+- Check that extended image URLs are enabled when targeting platforms that use them
+
+> If no validation rule is satisfied, the extension exits cleanly without downloads.
+
+---
+
+### 🎯 7.2 Unexpected Images Downloaded
+
+This typically indicates **loose filtering or grouping settings**.
+
+Review:
+- Minimum image size thresholds
+- Similarity threshold (too low increases noise)
+- Minimum group size for galleries
+- Allowed formats (disable formats you do not want)
+
+> Lower thresholds favor completeness; higher thresholds favor precision.
+
+---
+
+### 🟡 7.3 Processing Appears Stuck
+
+If the badge remains green longer than expected:
+
+- Large galleries may still be processing
+- Web-linked galleries may be respecting delay and concurrency limits
+- Some pages may be slow to load or block scripts
+
+Actions:
+- Wait for the badge to transition to blue
+- Check console logs for progress updates
+- Reduce concurrency and batch sizes if needed
+
+> The extension does not deadlock; all flows have completion paths.
+
+---
+
+### 🔴 7.4 Error States and What to Collect
+
+When errors occur, collect the following before reporting:
+
+- Extension version (`v2.08.149`)
+- Feature used
+- Target website URL
+- Console log output (log level ≥ 2 recommended)
+- Screenshot of the Peek panel
+
+> This information allows reproducible diagnosis without guessing.
+
+---
+
+### 📜 7.5 Using Log Level for Diagnosis
+
+Console log level controls diagnostic verbosity.
+
+Recommendations:
+- Level 0–1 for normal usage
+- Level 2 for issue reproduction
+- Level 3 only for deep analysis
+
+Logs are:
+- Printed to the browser console
+- Not stored persistently
+- Cleared automatically between runs
+
+> Higher log levels may slightly impact performance but greatly improve visibility.
