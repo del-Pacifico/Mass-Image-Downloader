@@ -1338,3 +1338,90 @@ When images are downloaded:
 ---
 
 ➡️ Next: **Timestamp-Based Naming for Large Collections**
+
+---
+
+### ⏱️ 6.2 Timestamp-Based Naming for Large Collections
+
+#### 🎯 Goal
+
+Ensure **global filename uniqueness** when downloading **large image collections** by appending a timestamp to each filename.
+
+This configuration prioritizes:
+- Absolute collision avoidance
+- Chronological traceability
+- Safe operation across massive batches
+
+---
+
+#### 🧭 When to Use This
+
+Use this configuration when:
+
+- Downloading hundreds or thousands of images
+- Filenames from the source are repetitive or generic
+- You are aggregating images across multiple sessions
+- You want to preserve temporal context of downloads
+
+> This setup is ideal for **large-scale or long-running extractions**.
+
+---
+
+#### 📋 Prerequisites
+
+Before applying this configuration:
+
+- You do not rely on original filenames alone
+- You are comfortable with longer filenames
+- Sorting by download time is useful for your workflow
+
+---
+
+#### ⚙️ Step-by-Step Configuration
+
+Open the **Options** page and apply the following values:
+
+**Filename Settings**
+- Filename mode: `Timestamp`
+
+**Global Settings**
+- Filename sanitization: *(enabled by default)*
+
+> Do not combine timestamp mode with prefix/suffix modes.
+
+---
+
+#### ✅ Expected Result
+
+When images are downloaded:
+
+- Each filename includes a timestamp, for example:
+  - `image_250914153012.jpg`
+  - `photo_250914153045.png`
+- Filename collisions are effectively impossible
+- Files sort naturally by download time
+
+---
+
+#### ⚠️ Common Mistakes
+
+- Expecting short or human-friendly filenames
+- Combining timestamp mode with other naming modes
+- Using timestamp mode for small, curated sets
+
+> If filenames feel excessive, revert to prefix/suffix strategies.
+
+---
+
+#### ⚡ Performance & Stability Notes
+
+- Timestamp generation has negligible overhead
+- Best suited for:
+  - Bulk archival
+  - Web scraping workflows
+  - Automated or unattended runs
+- Fully compatible with all extraction modes
+
+---
+
+➡️ End of **Filename Strategies** section.
