@@ -904,3 +904,109 @@ When you activate **Extract Gallery Images**:
 ---
 
 ➡️ Next: **Improving Results on Mixed-Content Pages**
+
+---
+
+### 🧪 4.2 Improving Results on Mixed-Content Pages
+
+#### 🎯 Goal
+
+Improve image extraction results on **pages that mix gallery images with UI elements, ads, icons, and unrelated media**, ensuring that only **relevant, high-quality images** are downloaded.
+
+This configuration prioritizes:
+- Aggressive noise reduction
+- Strict relevance filtering
+- Predictable results on cluttered pages
+
+---
+
+#### 🧭 When to Use This
+
+Use this configuration when:
+
+- Pages contain many small or decorative images
+- Navigation icons or ads are being downloaded unintentionally
+- Visual gallery detection produces too many false positives
+- You are working with blogs, forums, or content-heavy layouts
+
+> This setup is designed for **messy, real-world pages**.
+
+---
+
+#### 📋 Prerequisites
+
+Before applying this configuration:
+
+- Images are rendered inline (not CSS backgrounds)
+- The main gallery images are significantly larger than UI elements
+- You accept that some borderline images may be skipped
+
+---
+
+#### ⚙️ Step-by-Step Configuration
+
+Open the **Options** page and apply the following values:
+
+**Global Settings**
+- Allowed formats:  
+  - JPG ✅  
+  - JPEG ✅  
+  - PNG ❌ *(disable to reduce icons and UI noise)*  
+  - WEBP ❌
+- Minimum width: `900`
+- Minimum height: `600`
+
+**Extract Gallery Images Settings**
+- Extract mode: `Immediate`
+- Gallery max images: `8`
+
+**Gallery Finder Settings**
+- Path similarity level: `80%`
+
+**Filename Settings**
+- Filename mode: `Original`
+- Prefix / Suffix: *(recommended to identify source)*
+
+> Avoid enabling additional formats unless required.
+
+---
+
+#### ✅ Expected Result
+
+When you activate **Extract Gallery Images**:
+
+- UI elements and icons are aggressively filtered out
+- Only large, content-relevant images are selected
+- Downloads occur immediately
+- The resulting image set is smaller but higher quality
+- Manual cleanup after download is minimized
+
+---
+
+#### ⚠️ Common Mistakes
+
+- Lowering minimum dimensions “to catch everything”
+- Enabling PNG/WEBP on pages heavy with UI graphics
+- Expecting perfect results on highly dynamic layouts
+
+> If important images are missing, slightly reduce minimum dimensions.
+
+---
+
+#### ⚡ Performance & Stability Notes
+
+- Strict filtering reduces total processing work
+- Ideal for:
+  - Blogs
+  - News sites
+  - Forums
+  - Documentation pages with embedded images
+- Not suitable for:
+  - Artistic portfolios with small images
+  - Thumbnail-only layouts
+
+> For cleaner pages, revert to the baseline visual gallery configuration.
+
+---
+
+➡️ End of **Extract Gallery Images (Without Links)** configurations.
