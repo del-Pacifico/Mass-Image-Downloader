@@ -1541,3 +1541,112 @@ With proper tuning:
 ---
 
 ➡️ Next: **Recommended Configurations by System Profile**
+
+---
+
+### 💻 7.2 Recommended Configurations by System Profile
+
+#### 🎯 Goal
+
+Provide **ready-to-use configuration profiles** based on common system capabilities, allowing users to select safe and effective settings without manual tuning.
+
+These profiles are designed to:
+- Reduce trial-and-error
+- Prevent instability
+- Match typical hardware constraints
+- Deliver predictable results
+
+---
+
+#### 🧭 When to Use This
+
+Use these profiles when:
+
+- You want a quick, reliable setup
+- You are unsure how powerful your system is
+- You prefer proven presets over manual tuning
+- You are setting up the extension on a new machine
+
+> Each profile is conservative within its category.
+
+---
+
+#### 📋 Prerequisites
+
+Before applying a profile:
+
+- Identify your system category honestly
+- Close unnecessary applications
+- Ensure baseline configurations work correctly
+
+> If in doubt, choose a **lower** profile.
+
+---
+
+#### ⚙️ Step-by-Step Configuration
+
+Apply the profile that best matches your system:
+
+**🟢 Low-Resource Systems**
+- Max simultaneous downloads: `1`
+- Max images per batch / gallery limits: `5–10`
+- Web-linked gallery concurrency: `1`
+- Recommended for:
+  - Older laptops
+  - Virtual machines
+  - Systems with limited RAM
+
+**🟡 Medium Systems**
+- Max simultaneous downloads: `2`
+- Max images per batch / gallery limits: `20–25`
+- Web-linked gallery concurrency: `2`
+- Recommended for:
+  - Most modern laptops
+  - Standard desktops
+
+**🔵 High-Performance Systems**
+- Max simultaneous downloads: `4`
+- Max images per batch / gallery limits: `40–50`
+- Web-linked gallery concurrency: `3–4`
+- Recommended for:
+  - Workstations
+  - Systems with fast SSDs and ample RAM
+
+> Do not exceed these values without testing.
+
+---
+
+#### ✅ Expected Result
+
+When using the appropriate profile:
+
+- Downloads complete efficiently
+- Browser remains responsive
+- Failures are minimized
+- Badge behavior remains consistent
+- Resource usage stays within safe bounds
+
+---
+
+#### ⚠️ Common Mistakes
+
+- Choosing a higher profile “just in case”
+- Ignoring early signs of instability
+- Mixing profiles across different modes
+- Running multiple heavy workflows simultaneously
+
+> If issues occur, downgrade one profile level.
+
+---
+
+#### ⚡ Performance & Stability Notes
+
+- These profiles are intentionally conservative
+- Real-world performance varies by site and network
+- Profiles are a starting point, not a guarantee
+
+> For advanced tuning, refer back to **Speed vs Stability** guidance.
+
+---
+
+➡️ End of **Performance & Stability** section.
