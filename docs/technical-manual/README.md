@@ -1209,3 +1209,89 @@ Higher levels:
 - Provide more diagnostic information
 - May impact performance slightly
 - Are recommended only during troubleshooting
+
+---
+
+## ⌨️ 6. Hotkeys and Commands Reference
+
+This section documents **all keyboard shortcuts and commands available in version v2.08.149**, including their scope, prerequisites, and limitations.
+
+Hotkeys are **opt-in** features: they work only when the corresponding option is enabled in Settings.
+
+---
+
+### 🖱️ 6.1 Alt+Shift+I — One-click Download Icon
+
+**Purpose:**  
+Trigger a fast, single-image download on the current page.
+
+**Prerequisites:**
+- One-click Download Icon feature enabled in Settings
+
+**Behavior:**
+- Analyzes the current page for valid image candidates
+- Selects the best image based on resolution and global rules
+- Injects a floating download icon over the selected image
+- Clicking the icon triggers the download
+
+**Scope and limitations:**
+- Operates only on the active tab
+- Injects UI elements temporarily
+- No effect if no valid image is found
+
+---
+
+### 🕵️ 6.2 Ctrl+Shift+M — Image Inspector
+
+**Purpose:**  
+Toggle Image Inspector mode for manual image inspection and download.
+
+**Prerequisites:**
+- Image Inspector feature enabled in Settings
+
+**Behavior:**
+- Activates inspection mode on the current page
+- Highlights eligible images on hover
+- Displays metadata overlays for validation
+- Allows explicit, single-image download
+
+**Scope and limitations:**
+- Does not run automatically
+- Operates only on the active tab
+- Exits when toggled off or when the page changes
+
+---
+
+### 📋 6.3 Ctrl+Alt+P / Ctrl+Alt+S — Clipboard Prefix / Suffix
+
+**Purpose:**  
+Quickly apply filename customization rules using clipboard content.
+
+**Prerequisites:**
+- Clipboard Hotkeys enabled in Settings
+- Corresponding filename mode active (prefix, suffix, or both)
+
+**Behavior:**
+- Ctrl+Alt+P sets clipboard content as filename prefix
+- Ctrl+Alt+S sets clipboard content as filename suffix
+
+**Scope and limitations:**
+- Operates only on the active tab
+- Clipboard content must be accessible
+- No effect if filename customization is disabled
+
+---
+
+### 🧩 6.4 Common Limitations and Conflicts
+
+General considerations for hotkeys:
+
+- Hotkeys may conflict with browser or OS shortcuts
+- Some websites intercept key combinations
+- Hotkeys do not work inside browser UI elements (address bar, devtools)
+- Feature-specific enablement is always required
+
+If a hotkey does not respond:
+- Verify the feature is enabled
+- Ensure focus is on the page content
+- Check for OS or browser-level conflicts
