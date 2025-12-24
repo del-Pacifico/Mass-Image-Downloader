@@ -683,3 +683,107 @@ When you activate **Extract Gallery Images**:
 ---
 
 ➡️ Next: **Handling Large Linked Galleries Safely**
+
+---
+
+### 🛡️ 3.3 Handling Large Linked Galleries Safely
+
+#### 🎯 Goal
+
+Extract images from **large direct-link galleries** while maintaining **browser stability**, avoiding tab storms, memory spikes, and incomplete downloads.
+
+This configuration prioritizes:
+- Controlled throughput
+- Predictable memory usage
+- Graceful progress on large datasets
+
+---
+
+#### 🧭 When to Use This
+
+Use this configuration when:
+
+- Galleries contain **dozens or hundreds** of thumbnails
+- Immediate or background-tab modes cause instability
+- You need to process large collections **reliably**, even if slower
+- The site structure is consistent but volume is high
+
+> This setup is optimized for **scale**, not speed.
+
+---
+
+#### 📋 Prerequisites
+
+Before applying this configuration:
+
+- Thumbnails link directly to image files
+- You have validated extraction on smaller galleries
+- You are willing to process the gallery incrementally
+
+---
+
+#### ⚙️ Step-by-Step Configuration
+
+Open the **Options** page and apply the following values:
+
+**Global Settings**
+- Allowed formats:  
+  - JPG ✅  
+  - JPEG ✅  
+  - PNG ✅  
+  - WEBP ✅
+- Minimum width: `1000`
+- Minimum height: `800`
+
+**Extract Gallery Images Settings**
+- Extract mode: `Open in background tab`
+- Gallery max images: `3`
+
+**Gallery Finder Settings**
+- Path similarity level: `85%`
+
+**Filename Settings**
+- Filename mode: `Original`
+- Prefix / Suffix: *(recommended for dataset identification)*
+
+> Do not increase limits during the first run.
+
+---
+
+#### ✅ Expected Result
+
+When you activate **Extract Gallery Images**:
+
+- Images are processed **in small, controlled groups**
+- Background tabs open and close gradually
+- Memory usage remains stable
+- High-resolution images are extracted without duplication
+- The badge counter progresses steadily until completion
+
+---
+
+#### ⚠️ Common Mistakes
+
+- Setting gallery limits too high “to speed things up”
+- Lowering similarity threshold on large galleries
+- Running multiple extraction modes simultaneously
+
+> If the browser slows down, stop the process and reduce limits further.
+
+---
+
+#### ⚡ Performance & Stability Notes
+
+- This is the **safest configuration for large galleries**
+- Total processing time is longer but predictable
+- Ideal for:
+  - Dataset building
+  - Archival workflows
+  - Research-oriented extraction
+  - Long unattended runs
+
+> Once stability is confirmed, you may cautiously increase limits.
+
+---
+
+➡️ End of **Extract Gallery Images (With Direct Links)** configurations.
