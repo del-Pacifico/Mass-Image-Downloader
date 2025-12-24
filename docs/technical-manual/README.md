@@ -124,6 +124,7 @@ This manual documents **only** the following scope:
   - [📋 10.1 Settings Reference Table](#-101-settings-reference-table)
   - [🏷️ 10.2 Badge States Reference](#-102-badge-states-reference)
   - [🗂️ 10.3 Recommended Technical Presets](#-103-recommended-technical-presets)
+- [🧾 11. Final Notes](#-11-final-notes)
 
 ---
 
@@ -1593,3 +1594,70 @@ Preset selection should always consider:
 - Browser stability
 
 > There is no universally optimal configuration.
+
+---
+
+## 🧾 11. Final Notes
+
+This Technical User Manual documents **how Mass Image Downloader works internally**, how its features interact, and how configuration influences behavior — without requiring source code inspection.
+
+It intentionally focuses on:
+- Execution flow clarity
+- Configuration impact
+- Stability and predictability
+- Technical transparency
+
+It does **not** attempt to:
+- Replace source code documentation
+- Provide step-by-step user tutorials
+- Prescribe “one-size-fits-all” configurations
+
+> Those topics are handled in complementary documents.
+
+---
+
+### 📌 How to Use This Manual Effectively
+
+This document is best used when you need to:
+
+- Understand why a feature behaves in a certain way
+- Validate configuration decisions
+- Diagnose unexpected results
+- Prepare accurate bug reports or feature discussions
+- Review the extension from a technical or QA perspective
+
+> For practical, guided configuration scenarios, refer to the upcoming **Configuration Guides** document.
+
+---
+
+### 🧠 Version Awareness
+
+This manual is strictly aligned with:
+
+- **Extension version:** `v2.08.149`
+- **Branch:** `main`
+
+Any future changes to behavior, features, or settings require:
+- A version bump
+- An explicit documentation update
+
+> If behavior differs from what is described here, the documentation must be considered outdated and reviewed.
+
+---
+
+### 🚀 What Comes Next
+
+With the Technical User Manual completed, the documentation roadmap continues with:
+
+1. **Advanced Manual**
+   - Design decisions
+   - Trade-offs
+   - Edge cases
+   - Cross-feature interactions
+
+2. **Configuration Guides**
+   - Step-by-step setups
+   - Real-world usage scenarios
+   - Practical tuning recommendations
+
+> These documents build on the foundation established here.
