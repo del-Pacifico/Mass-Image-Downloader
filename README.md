@@ -20,6 +20,7 @@
 
 - [Mass Image Downloader](#mass-image-downloader)
   - [🌐 Overview](#-overview)
+  - [📚 Documentation](#-documentation)
   - [🔥 Highlights in this release (v2.08.149)](#-highlights-in-this-release-v208149)
   - [✨ Features](#-features)
   - [🧩 Installation (Developer Mode / Unpacked)](#-installation-developer-mode--unpacked)
@@ -146,6 +147,25 @@ Includes:
 - ⚡ Rate limit for gallery processing
 - 🔢 Batch size and concurrency controls
 - 🔍 Debug log level (0–3)
+
+---
+
+## 📚 Documentation
+
+Mass Image Downloader provides a **complete, structured documentation set**, organized into dedicated manuals with clear responsibilities.
+
+If you are looking for **step-by-step configuration**, **internal behavior explanations**, or **design rationale**, use the documentation hub:
+
+➡️ **Documentation Hub:** [`docs/README.md`](./docs/README.md)
+
+From there, you can access:
+
+- **User Manual (Basic)** — feature overview and everyday usage
+- **Configuration Guides** — outcome-driven, step-by-step setups
+- **Technical User Manual** — execution flow, internals, and state handling
+- **Advanced Manual** — design rationale, trade-offs, and edge cases
+
+> Each document is self-contained and avoids overlap, so you can go directly to what you need.
 
 ---
 
