@@ -135,3 +135,123 @@ Every configuration guide follows the same mandatory structure:
 ---
 
 ➡️ The next section begins with the **recommended baseline configuration** for most users.
+
+---
+
+## 📸 2. Bulk Image Download
+
+This section covers **Bulk Image Download** configurations, designed to process **direct image URLs opened in browser tabs**.
+
+The guides in this section focus on:
+- Predictable behavior
+- Safe defaults
+- Controlled performance
+- Minimal failure risk
+
+> Start with the **baseline configuration** before attempting more aggressive setups.
+
+---
+
+### ✅ 2.1 Reliable & Safe Bulk Image Download (Recommended Baseline)
+
+#### 🎯 Goal
+
+Download images from open tabs **reliably and safely**, with minimal system impact and predictable results.
+
+This configuration prioritizes:
+- Stability over speed
+- Low failure rate
+- Clear progress feedback
+- Safe tab handling
+
+---
+
+#### 🧭 When to Use This
+
+Use this configuration when:
+
+- You are a first-time user
+- You are processing important or irreplaceable images
+- Your system has average or unknown performance characteristics
+- You want to validate that Bulk Image Download works correctly
+
+> This is the **recommended starting point** for all users.
+
+---
+
+#### 📋 Prerequisites
+
+Before applying this configuration:
+
+- Tabs to the **right of the active tab** contain direct image URLs  
+  (e.g. `.jpg`, `.jpeg`, `.png`, `.webp`)
+- Browser setting **“Ask where to save each file before downloading”** is disabled
+- No other download-heavy tasks are running
+
+---
+
+#### ⚙️ Step-by-Step Configuration
+
+> Open the **Options** page and apply the following values:
+
+**Global Settings**
+- Allowed formats:  
+  - JPG ✅  
+  - JPEG ✅  
+  - PNG ✅  
+  - WEBP ✅
+- Minimum width: `300`
+- Minimum height: `300`
+
+**Bulk Image Download Settings**
+- Max simultaneous downloads: `1`
+- Max images per batch: `10`
+- Continue from where it left off: ❌ Disabled
+
+**Filename Settings**
+- Filename mode: `Original`
+- Prefix / Suffix: *(empty)*
+
+> Do not modify any other settings for this baseline.
+
+---
+
+#### ✅ Expected Result
+
+When you activate **Bulk Image Download**:
+
+- Images are downloaded **one at a time**
+- Each tab is closed **only after a successful download**
+- The badge counter:
+  - Turns **green** during the process
+  - Increments after each image
+  - Turns **blue** only when all downloads are complete
+- The browser remains responsive throughout the process
+
+---
+
+#### ⚠️ Common Mistakes
+
+- Enabling high concurrency too early
+- Increasing batch size before validating behavior
+- Using this mode on non-image tabs
+- Mixing this setup with gallery-based configurations
+
+> If no images are downloaded, verify that the tabs contain **direct image URLs**.
+
+---
+
+#### ⚡ Performance & Stability Notes
+
+- This configuration is intentionally conservative
+- Download speed is slower, but failure risk is minimal
+- Suitable for:
+  - Most laptops and desktops
+  - Long-running sessions
+  - Background usage
+
+Once this setup works correctly, you can safely move to more aggressive configurations.
+
+---
+
+➡️ Next: **High-Speed Bulk Download on Powerful Machines**
