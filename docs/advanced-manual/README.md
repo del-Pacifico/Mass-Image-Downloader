@@ -496,3 +496,94 @@ Design response:
 - Require manual investigation via logs
 
 > Conflicts are treated as environmental limitations, not extension failures.
+
+---
+
+## 🚫 6. Anti-Patterns and Misuse Scenarios
+
+This section describes **common configuration and usage patterns that appear valid but lead to poor results**.
+
+These scenarios are not bugs. They are consequences of misaligned expectations or overly aggressive tuning.
+
+Understanding what **not** to do is as important as knowing what to do.
+
+---
+
+### ⚠️ 6.1 Over-Aggressive Thresholds
+
+Setting extremely high minimum image dimensions or similarity thresholds often leads to confusion.
+
+Typical symptoms:
+- No images are downloaded
+- Galleries appear empty
+- Image Inspector never qualifies candidates
+
+Why this happens:
+- Many real-world images are smaller than expected
+- Thumbnails and previews may not meet strict criteria
+
+Design stance:
+- Thresholds are filters, not guarantees
+- Conservative values are safer than extreme ones
+
+> Users should increase thresholds incrementally and validate results.
+
+---
+
+### 📈 6.2 Extreme Concurrency and Batch Values
+
+Maximizing concurrency and batch size may seem desirable for speed.
+
+Common outcomes:
+- Browser slowdown or freezes
+- Tabs failing to load completely
+- Incomplete or aborted extractions
+
+Why this happens:
+- Browsers are not designed for uncontrolled parallelism
+- Network and memory contention increase non-linearly
+
+Design stance:
+- Bounded concurrency is intentional
+- Stability is favored over peak throughput
+
+> Aggressive values should be used only on powerful systems and known sites.
+
+---
+
+### 🧪 6.3 Misinterpreting Presets
+
+Presets are often misunderstood as performance modes.
+
+Incorrect assumptions:
+- “High” means always better
+- Presets adapt dynamically to the site
+- Presets override all other settings
+
+Reality:
+- Presets apply predefined values once
+- Manual changes switch the system to Custom mode
+- Presets do not react to runtime conditions
+
+Design stance:
+- Presets are starting points, not automation
+
+> Users should verify effective settings via Peek after selecting a preset.
+
+---
+
+### 🔀 6.4 Mixing Incompatible Modes
+
+Running incompatible features sequentially without resetting expectations can lead to confusion.
+
+Examples:
+- Expecting gallery grouping rules to apply to Bulk Image Download
+- Assuming manual tools inherit batch behavior
+- Mixing visual gallery logic with direct image tabs
+
+Design stance:
+- Each feature has a clear, limited scope
+- Behavior does not implicitly carry over between modes
+
+> Users should select the feature that matches the page type and goal.
+
