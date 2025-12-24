@@ -931,3 +931,281 @@ If no valid image is found:
 - Informational feedback may be shown
 
 > Each activation is independent and does not reuse state from previous runs.
+
+---
+
+## ⚙️ 5. Settings Deep Dive
+
+This section provides a **technical interpretation of all configuration options**, explaining how each setting affects execution, which features it impacts, and when it should (or should not) be changed.
+
+The goal is to help technical users **configure behavior intentionally**, avoid conflicting options, and understand side effects—without reading source code.
+
+---
+
+### 🧪 5.1 Performance Presets
+
+Performance presets are **macro configurations** that adjust multiple internal limits at once.
+
+Available presets:
+- **Low**
+- **Medium**
+- **High**
+- **Custom** (automatically selected when manual changes are made)
+
+Presets influence:
+- Batch sizes
+- Concurrency limits
+- Gallery processing rates
+- Web-linked gallery fan-out behavior
+
+Notes:
+- Presets do not lock values; users can still fine-tune settings
+- Selecting a preset overwrites previously customized values
+- The **Custom** preset indicates a user-defined configuration
+
+> Use presets as a starting point, not as a permanent constraint.
+
+---
+
+### 📐 5.2 Global Image Size Filters
+
+These settings define the **minimum acceptable image dimensions**:
+
+- Minimum width (px)
+- Minimum height (px)
+
+They apply globally to:
+- Bulk Image Download
+- All gallery extraction modes
+- Image Inspector
+- One-click Download Icon
+
+Effects:
+- Images below thresholds are ignored silently
+- Overly strict values may result in no downloads
+- Lower values increase noise and risk of decorative images
+
+> These are the most common cause of “nothing downloads” scenarios.
+
+---
+
+### 🧾 5.3 Allowed Image Formats
+
+This setting controls which image formats are eligible for processing.
+
+Typical formats include:
+- JPG / JPEG
+- PNG
+- WEBP
+- AVIF
+- BMP
+
+Behavior:
+- Format checks are applied before any download attempt
+- Disabled formats are skipped early to reduce overhead
+
+Recommendation:
+- Keep commonly used formats enabled
+- Enable AVIF only if target sites are known to use it
+
+---
+
+### 🔗 5.4 Extended Image URLs
+
+When enabled, this option allows normalization of **platform-specific image URL variants**.
+
+Effects:
+- Handles URLs with modifiers such as `:large` or `:orig`
+- Improves compatibility with certain platforms
+- May increase the number of valid candidates
+
+This option affects:
+- Bulk Image Download
+- Gallery extraction
+- Image Inspector
+- One-click Download Icon
+
+> Disable it if targeting traditional, static image galleries.
+
+---
+
+### 📁 5.5 Download Folder Selection
+
+Controls where downloaded images are saved.
+
+Options:
+- Default system download folder
+- Custom folder path
+
+Behavior:
+- Folder selection is applied by the background layer
+- Invalid or unavailable paths fall back to system defaults
+- No folder discovery or auto-creation logic is performed
+
+> Folder changes apply immediately to new operations.
+
+---
+
+### 🏷️ 5.6 Filename Customization
+
+Filename customization affects **how downloaded files are named**.
+
+Modes:
+- None
+- Prefix
+- Suffix
+- Both
+- Timestamp
+
+Rules:
+- Naming is applied consistently across all features
+- Clipboard hotkeys can inject prefix/suffix values dynamically
+- Existing files are never overwritten; names are adjusted automatically
+
+> Use consistent naming rules when collecting large datasets.
+
+---
+
+### 📸 5.7 Bulk Image Download Options
+
+These settings apply only to **Bulk Image Download**.
+
+Key options:
+- Maximum images per batch
+- Continue from last batch
+
+Effects:
+- Smaller batches reduce memory pressure
+- Larger batches improve throughput on strong systems
+- Resume behavior allows recovery from interruptions
+
+> These options do not affect gallery-based features.
+
+---
+
+### 🖼️ 5.8 Gallery Options (Direct and Visual)
+
+These options affect both:
+- Galleries with direct links
+- Visual galleries without links
+
+Key settings:
+- Similarity threshold
+- Minimum group size
+- Smart grouping enablement
+- Fallback grouping enablement
+- Gallery processing rate/limit
+
+Effects:
+- Higher similarity thresholds reduce false positives
+- Minimum group size prevents accidental grouping
+- Fallback grouping increases tolerance for inconsistent structures
+
+> Misconfiguration here may result in either too many or too few images.
+
+---
+
+### 🔗 5.9 Web-Linked Gallery Options
+
+These settings apply exclusively to **web-linked galleries**.
+
+Key options:
+- Maximum number of open tabs
+- Delay between tab openings
+
+Effects:
+- Limits browser load
+- Prevents site throttling
+- Controls execution predictability
+
+> Lower values improve stability; higher values improve speed.
+
+---
+
+### 🕵️ 5.10 Image Inspector Options
+
+Image Inspector settings control manual inspection behavior.
+
+Options include:
+- Enable/disable Image Inspector
+- Developer Mode
+- Close page after saving image
+
+Developer Mode:
+- Exposes additional metadata
+- Intended for debugging and verification
+- Does not alter download logic
+
+---
+
+### 🖱️ 5.11 One-click Download Icon Option
+
+Controls the availability of the **Alt+Shift+I** hotkey.
+
+When enabled:
+- Hotkey triggers best-image analysis
+- Download icon may be injected if a valid image is found
+
+When disabled:
+- No page analysis occurs
+- No UI elements are injected
+
+> This option affects both manual usage and automated web-linked gallery flows.
+
+---
+
+### 📋 5.12 Clipboard Hotkeys Option
+
+Enables keyboard shortcuts for applying filename rules.
+
+Hotkeys:
+- Ctrl+Alt+P — set prefix
+- Ctrl+Alt+S — set suffix
+
+Rules:
+- Clipboard content must be available
+- Corresponding filename mode must be active
+- Hotkeys operate only on the active tab
+
+---
+
+### 🔎 5.13 Peek Panel Option
+
+Controls visual aspects of the Peek panel.
+
+Option:
+- Transparency level
+
+Behavior:
+- Affects readability only
+- Has no impact on logic or performance
+- Applies immediately
+
+---
+
+### 📢 5.14 User Feedback Messages
+
+Controls whether on-screen messages are displayed.
+
+When enabled:
+- Success, error, and info messages are shown
+- Messages auto-dismiss after a short time
+
+> Disabling messages reduces UI noise but may obscure errors.
+
+---
+
+### 🐛 5.15 Console Log Level
+
+Controls the verbosity of console output.
+
+Levels:
+- 0 — Silent
+- 1 — Basic
+- 2 — Verbose
+- 3 — Detailed
+
+Higher levels:
+- Provide more diagnostic information
+- May impact performance slightly
+- Are recommended only during troubleshooting
