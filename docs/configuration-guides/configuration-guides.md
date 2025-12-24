@@ -359,3 +359,108 @@ When you activate **Bulk Image Download**:
 ---
 
 ➡️ Next: **Conservative Bulk Download for Low-Resource Systems**
+
+---
+
+### 🐢 2.3 Conservative Bulk Download for Low-Resource Systems
+
+#### 🎯 Goal
+
+Download images **safely on low-resource or constrained systems**, minimizing CPU, memory, and disk pressure.
+
+This configuration prioritizes:
+- Maximum stability
+- Minimal browser impact
+- Predictable, slow-but-safe execution
+
+---
+
+#### 🧭 When to Use This
+
+Use this configuration when:
+
+- You are using an older computer or low-power device
+- Your system has limited RAM
+- The browser becomes unresponsive during downloads
+- You experience random download failures or tab crashes
+- You are running multiple applications in parallel
+
+> This setup is ideal for **long-running, unattended sessions**.
+
+---
+
+#### 📋 Prerequisites
+
+Before applying this configuration:
+
+- Tabs contain **direct image URLs**
+- No heavy background tasks are running
+- You accept slower overall download speed in exchange for stability
+
+---
+
+#### ⚙️ Step-by-Step Configuration
+
+Open the **Options** page and apply the following values:
+
+**Global Settings**
+- Allowed formats:  
+  - JPG ✅  
+  - JPEG ✅  
+  - PNG ✅  
+  - WEBP ❌ *(optional, disable if memory is very limited)*
+- Minimum width: `300`
+- Minimum height: `300`
+
+**Bulk Image Download Settings**
+- Max simultaneous downloads: `1`
+- Max images per batch: `5`
+- Continue from where it left off: ❌ Disabled
+
+**Filename Settings**
+- Filename mode: `Original`
+- Prefix / Suffix: *(empty)*
+
+> Do not enable additional features while using this configuration.
+
+---
+
+#### ✅ Expected Result
+
+When you activate **Bulk Image Download**:
+
+- Images download **strictly one at a time**
+- Tabs close slowly and safely after each successful download
+- The badge counter:
+  - Turns **green** during the process
+  - Increments steadily
+  - Turns **blue** only after completion
+- Browser responsiveness remains stable
+
+---
+
+#### ⚠️ Common Mistakes
+
+- Increasing batch size to “speed things up”
+- Enabling parallel downloads on constrained hardware
+- Using this setup on very large tab sets without supervision
+
+> If performance issues persist, further reduce batch size or close unnecessary tabs.
+
+---
+
+#### ⚡ Performance & Stability Notes
+
+- This is the **safest Bulk Image Download configuration**
+- Download speed is intentionally slow
+- Best suited for:
+  - Older laptops
+  - Virtual machines
+  - Remote desktop environments
+  - Systems under heavy load
+
+> For faster results, upgrade hardware or move to the baseline configuration once stability is confirmed.
+
+---
+
+➡️ End of **Bulk Image Download** configurations.
