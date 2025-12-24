@@ -1746,3 +1746,114 @@ When you run an extraction or download:
 ---
 
 ➡️ Next: **Understanding “No Images Found” Scenarios**
+
+---
+
+### 🚫 8.2 Understanding “No Images Found” Scenarios
+
+#### 🎯 Goal
+
+Understand **why the extension reports “No images found”** and determine whether the cause is a **configuration issue, content limitation, or expected behavior**.
+
+This guide helps distinguish:
+- Misconfiguration
+- Unsupported page structures
+- Correct but empty results
+
+---
+
+#### 🧭 When to Use This
+
+Use this guide when:
+
+- An extraction or download completes with zero results
+- No errors are shown, but nothing is downloaded
+- You are unsure whether the extension is malfunctioning
+- Results differ from expectations based on the page content
+
+---
+
+#### 📋 Common Causes
+
+“No images found” is most often caused by one or more of the following:
+
+- **Image size filters are too strict**  
+  Images exist, but none meet minimum width/height requirements.
+
+- **Wrong extraction mode is used**  
+  For example:
+  - Using gallery extraction on direct image tabs
+  - Using direct-link gallery mode on HTML-linked galleries
+
+- **Unsupported image delivery method**  
+  Such as:
+  - CSS background images
+  - Canvas-rendered images
+  - Blob or data URLs
+
+- **File format restrictions**  
+  Required formats (PNG, WEBP, etc.) are disabled.
+
+- **Content requires user interaction**  
+  Images load only after clicks, scrolls, or gestures.
+
+---
+
+#### ⚙️ Step-by-Step Diagnosis
+
+Follow this checklist in order:
+
+**Step 1 – Verify the Page Type**
+- Confirm whether images are:
+  - Direct image URLs
+  - Linked galleries
+  - Visual-only inline images
+  - HTML detail pages
+
+**Step 2 – Check Minimum Dimensions**
+- Temporarily lower:
+  - Minimum width
+  - Minimum height
+- Retry extraction
+
+**Step 3 – Review Allowed Formats**
+- Enable all formats temporarily
+- Retry extraction
+
+**Step 4 – Enable Debug Logs**
+- Set debug log level to `2`
+- Observe rejection reasons in the console
+
+---
+
+#### ✅ Expected Result
+
+After diagnosis:
+
+- You can clearly identify **why no images were selected**
+- You can adjust configuration appropriately
+- You can determine whether the page is unsupported
+- False assumptions about bugs are avoided
+
+---
+
+#### ⚠️ Common Mistakes
+
+- Assuming “no images found” always indicates a bug
+- Increasing all limits blindly
+- Switching modes repeatedly without diagnosis
+- Ignoring debug log explanations
+
+“No images found” is often a **correct and expected outcome**.
+
+---
+
+#### ⚡ Performance & Stability Notes
+
+- Diagnostic retries are safe when done incrementally
+- Avoid repeated aggressive retries on unsupported pages
+- Once resolved, revert temporary relaxed settings
+
+---
+
+➡️ End of **Debugging & Diagnostics** section.
