@@ -1650,3 +1650,99 @@ When using the appropriate profile:
 ---
 
 ➡️ End of **Performance & Stability** section.
+
+---
+
+## 🐛 8. Debugging & Diagnostics
+
+This section focuses on **diagnosing configuration-related issues** and understanding why expected results may not occur.
+
+These guides are intended to help you:
+- Identify misconfigurations quickly
+- Interpret extension behavior correctly
+- Avoid unnecessary trial-and-error
+- Restore predictable operation
+
+This section does **not** cover internal code-level debugging.
+
+---
+
+### 🧪 8.1 Using Debug Logs to Diagnose Configuration Issues
+
+#### 🎯 Goal
+
+Use **debug logs** to identify **why an extraction or download did not behave as expected**, without inspecting source code.
+
+This configuration prioritizes:
+- Clear visibility into runtime decisions
+- Faster troubleshooting
+- Reduced guesswork
+
+---
+
+#### 🧭 When to Use This
+
+Use this guide when:
+
+- No images are downloaded
+- Fewer images than expected are detected
+- Tabs open or close unexpectedly
+- The badge behaves differently than anticipated
+- You are unsure which rule filtered out images
+
+---
+
+#### 📋 Prerequisites
+
+Before using debug logs:
+
+- You have access to the browser’s developer console
+- You are comfortable reading high-level log messages
+- You want to diagnose **configuration**, not bugs
+
+---
+
+#### ⚙️ Step-by-Step Configuration
+
+Open the **Options** page and apply the following values:
+
+**Debug Settings**
+- Debug log level: `2 (Verbose)`  
+  *(Use level 3 only for deep inspection)*
+
+> Leave all other settings unchanged.
+
+---
+
+#### ✅ Expected Result
+
+When you run an extraction or download:
+
+- The console displays messages explaining:
+  - Why images were accepted or rejected
+  - Which rules were applied
+  - How batches, limits, or grouping behaved
+- Logs follow a consistent, structured format
+- You can correlate actions with outcomes
+
+---
+
+#### ⚠️ Common Mistakes
+
+- Leaving debug logging enabled permanently
+- Using log level 3 during long-running sessions
+- Interpreting debug logs as error conditions
+
+> Debug logs describe decisions, not failures.
+
+---
+
+#### ⚡ Performance & Stability Notes
+
+- Debug logging has minimal impact at level 2
+- Level 3 may produce large volumes of output
+- Disable debug logging once diagnosis is complete
+
+---
+
+➡️ Next: **Understanding “No Images Found” Scenarios**
