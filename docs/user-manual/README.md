@@ -1387,4 +1387,6 @@ Thank you for using **Mass Image Downloader**.
 
 This User Manual is part of an ongoing documentation effort and may evolve over time as the extension grows.
 
-> Your feedback helps shape future releases.
+Your feedback helps shape future releases.
+
+Made with ❤️ by **Del-Pacifico**
