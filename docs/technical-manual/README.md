@@ -1454,3 +1454,71 @@ Once an operation completes:
 - Resource usage returns to baseline
 
 > This design prevents cumulative performance degradation over time.
+
+---
+
+## 🔒 9. Security and Privacy (Technical)
+
+This section explains the **security boundaries, privacy guarantees, and intentional limitations** of Mass Image Downloader from a technical perspective.
+
+The extension is designed to be **transparent, non-invasive, and execution-scoped**.
+
+---
+
+### 🛡️ 9.1 Script Injection Boundaries
+
+Mass Image Downloader injects scripts **only when required** and strictly within its functional scope.
+
+Key principles:
+- No third-party scripts are loaded
+- No external code is fetched or executed
+- All injected scripts are bundled with the extension
+- Injection occurs only on user-triggered actions
+
+Injected scripts are used exclusively for:
+- DOM inspection
+- Image qualification
+- Temporary UI overlays (icons, inspectors)
+
+> No scripts persist beyond the lifetime of the page.
+
+---
+
+### 🚫 9.2 No Persistent Download History
+
+The extension does **not maintain a history of downloaded images**.
+
+Behavior:
+- URLs are tracked only during the current execution
+- Duplicate detection applies only within a single run
+- No data is written to storage about completed downloads
+
+After an operation finishes:
+- All temporary execution data is discarded
+- No records remain for future sessions
+
+This ensures:
+- No long-term tracking
+- No usage profiling
+- Full privacy by design
+
+---
+
+### 🔐 9.3 Permissions Rationale
+
+Each permission requested by the extension has a clear technical purpose.
+
+Common permission categories include:
+- Tab access — required to inspect and manage active pages
+- Downloads — required to save images to disk
+- Storage — required to persist user configuration
+
+Principles:
+- No permission is requested without a functional reason
+- Permissions are not escalated dynamically
+- Features fail safely if permissions are unavailable
+
+Mass Image Downloader does not request:
+- Network access to external services
+- Access to user credentials
+- Access to browsing history
