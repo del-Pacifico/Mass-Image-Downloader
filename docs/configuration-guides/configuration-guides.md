@@ -1010,3 +1010,119 @@ When you activate **Extract Gallery Images**:
 ---
 
 ➡️ End of **Extract Gallery Images (Without Links)** configurations.
+
+---
+
+## 🌐 5. Web-Linked Galleries
+
+This section covers configurations for **web-linked galleries**, where thumbnails link to **HTML detail pages** instead of directly to image files.
+
+In these scenarios:
+- Thumbnails point to intermediate pages
+- The final image is discovered after navigation
+- Concurrency and fan-out must be controlled carefully
+
+> These guides focus on **controlled navigation, correctness, and stability**.
+
+---
+
+### 🔗 5.1 Extracting Images from HTML Detail Pages
+
+#### 🎯 Goal
+
+Extract high-resolution images from galleries where each thumbnail opens a **separate HTML page** that contains the final image.
+
+This configuration prioritizes:
+- Correct image resolution
+- Controlled tab creation
+- Predictable navigation behavior
+
+---
+
+#### 🧭 When to Use This
+
+Use this configuration when:
+
+- Thumbnails link to HTML pages, not image files
+- The final image appears inside a detail or viewer page
+- Immediate or direct-link gallery extraction yields no results
+- You need accurate extraction over raw speed
+
+> This is the **baseline configuration** for web-linked galleries.
+
+---
+
+#### 📋 Prerequisites
+
+Before applying this configuration:
+
+- Detail pages load the final image without user interaction
+- The site allows background tab loading
+- You are not blocked by login walls or captchas
+- JavaScript execution is not required to trigger image loading
+
+---
+
+#### ⚙️ Step-by-Step Configuration
+
+Open the **Options** page and apply the following values:
+
+**Global Settings**
+- Allowed formats:  
+  - JPG ✅  
+  - JPEG ✅  
+  - PNG ✅  
+  - WEBP ❌ *(optional, disable to reduce noise)*
+- Minimum width: `1000`
+- Minimum height: `800`
+
+**Web-Linked Gallery Settings**
+- Max concurrent pages: `3`
+
+**Gallery Finder Settings**
+- Path similarity level: `80%`
+
+**Filename Settings**
+- Filename mode: `Original`
+- Prefix / Suffix: *(recommended for dataset grouping)*
+
+> Do not increase concurrency before validating results.
+
+---
+
+#### ✅ Expected Result
+
+When you activate **Extract Web-Linked Galleries**:
+
+- Thumbnail links are collected
+- Detail pages open gradually in background tabs
+- The final image is detected and validated
+- Only the highest-resolution image is downloaded
+- Background tabs close automatically after completion
+- The badge counter reflects cumulative progress
+
+---
+
+#### ⚠️ Common Mistakes
+
+- Using high concurrency on slow or script-heavy sites
+- Attempting this mode on galleries with direct image links
+- Expecting extraction when images load only after user interaction
+
+> If pages remain open or no images are found, reduce concurrency first.
+
+---
+
+#### ⚡ Performance & Stability Notes
+
+- Web-linked extraction is inherently slower
+- Controlled fan-out prevents browser overload
+- Best suited for:
+  - Art platforms
+  - Photo communities
+  - Portfolio sites
+- Not recommended for very large galleries without prior testing
+
+---
+
+➡️ Next: **Controlling Fan-Out and Concurrency**
