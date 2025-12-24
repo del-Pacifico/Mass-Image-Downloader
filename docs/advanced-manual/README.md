@@ -114,3 +114,94 @@ Assumptions:
 
 > If future versions diverge, this document must be reviewed and updated accordingly.
 
+---
+
+## 🧠 2. Core Design Principles
+
+This section explains the **foundational principles** that guide the architecture and behavior of Mass Image Downloader.
+
+These principles are not accidental; they are deliberate constraints that shape every feature and limit what the extension does — and does not do.
+
+Understanding these principles helps explain many design decisions that may otherwise seem restrictive.
+
+---
+
+### 👆 2.1 Explicit User-Triggered Execution
+
+All operations in Mass Image Downloader are **explicitly initiated by the user**.
+
+There are no:
+- Background jobs
+- Automatic scans
+- Scheduled tasks
+- Passive listeners performing work
+
+Every execution begins with a clear user action, such as:
+- Clicking a feature in the popup
+- Pressing a hotkey
+- Interacting with an injected UI element
+
+This design:
+- Prevents unexpected downloads
+- Avoids resource usage without user intent
+- Makes behavior predictable and debuggable
+
+> The extension never acts autonomously.
+
+---
+
+### 🧩 2.2 Atomic, Isolated Feature Design
+
+Each feature is designed as an **atomic execution unit**.
+
+This means:
+- Features do not depend on the internal state of other features
+- Temporary state is not shared across executions
+- Failures in one feature do not corrupt others
+
+Examples:
+- Bulk Image Download does not reuse gallery state
+- Image Inspector runs independently of batch logic
+- One-click Download Icon does not inherit gallery limits
+
+Atomicity improves:
+- Reliability
+- Debuggability
+- Long-term maintainability
+
+---
+
+### 🚫 2.3 No Background Polling or Persistent Jobs
+
+Mass Image Downloader intentionally avoids:
+- Background polling
+- Long-lived timers
+- Persistent asynchronous jobs
+
+Reasons:
+- Browser extensions have strict lifecycle constraints
+- Persistent jobs increase memory usage and instability
+- Silent background behavior violates user expectations
+
+> All background activity exists **only during active execution** and is terminated immediately afterward.
+
+---
+
+### 🔐 2.4 Privacy-by-Design and Minimal Persistence
+
+Privacy is enforced through **absence of storage**, not policy.
+
+Key rules:
+- No download history is stored
+- No page URLs are persisted
+- No behavioral profiling exists
+- No execution metrics are retained
+
+Only user configuration is persisted.
+
+This ensures:
+- Zero long-term tracking
+- No data accumulation over time
+- Predictable, stateless behavior
+
+> The extension treats each execution as disposable and isolated.
