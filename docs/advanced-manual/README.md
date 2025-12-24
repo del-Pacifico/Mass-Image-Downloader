@@ -390,3 +390,109 @@ This ensures:
 Design choice:
 - Isolation over convenience
 - Repeatability over optimization
+
+---
+
+## 🧪 5. Edge Cases and Failure Modes
+
+This section documents **non-ideal, real-world scenarios** where behavior may differ from expectations, even when the extension is functioning correctly.
+
+These cases are not bugs by default; they are **environmental or structural edge cases** that require informed interpretation.
+
+---
+
+### 🖼️ 5.1 Inconsistent Gallery Structures
+
+Not all galleries follow predictable or uniform patterns.
+
+Common issues:
+- Mixed thumbnail and full-size images in the same container
+- Decorative images sharing similar paths with real content
+- Galleries split across multiple DOM hierarchies
+
+Effects:
+- Similarity grouping may fail to converge
+- Some valid images may be excluded intentionally
+- Noise reduction may appear overly aggressive
+
+Design response:
+- Favor false negatives over false positives
+- Require minimum group size to qualify a gallery
+
+> This prevents accidental mass downloads of irrelevant assets.
+
+---
+
+### ⏳ 5.2 Lazy Loading and Deferred Images
+
+Many modern sites load images dynamically based on scroll position or user interaction.
+
+Challenges:
+- Images may not exist in the DOM at execution time
+- Placeholder elements may appear instead of real images
+- Resolution may be unknown until fully loaded
+
+Design response:
+- The extension does not auto-scroll pages
+- Only fully realized images are considered
+- Users may need to scroll manually before execution
+
+> This avoids intrusive behavior and unintended page manipulation.
+
+---
+
+### 🔁 5.3 Duplicate Images with Different URLs
+
+Some sites serve identical images under different URLs.
+
+Examples:
+- Cache-busting query parameters
+- CDN aliases
+- Resolution variants pointing to the same binary
+
+Behavior:
+- Duplicate detection operates within a single execution
+- Cross-execution deduplication is intentionally absent
+
+Design response:
+- Avoid persistent hashing or fingerprinting
+- Preserve privacy and simplicity
+
+> Duplicates across runs are considered acceptable.
+
+---
+
+### ⌨️ 5.4 Hotkey Capture and Site Interference
+
+Certain websites intercept keyboard shortcuts for their own functionality.
+
+Consequences:
+- Hotkeys may not trigger the extension
+- Behavior may vary between sites
+
+Design response:
+- No attempt is made to override site handlers
+- Hotkeys operate only when the page allows propagation
+
+> Users may need to rely on popup-triggered features in such cases.
+
+---
+
+### 🧩 5.5 Extension and Browser Conflicts
+
+Other extensions or browser features may interfere.
+
+Examples:
+- Ad blockers modifying DOM structure
+- Script blockers preventing content scripts
+- Privacy tools restricting tab access
+
+Behavior:
+- Feature execution may silently skip targets
+- No explicit error may be shown
+
+Design response:
+- Fail safely without crashing
+- Require manual investigation via logs
+
+> Conflicts are treated as environmental limitations, not extension failures.
