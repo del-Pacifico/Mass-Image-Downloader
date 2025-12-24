@@ -787,3 +787,120 @@ When you activate **Extract Gallery Images**:
 ---
 
 ➡️ End of **Extract Gallery Images (With Direct Links)** configurations.
+
+---
+
+## 🖼️ 4. Extract Gallery Images (Without Links)
+
+This section covers configurations for **visual galleries where thumbnails do NOT link directly to image files**.
+
+In these scenarios, images are typically:
+- Rendered inline
+- Loaded lazily
+- Embedded without `<a>` tags
+- Mixed with non-gallery content
+
+> These guides focus on **visual detection, strict filtering, and noise reduction**.
+
+---
+
+### 🔍 4.1 Visual Gallery Detection with Size Filtering
+
+#### 🎯 Goal
+
+Detect and download **only meaningful, high-quality images** from visual galleries **without direct links**, while ignoring UI icons, ads, and decorative elements.
+
+This configuration prioritizes:
+- Precision over quantity
+- Strong noise filtering
+- Clean, usable results
+
+---
+
+#### 🧭 When to Use This
+
+Use this configuration when:
+
+- The gallery displays large images inline
+- Thumbnails do not link to image URLs
+- Pages contain many non-gallery images
+- Immediate gallery extraction yields too much noise
+
+> This is the **recommended baseline** for visual-only galleries.
+
+---
+
+#### 📋 Prerequisites
+
+Before applying this configuration:
+
+- Images are visible directly on the page
+- Images are not loaded as CSS backgrounds
+- The page does not require scrolling to reveal hidden images
+
+---
+
+#### ⚙️ Step-by-Step Configuration
+
+Open the **Options** page and apply the following values:
+
+**Global Settings**
+- Allowed formats:  
+  - JPG ✅  
+  - JPEG ✅  
+  - PNG ✅  
+  - WEBP ❌ *(optional, disable if page contains many icons)*
+- Minimum width: `600`
+- Minimum height: `400`
+
+**Extract Gallery Images Settings**
+- Extract mode: `Immediate`
+- Gallery max images: `10`
+
+**Gallery Finder Settings**
+- Path similarity level: `75%`
+
+**Filename Settings**
+- Filename mode: `Original`
+- Prefix / Suffix: *(optional)*
+
+> Avoid lowering minimum dimensions unless necessary.
+
+---
+
+#### ✅ Expected Result
+
+When you activate **Extract Gallery Images**:
+
+- Inline images are scanned visually
+- Small decorative images are ignored
+- Only images meeting size requirements are selected
+- Downloads occur immediately without opening tabs
+- The result set is focused and relevant
+
+---
+
+#### ⚠️ Common Mistakes
+
+- Setting minimum dimensions too low
+- Expecting detection of CSS background images
+- Using this mode on pages with heavy lazy loading
+- Assuming all visible images are part of a gallery
+
+> If too many images are detected, increase minimum dimensions.
+
+---
+
+#### ⚡ Performance & Stability Notes
+
+- Visual detection is more CPU-intensive than link-based extraction
+- Best suited for:
+  - Clean, image-centric pages
+  - Medium-sized visual galleries
+- For complex layouts, results may vary
+
+> For pages with mixed content, use the next configuration.
+
+---
+
+➡️ Next: **Improving Results on Mixed-Content Pages**
