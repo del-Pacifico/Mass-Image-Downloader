@@ -1425,3 +1425,119 @@ When images are downloaded:
 ---
 
 ➡️ End of **Filename Strategies** section.
+
+---
+
+## ⚡ 7. Performance & Stability
+
+This section focuses on **tuning the extension for optimal behavior** based on your system’s capabilities and your operational goals.
+
+These guides help you:
+- Balance speed and reliability
+- Avoid browser instability
+- Choose safe limits for long-running tasks
+- Understand trade-offs before increasing throughput
+
+> Always validate changes incrementally.
+
+---
+
+### ⚖️ 7.1 Speed vs Stability: Choosing the Right Limits
+
+#### 🎯 Goal
+
+Select **appropriate limits for concurrency and batching** to achieve the best balance between **download speed** and **system stability**.
+
+This configuration guidance helps you avoid:
+- Browser freezes
+- Memory spikes
+- Incomplete downloads
+- Inconsistent badge behavior
+
+---
+
+#### 🧭 When to Use This
+
+Use this guide when:
+
+- You want to increase speed beyond baseline configurations
+- You experience instability at higher settings
+- You are unsure which limits are safe for your system
+- You are tuning settings for long-running or large-scale operations
+
+> This guide applies across **all extraction modes**.
+
+---
+
+#### 📋 Prerequisites
+
+Before applying tuning changes:
+
+- You have validated the baseline configuration for the target mode
+- You understand which setting you are changing and why
+- You can observe browser behavior during execution
+
+> Avoid changing multiple limits at once.
+
+---
+
+#### ⚙️ Step-by-Step Configuration
+
+Use the following **incremental tuning approach**:
+
+**Step 1 – Start Conservative**
+- Max simultaneous downloads: `1`
+- Batch size / gallery limits: low default values
+
+> Validate stability before proceeding.
+
+**Step 2 – Increase Concurrency Carefully**
+- Increase concurrency by **one level at a time**
+- Observe:
+  - Browser responsiveness
+  - Tab lifecycle behavior
+  - Badge consistency
+
+> If instability appears, revert immediately.
+
+**Step 3 – Adjust Batch or Gallery Limits**
+- Increase batch size only after concurrency is stable
+- Prefer smaller increments over large jumps
+- Stop increasing once gains flatten
+
+---
+
+#### ✅ Expected Result
+
+With proper tuning:
+
+- Downloads complete faster without failures
+- The browser remains responsive
+- Tabs open and close predictably
+- Badge state remains consistent throughout execution
+- System resource usage stays within acceptable bounds
+
+---
+
+#### ⚠️ Common Mistakes
+
+- Increasing all limits simultaneously
+- Assuming higher values always improve performance
+- Ignoring early warning signs (lag, delayed tab closure)
+- Using aggressive settings on unstable networks
+
+> If issues occur, reduce concurrency first.
+
+---
+
+#### ⚡ Performance & Stability Notes
+
+- Concurrency impacts CPU, memory, and network simultaneously
+- Batch size impacts execution duration and state management
+- Gallery limits affect tab pressure and memory usage
+
+> The safest optimization strategy is **incremental change with observation**.
+
+---
+
+➡️ Next: **Recommended Configurations by System Profile**
