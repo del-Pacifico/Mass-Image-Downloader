@@ -1661,3 +1661,13 @@ With the Technical User Manual completed, the documentation roadmap continues wi
    - Practical tuning recommendations
 
 > These documents build on the foundation established here.
+
+---
+
+Thank you for using **Mass Image Downloader**.
+
+This Technical User Manual is part of an ongoing documentation effort and may evolve over time as the extension grows.
+
+Your feedback helps shape future releases.
+
+Made with ❤️ by **Del-Pacifico**
