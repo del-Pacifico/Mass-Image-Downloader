@@ -1382,3 +1382,75 @@ Logs are:
 - Cleared automatically between runs
 
 > Higher log levels may slightly impact performance but greatly improve visibility.
+
+---
+
+## ⚡ 8. Performance and Stability
+
+This section explains **how performance-related settings and internal safeguards work together** to keep Mass Image Downloader responsive, predictable, and stable under different workloads.
+
+The extension is designed to favor **controlled execution** over maximum throughput.
+
+---
+
+### 🧠 8.1 Concurrency vs Rate Limiting
+
+Concurrency and rate limiting are two complementary mechanisms.
+
+**Concurrency**
+- Controls how many operations (downloads or tabs) run at the same time
+- Affects browser memory and CPU usage directly
+
+**Rate limiting**
+- Controls how quickly new operations are started
+- Introduces intentional delays between actions
+
+Key principles:
+- High concurrency without delays can overwhelm the browser
+- Low concurrency with no delay may underutilize resources
+- Balanced values provide the best stability
+
+> Web-linked galleries rely heavily on both mechanisms.
+
+---
+
+### 📦 8.2 Batch Size Guidance
+
+Batch size controls how many images are processed together in a single cycle.
+
+Guidelines:
+- Small batch sizes improve stability and responsiveness
+- Large batch sizes improve throughput on powerful systems
+- Extremely large batches may delay badge updates and feedback
+
+Batch size affects:
+- Bulk Image Download
+- Gallery extraction flows
+
+It does not affect:
+- Image Inspector
+- One-click Download Icon
+
+---
+
+### 💻 8.3 Resource Impact (RAM / CPU)
+
+Mass Image Downloader is designed to minimize long-lived resource usage.
+
+Resource usage characteristics:
+- Memory usage is temporary and execution-scoped
+- CPU usage spikes only during active processing
+- No background polling or idle loops exist
+
+Factors that increase resource usage:
+- Large galleries
+- High concurrency settings
+- Aggressive similarity grouping
+- High log verbosity
+
+Once an operation completes:
+- Temporary state is cleared
+- Opened tabs are closed
+- Resource usage returns to baseline
+
+> This design prevents cumulative performance degradation over time.
