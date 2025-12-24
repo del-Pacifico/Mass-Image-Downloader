@@ -712,3 +712,68 @@ Flexibility exists where it does not compromise:
 - Predictability
 
 > These areas allow incremental evolution without architectural changes.
+
+---
+
+## 🧾 9. Final Notes
+
+The Advanced Manual completes the documentation set for **Mass Image Downloader** by explaining **why the system behaves the way it does**, not just how to use it or how it works internally.
+
+This document intentionally focuses on:
+- Design rationale
+- Engineering trade-offs
+- System boundaries
+- Real-world edge cases
+
+It does **not** replace:
+- The User Manual (Basic)
+- The Technical User Manual
+- Practical configuration guides
+
+> Each document serves a distinct purpose.
+
+---
+
+### 📌 How to Use This Manual
+
+This manual is best consulted when:
+
+- Evaluating design decisions
+- Understanding unexpected behavior that is not a bug
+- Assessing feasibility of feature requests
+- Reviewing long-term maintainability
+- Revisiting context after time away from the project
+
+> It is not intended for first-time users.
+
+---
+
+### 🧠 Version Awareness
+
+This document applies strictly to:
+
+- **Extension version:** `v2.08.149`
+- **Branch:** `main`
+
+> If system behavior differs from what is described here, the documentation should be reviewed and updated accordingly.
+
+---
+
+### 🚀 What Comes Next
+
+With the Advanced Manual completed, the next documentation step is:
+
+- **Configuration Guides**
+  - Step-by-step optimal setups
+  - Practical tuning scenarios
+  - Real-world usage recipes
+
+> These guides will translate design intent into actionable configurations.
+
+---
+
+Thank you for using **Mass Image Downloader**.
+
+This Advanced Manual is part of an ongoing documentation effort and may evolve as the extension grows.
+
+Made with ❤️ by **Del-Pacifico**
