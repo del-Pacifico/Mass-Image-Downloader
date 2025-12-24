@@ -587,3 +587,128 @@ Design stance:
 
 > Users should select the feature that matches the page type and goal.
 
+---
+
+## 🧭 7. System Boundaries and Non-Goals
+
+This section defines **what Mass Image Downloader intentionally does not attempt to do**.
+
+Clear boundaries are essential to avoid feature creep, unrealistic expectations, and fragile behavior.
+
+These non-goals are as important as implemented features.
+
+---
+
+### 🚫 7.1 Features Explicitly Out of Scope
+
+The extension intentionally does not provide:
+
+- Automatic background crawling of websites
+- Scheduled or recurring downloads
+- Site-specific scraping logic
+- User authentication handling
+- Media beyond images (video, audio, documents)
+
+Design rationale:
+- These features require persistent background activity
+- They increase security and privacy risks
+- They reduce predictability and user control
+
+Mass Image Downloader focuses exclusively on **user-driven image extraction**.
+
+---
+
+### 🔒 7.2 Intentional Limitations
+
+Some limitations are deliberate and permanent.
+
+Examples:
+- No persistent download history
+- No cross-session deduplication
+- No automatic retries across sessions
+- No per-site configuration profiles
+
+These limitations:
+- Preserve privacy
+- Reduce complexity
+- Avoid hidden state
+
+Users are expected to manage context explicitly.
+
+---
+
+### 🧱 7.3 Constraints Imposed by Browser Architecture
+
+Browser extensions operate under strict constraints.
+
+Key constraints:
+- Content scripts run in isolated environments
+- Background processes have lifecycle limits
+- Tab creation and control are sandboxed
+- Permissions are explicit and revocable
+
+Design response:
+- All operations are short-lived
+- State is execution-scoped
+- Cleanup is mandatory after each run
+
+The architecture favors **robustness within constraints**, not circumvention.
+
+---
+
+## 🔮 8. Evolution Considerations
+
+This section discusses **how current design decisions influence future evolution**, without making promises or commitments.
+
+---
+
+### 📦 8.1 Backward Compatibility Constraints
+
+Maintaining backward compatibility imposes constraints on change.
+
+Examples:
+- Settings must retain semantic meaning
+- Behavior changes require clear versioning
+- Silent breaking changes are avoided
+
+Design stance:
+- Stability is prioritized over rapid evolution
+- Major behavior changes require explicit releases
+
+> Backward compatibility protects existing users and workflows.
+
+---
+
+### 🧠 8.2 Design Decisions That Affect Future Features
+
+Some current decisions intentionally limit future possibilities.
+
+Examples:
+- Stateless execution limits automation
+- Privacy-first design limits analytics
+- Atomic features limit cross-feature optimization
+
+These constraints are accepted trade-offs:
+- Simplicity over automation
+- Transparency over opacity
+- Control over convenience
+
+> Future features must align with these principles.
+
+---
+
+### 🧪 8.3 Areas Intentionally Left Flexible
+
+Not all aspects are rigid.
+
+Examples of flexible areas:
+- Gallery grouping strategies
+- Performance tuning parameters
+- UI overlays and interaction patterns
+
+Flexibility exists where it does not compromise:
+- Stability
+- Privacy
+- Predictability
+
+> These areas allow incremental evolution without architectural changes.
