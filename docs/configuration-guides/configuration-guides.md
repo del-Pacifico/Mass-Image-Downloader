@@ -255,3 +255,107 @@ Once this setup works correctly, you can safely move to more aggressive configur
 ---
 
 ➡️ Next: **High-Speed Bulk Download on Powerful Machines**
+
+---
+
+### ⚡ 2.2 High-Speed Bulk Download on Powerful Machines
+
+#### 🎯 Goal
+
+Download large numbers of images **as fast as possible** using **controlled parallelism**, while maintaining predictable behavior.
+
+This configuration is designed to **maximize throughput** on systems with:
+- Fast CPUs
+- SSD storage
+- Stable, high-bandwidth internet connections
+
+---
+
+#### 🧭 When to Use This
+
+Use this configuration when:
+
+- You have already validated Bulk Image Download using the baseline setup
+- Your system handles multiple downloads without UI lag
+- You need to process **many image tabs quickly**
+- Occasional retry or failure is acceptable
+
+> This setup is **not recommended** for first-time users.
+
+---
+
+#### 📋 Prerequisites
+
+Before applying this configuration:
+
+- The baseline Bulk Image Download configuration works correctly
+- Tabs contain **direct image URLs only**
+- Your browser remains responsive during multiple parallel downloads
+- You are not running other download-intensive applications
+
+---
+
+#### ⚙️ Step-by-Step Configuration
+
+Open the **Options** page and apply the following values:
+
+**Global Settings**
+- Allowed formats:  
+  - JPG ✅  
+  - JPEG ✅  
+  - PNG ✅  
+  - WEBP ✅
+- Minimum width: `300`
+- Minimum height: `300`
+
+**Bulk Image Download Settings**
+- Max simultaneous downloads: `4`
+- Max images per batch: `50`
+- Continue from where it left off: ✅ Enabled
+
+**Filename Settings**
+- Filename mode: `Original`
+- Prefix / Suffix: *(optional, user preference)*
+
+> Avoid changing unrelated settings.
+
+---
+
+#### ✅ Expected Result
+
+When you activate **Bulk Image Download**:
+
+- Multiple images download **in parallel**
+- Tabs close rapidly after successful downloads
+- The badge counter:
+  - Turns **green** during the entire process
+  - Increments continuously across batches
+  - Turns **blue** only after all images are processed
+- Total processing time is significantly reduced
+
+---
+
+#### ⚠️ Common Mistakes
+
+- Using this setup on low-memory or older systems
+- Combining high concurrency with very large batch sizes on unstable networks
+- Assuming higher speed always equals better reliability
+
+> If downloads stall or fail intermittently, reduce concurrency first.
+
+---
+
+#### ⚡ Performance & Stability Notes
+
+- This configuration prioritizes speed over safety margins
+- Browser responsiveness may briefly degrade on very large tab sets
+- Ideal for:
+  - Desktop workstations
+  - Short, intensive download sessions
+  - Controlled environments
+
+> If instability appears, fall back to the **baseline configuration** or reduce parallel downloads.
+
+---
+
+➡️ Next: **Conservative Bulk Download for Low-Resource Systems**
