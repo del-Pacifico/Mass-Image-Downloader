@@ -464,3 +464,119 @@ When you activate **Bulk Image Download**:
 ---
 
 ➡️ End of **Bulk Image Download** configurations.
+
+---
+
+## 🖼️ 3. Extract Gallery Images (With Direct Links)
+
+This section covers configurations for **galleries where thumbnails link directly to high-resolution image files**.
+
+These guides focus on:
+- Clean image extraction
+- Resolution-aware filtering
+- Predictable grouping behavior
+- Safe handling of medium to large galleries
+
+Before using these configurations, ensure that the gallery thumbnails link **directly to image files** (not to HTML pages).
+
+---
+
+### 📥 3.1 Clean Gallery Extraction (Immediate Download)
+
+#### 🎯 Goal
+
+Extract and download **only the best-quality images** from a gallery **immediately**, without opening additional tabs.
+
+This configuration prioritizes:
+- Accuracy over speed
+- Clean results
+- Minimal browser disruption
+
+---
+
+#### 🧭 When to Use This
+
+Use this configuration when:
+
+- Gallery thumbnails link directly to image files
+- You want **automatic download** without visual inspection
+- You trust the gallery structure
+- You want a clean, deduplicated image set
+
+> This is the **recommended baseline** for direct-link galleries.
+
+---
+
+#### 📋 Prerequisites
+
+Before applying this configuration:
+
+- Thumbnails use `<a>` tags pointing directly to image URLs
+- High-resolution images are larger than thumbnails
+- The gallery does not require JavaScript navigation to load images
+
+---
+
+#### ⚙️ Step-by-Step Configuration
+
+Open the **Options** page and apply the following values:
+
+**Global Settings**
+- Allowed formats:  
+  - JPG ✅  
+  - JPEG ✅  
+  - PNG ✅  
+  - WEBP ✅
+- Minimum width: `800`
+- Minimum height: `600`
+
+**Extract Gallery Images Settings**
+- Extract mode: `Immediate`
+- Gallery max images: `10`
+
+**Gallery Finder Settings**
+- Path similarity level: `80%`
+
+**Filename Settings**
+- Filename mode: `Original`
+- Prefix / Suffix: *(optional)*
+
+> Avoid modifying unrelated settings.
+
+---
+
+#### ✅ Expected Result
+
+When you activate **Extract Gallery Images**:
+
+- Thumbnails are scanned and validated
+- Images are grouped by URL similarity
+- Only the **highest-resolution image per group** is retained
+- Images download immediately without opening tabs
+- The badge counter updates progressively and completes cleanly
+
+---
+
+#### ⚠️ Common Mistakes
+
+- Using this configuration on galleries that link to HTML pages
+- Setting minimum dimensions too high
+- Lowering similarity threshold excessively
+- Expecting visual confirmation before download
+
+> If no images are downloaded, verify that the links point directly to image files.
+
+---
+
+#### ⚡ Performance & Stability Notes
+
+- Immediate mode is fast and efficient
+- Suitable for:
+  - Well-structured galleries
+  - Medium-sized image sets
+  - Automated workflows
+- For uncertain galleries, consider the tab-based extraction mode
+
+---
+
+➡️ Next: **Gallery Extraction Using Background Tabs**
