@@ -55,3 +55,62 @@
   - [🧪 8.3 Areas Intentionally Left Flexible](#-83-areas-intentionally-left-flexible)
 
 - [🧾 9. Final Notes](#-9-final-notes)
+
+---
+
+## 🧭 1. Introduction
+
+The Advanced Manual provides a **deep, design-oriented perspective** on Mass Image Downloader.
+
+While the User Manual explains *how to use* the extension and the Technical User Manual explains *how it works*, this document explains **why it is designed the way it is**, what trade-offs were made, and which boundaries are intentional.
+
+This manual is not required for daily usage.  
+It exists to support **advanced understanding, long-term maintenance, and informed decision-making**.
+
+---
+
+### 🎯 1.1 Purpose of This Manual
+
+The purpose of the Advanced Manual is to:
+
+- Explain architectural and design decisions
+- Make trade-offs explicit and transparent
+- Document edge cases and failure modes
+- Clarify intentional limitations and non-goals
+- Help advanced users predict system behavior before execution
+
+> This document favors **clarity over simplicity** and **reasoning over instructions**.
+
+---
+
+### 👥 1.2 Intended Audience
+
+This manual is intended for:
+
+- Advanced and power users
+- QA engineers performing deep validation
+- Maintainers and long-term contributors
+- Reviewers analyzing stability and behavior
+- Future maintainers revisiting design context
+
+It assumes familiarity with:
+- All features described in the User Manual
+- Execution flows documented in the Technical User Manual
+- Browser extension concepts (content scripts, background processes)
+
+---
+
+### 🧾 1.3 Version Scope and Assumptions
+
+This document applies exclusively to:
+
+- **Extension version:** `v2.08.149`
+- **Branch:** `main`
+
+Assumptions:
+- All referenced behavior matches the released version
+- No experimental or unreleased features are considered
+- Deprecated logic and previous implementations are intentionally ignored
+
+> If future versions diverge, this document must be reviewed and updated accordingly.
+
