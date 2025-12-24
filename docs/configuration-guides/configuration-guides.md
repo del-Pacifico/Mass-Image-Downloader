@@ -1126,3 +1126,106 @@ When you activate **Extract Web-Linked Galleries**:
 ---
 
 ➡️ Next: **Controlling Fan-Out and Concurrency**
+
+---
+
+### 🧵 5.2 Controlling Fan-Out and Concurrency
+
+#### 🎯 Goal
+
+Safely extract images from **large or complex web-linked galleries** by **strictly controlling fan-out and concurrency**, preventing browser overload, stalled tabs, or incomplete downloads.
+
+This configuration prioritizes:
+- Stability over speed
+- Controlled resource usage
+- Predictable long-running behavior
+
+---
+
+#### 🧭 When to Use This
+
+Use this configuration when:
+
+- Galleries contain **many thumbnails linking to HTML pages**
+- Opening too many tabs causes slowdown or crashes
+- The site is script-heavy or slow to respond
+- You need to process large collections **incrementally and safely**
+
+> This setup is designed for **scale under constraints**.
+
+---
+
+#### 📋 Prerequisites
+
+Before applying this configuration:
+
+- The baseline web-linked gallery extraction works correctly
+- Detail pages load images reliably without manual interaction
+- You are prepared for longer execution times
+
+---
+
+#### ⚙️ Step-by-Step Configuration
+
+Open the **Options** page and apply the following values:
+
+**Global Settings**
+- Allowed formats:  
+  - JPG ✅  
+  - JPEG ✅  
+  - PNG ❌ *(disable to reduce non-content images)*  
+  - WEBP ❌
+- Minimum width: `1200`
+- Minimum height: `900`
+
+**Web-Linked Gallery Settings**
+- Max concurrent pages: `1`
+
+**Gallery Finder Settings**
+- Path similarity level: `85%`
+
+**Filename Settings**
+- Filename mode: `Original`
+- Prefix / Suffix: *(recommended for dataset or batch identification)*
+
+> Do not raise concurrency during the first run.
+
+---
+
+#### ✅ Expected Result
+
+When you activate **Extract Web-Linked Galleries**:
+
+- Only one detail page opens at a time
+- Memory usage remains stable
+- Images are downloaded sequentially
+- Tabs open and close predictably
+- The badge counter increments steadily until completion
+
+---
+
+#### ⚠️ Common Mistakes
+
+- Increasing concurrency to “speed things up”
+- Running multiple extraction modes simultaneously
+- Using this setup on small galleries where it adds unnecessary overhead
+
+> If progress appears slow, remember that this configuration is optimized for **reliability**, not speed.
+
+---
+
+#### ⚡ Performance & Stability Notes
+
+- This is the **safest configuration for large web-linked galleries**
+- Total runtime may be long but predictable
+- Ideal for:
+  - Research datasets
+  - Archival workflows
+  - Long unattended sessions
+- Not suitable for time-critical extraction
+
+> For smaller galleries, revert to the baseline web-linked configuration.
+
+---
+
+➡️ End of **Web-Linked Galleries** configurations.
