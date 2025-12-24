@@ -1522,3 +1522,74 @@ Mass Image Downloader does not request:
 - Network access to external services
 - Access to user credentials
 - Access to browsing history
+
+---
+
+## 📎 10. Appendices
+
+This section provides **reference material and consolidated views** intended to support the rest of the Technical User Manual.
+
+The appendices do not introduce new behavior; they summarize and contextualize existing functionality.
+
+---
+
+### 📋 10.1 Settings Reference Table
+
+This appendix summarizes all configurable options and their scope.
+
+Settings are grouped by functional area:
+- Global image filters
+- Gallery processing
+- Bulk download behavior
+- Web-linked gallery controls
+- File system and naming
+- Feature enablement flags
+- Debugging and visibility
+
+The authoritative source for defaults and ranges remains the **Options page**, but this table serves as a quick technical reference when reviewing behavior.
+
+---
+
+### 🏷️ 10.2 Badge States Reference
+
+Mass Image Downloader uses badge color and counters to convey execution state.
+
+Badge states:
+- 🟢 **Green** — active processing in progress
+- 🔵 **Blue** — execution completed successfully
+
+Additional badge colors may appear in feature-specific contexts:
+- 🟡 **Yellow** — transitional or attention-required state (feature-scoped)
+- 🔴 **Red** — error or aborted state (feature-scoped)
+
+Yellow and red badges are not global indicators and are limited to specific flows where applicable.
+
+> Badge state is reset after each execution.
+
+---
+
+### 🗂️ 10.3 Recommended Technical Presets
+
+The following guidance can be used as a starting point for technical users:
+
+- **Stable preset**
+  - Low concurrency
+  - Moderate batch size
+  - Conservative gallery limits
+
+- **Balanced preset**
+  - Medium concurrency
+  - Default batch size
+  - Standard gallery grouping
+
+- **Aggressive preset**
+  - High concurrency
+  - Large batch size
+  - Relaxed grouping thresholds
+
+Preset selection should always consider:
+- System capabilities
+- Target website behavior
+- Browser stability
+
+> There is no universally optimal configuration.
