@@ -4,12 +4,37 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased] - 2015-12-12
+## [Unreleased] - 2025-12-12
 
-### Added
+### 🧩 Governance & Tooling
 
-- **Docs/Templates:** Added `.github/ISSUE_TEMPLATE/edge_case.yml` to standardize non-blocking, context-dependent edge case reporting (layout/responsive/DOM-driven behaviors).
-- **Docs/Templates:** Added `.github/ISSUE_TEMPLATE/investigation.md` to standardize technical investigations (repro steps, hypotheses, instrumentation, findings, and decision logs).
+#### Added
+- Introduced a fully standardized issue reporting system using GitHub Issue Forms (YAML) for:
+  - Bug reports
+  - Hotfixes (production-critical issues)
+  - Investigations (pre-triage analysis)
+  - Edge cases (non-blocking, context-dependent behavior)
+  - Performance & stability reports
+  - Documentation issues
+- Added dedicated Issue Forms for:
+  - Performance / Stability reporting
+  - Documentation-related issues
+- Added a centralized README for issue templates describing when to use each report type.
+
+#### Changed
+- Migrated legacy Markdown-based issue templates to structured Issue Forms where appropriate.
+- Refined the Feature Request template to improve clarity, scope definition, and alignment with project principles.
+- Normalized `.github/ISSUE_TEMPLATE/config.yml` contact links and security reporting entry.
+
+#### Removed
+- Removed deprecated Markdown issue templates after successful migration:
+  - `bug_report.md`
+  - `hotfix.md`
+  - `investigation.md`
+
+#### Notes
+- Feature requests intentionally remain Markdown-based to preserve flexibility and exploratory discussion.
+- Security vulnerabilities continue to be handled exclusively via the Security Policy and not through public issues.
 
 ---
 
