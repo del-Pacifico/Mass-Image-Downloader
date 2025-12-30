@@ -1,0 +1,151 @@
+name: Documentation Issue
+description: Report a documentation problem (typos, broken links, outdated instructions, missing sections).
+title: "[Docs] "
+labels:
+  - type: documentation
+  - needs: triage
+  - priority: normal
+  - status: backlog
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        📚 Documentation Issue
+
+        Use this template to report documentation problems such as:
+        - Typos or unclear wording
+        - Broken links / broken anchors
+        - Outdated instructions (version mismatch)
+        - Missing or incomplete sections
+
+        Tips:
+        - Be precise: include the exact file path and section header.
+        - If this is a content change request (new doc or major rewrite), consider a **Feature Request** instead.
+
+  - type: dropdown
+    id: doc_area
+    attributes:
+      label: Documentation Area
+      description: Where is the issue located?
+      options:
+        - Root README.md
+        - docs/README.md (Documentation Index)
+        - User Manual (Basic)
+        - Technical User Manual
+        - Advanced Manual
+        - Configuration Guides
+        - Changelog / Release notes
+        - Issue Templates / Contributing docs
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: file_path
+    attributes:
+      label: File Path
+      description: Provide the path to the affected file (relative to repository root).
+      placeholder: "e.g. docs/configuration-guides/configuration-guides.md"
+    validations:
+      required: true
+
+  - type: input
+    id: section
+    attributes:
+      label: Section / Heading
+      description: Provide the exact heading where the issue occurs (copy/paste the header text).
+      placeholder: "e.g. ## 3. Recommended Presets"
+    validations:
+      required: false
+
+  - type: input
+    id: link_or_anchor
+    attributes:
+      label: Broken Link / Anchor (if applicable)
+      description: Paste the exact URL or anchor that is broken.
+      placeholder: "e.g. #--3-recommended-presets or a full GitHub URL"
+    validations:
+      required: false
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Problem Summary
+      description: Describe what is wrong, objectively and succinctly.
+      placeholder: |
+        Example:
+        - The anchor link points to a non-existing heading
+        - The option default value is incorrect
+        - The section describes behavior from an older version
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Suggested Correction (recommended)
+      description: Provide a proposed corrected wording, link, or structure.
+      placeholder: |
+        Suggested corrected text / link / structure:
+        - ...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: Choose the lowest accurate severity.
+      options:
+        - Minor (typo / cosmetic)
+        - Medium (confusing or incomplete instructions)
+        - High (broken workflow or misleading instructions)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: How wide is the impact?
+      options:
+        - Single file / section
+        - Multiple sections in one doc
+        - Multiple docs
+        - Documentation set-wide
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Extension Version (if relevant)
+      description: If the issue depends on a specific extension version, provide it here.
+      placeholder: "e.g. 2.08.149"
+    validations:
+      required: false
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence (optional)
+      description: Paste screenshots, quotes (short), or references that demonstrate the issue.
+      placeholder: |
+        - Screenshot link:
+        - Short excerpt (<= 1-2 lines):
+        - Related reference:
+    validations:
+      required: false
+
+  - type: textarea
+    id: technical_notes
+    attributes:
+      label: Technical Notes (optional)
+      description: Optional. Add any relevant context (e.g., why the behavior changed, which option names changed).
+      placeholder: |
+        - Related option name(s):
+        - Known behavior in current version:
+        - Notes for maintainers:
+    validations:
+      required: false
