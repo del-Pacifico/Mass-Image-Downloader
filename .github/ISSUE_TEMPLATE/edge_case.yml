@@ -9,19 +9,31 @@ labels:
 assignees: []
 
 body:
-  - type: markdown
+    - type: markdown
     attributes:
       value: |
         🤔 Edge Case Report
 
-        Use this template to document non-blocking behaviors that appear only under specific
-        conditions such as DOM structure, responsive layouts, CSS transforms, or MV3 lifecycle timing.
+        Use this template to document **non-blocking, context-dependent behaviors**
+        that occur only under specific conditions (DOM structure, responsive layouts,
+        scroll containers, CSS transforms, zoom level, or MV3 lifecycle timing).
 
-        If the issue blocks downloads or breaks a core flow, please use **Bug Report** instead.
+        ✅ Use this for:
+        - Visual quirks or minor UX degradations
+        - Behavior that is reproducible only under specific page/layout conditions
+        - Known limitations that do NOT break core flows
 
-        Notes:
-        - Keep the description objective and reproducible.
-        - Prefer visual-only edge cases here. If this blocks downloads or breaks a flow, use "Bug Report".
+        ❌ Do NOT use this for:
+        - Crashes, runtime errors, or broken core flows
+        - Download failures or blockers
+        - Regressions that used to work
+
+        If the issue blocks downloads or breaks a core flow, use **Bug Report** instead.
+
+        Tips:
+        - Keep the report objective and reproducible.
+        - Prefer minimal steps that work on a fresh browser profile.
+        - Avoid proposing full solutions; use Technical Notes for short hypotheses only.
 
   - type: dropdown
     id: feature
@@ -44,7 +56,10 @@ body:
     id: summary
     attributes:
       label: Short Summary
-      description: One concise sentence describing what happens and under which condition.
+            description: >
+        One concise sentence describing WHAT happens + UNDER WHICH CONDITION.
+        Avoid causes or solutions here.
+        Example: "Overlay appears offset on full-viewport images at non-100% zoom."
       placeholder: "Inspector overlay appears offset inside nested responsive <figure> wrappers."
     validations:
       required: true
@@ -63,15 +78,19 @@ body:
     validations:
       required: true
 
-  - type: textarea
+    - type: textarea
     id: steps
     attributes:
       label: Steps to Reproduce
+      description: >
+        Provide minimal, deterministic steps. A reviewer should be able to reproduce
+        this on a fresh browser profile. Include zoom level and scrolling if relevant.
       placeholder: |
-        1) Open the page
-        2) Enable Image Inspector Mode (Ctrl+Shift+M)
-        3) Hover the target image
-        4) Observe overlay placement
+        1) Open the page (include any required navigation)
+        2) Set zoom level (if relevant): 100% / 110% / 90%
+        3) Enable the feature (include hotkey if used)
+        4) Perform the interaction (hover/click/scroll)
+        5) Observe the behavior and note what is misaligned or different
     validations:
       required: true
 
@@ -95,10 +114,15 @@ body:
       label: Actual Behavior
       placeholder: "Overlay appears offset or partially behind the image."
 
-  - type: dropdown
+    - type: dropdown
     id: impact
     attributes:
       label: Impact Level
+      description: >
+        Choose the lowest accurate impact level:
+        - Visual only: cosmetic/UI alignment, workflows still work
+        - Minor UX degradation: extra interaction needed, but feature remains usable
+        - Functional limitation: feature works only in certain contexts/pages
       options:
         - Visual only (no functional impact)
         - Minor UX degradation
@@ -134,12 +158,16 @@ body:
     validations:
       required: true
 
-  - type: textarea
+    - type: textarea
     id: notes
     attributes:
       label: Technical Notes (optional)
-      description: Any hypotheses or implementation notes worth preserving.
+      description: >
+        Optional. Record observations or short hypotheses. Avoid full solutions.
+        Include any useful signals (target element type, rect values, scroll container, zoom).
       placeholder: |
-        - Possibly related to offsetParent inside transformed container
-        - BoundingClientRect vs offset calculations
+        - Observed on: <figure>/<picture>/srcset (or full-viewport image)
+        - Might involve: boundingClientRect vs visual bounds under wrappers/transforms
+        - Relevant signals: scroll container, CSS transform, zoom level, viewport size
+
 
