@@ -1,0 +1,218 @@
+name: Investigation
+description: Structured investigation to diagnose unclear issues before classifying as Bug / Edge Case / Feature.
+title: "[Investigation] "
+labels:
+  - type: investigation
+  - needs: triage
+  - priority: normal
+  - status: backlog
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🕵️ Investigation
+
+        Use this template when:
+        - The problem is **unclear**, **hard to reproduce**, or **not yet classified**
+        - You need to gather evidence before deciding: **Bug** vs **Edge Case** vs **Feature Request**
+        - The issue may involve MV3 lifecycle timing, memory/performance, or site-specific behavior
+
+        Tips:
+        - Keep observations factual.
+        - Prefer minimal reproduction steps.
+        - Include logs filtered by: `[Mass image downloader]`
+
+  - type: dropdown
+    id: suspected_type
+    attributes:
+      label: Suspected Category (initial guess)
+      description: If unsure, pick "Unknown" — the goal is to converge during triage.
+      options:
+        - Unknown
+        - Bug
+        - Edge Case
+        - Feature Request
+        - Performance / Stability
+        - Documentation
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature
+    attributes:
+      label: Related Feature / Module
+      description: Select the most relevant area.
+      options:
+        - Image Inspector Mode
+        - Bulk Image Download
+        - Gallery Finder
+        - Extract Gallery Images
+        - Extract images from web-linked galleries
+        - Popup UI
+        - Options / Settings UI
+        - Background / Service Worker
+        - Storage / Settings Persistence
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: summary
+    attributes:
+      label: Short Summary
+      description: >
+        One concise sentence describing the observed behavior and context.
+        Avoid conclusions; this is an investigation.
+      placeholder: "Describe what was observed and where it happens."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducibility
+    attributes:
+      label: Reproducibility
+      description: How often can you observe this behavior?
+      options:
+        - Always
+        - Sometimes
+        - Once
+        - Unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: observations
+    attributes:
+      label: Observations
+      description: What did you observe? Include patterns, timing, and any visible symptoms.
+      placeholder: |
+        - What happens:
+        - When it happens:
+        - What seems to influence it (site layout, tab count, long session, etc.):
+        - Any visible errors:
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce (if known)
+      description: >
+        Provide minimal steps if you have them. If not reproducible, describe what you tried.
+      placeholder: |
+        1) Open the page(s) / prepare the tabs
+        2) Trigger the feature (button/hotkey)
+        3) Observe the behavior
+        4) Note what changes make it better/worse
+    validations:
+      required: false
+
+  - type: textarea
+    id: attempts
+    attributes:
+      label: Attempts / Experiments Run
+      description: List what you already tried to confirm or narrow down the issue.
+      placeholder: |
+        - Tried disabling feature X:
+        - Tried different site / same site:
+        - Tried fresh browser profile:
+        - Tried different zoom level / scrolling:
+        - Tried lower concurrency / batch size:
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior (hypothesis)
+      description: What you believe should happen, even if not fully certain.
+      placeholder: "Describe the expected outcome at a high level."
+    validations:
+      required: false
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs / Evidence
+      description: >
+        Paste relevant logs filtered by `[Mass image downloader]`.
+        Add screenshots/recording links if helpful.
+      placeholder: |
+        [Mass image downloader]: ...
+        [Mass image downloader]: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: settings_snapshot
+    attributes:
+      label: Settings Snapshot (recommended)
+      description: >
+        Paste the output of "View settings (Peek)" if available.
+        Otherwise, list the relevant settings used during the investigation.
+      placeholder: |
+        Option A: Paste "Peek" output here.
+
+        Option B: List key settings:
+        - Min width:
+        - Min height:
+        - Allowed formats:
+        - Batch size / rate limit:
+        - Concurrency:
+        - Inspector options (if applicable):
+    validations:
+      required: false
+
+  - type: input
+    id: example
+    attributes:
+      label: Example URL or Pattern (optional)
+      description: Provide a sample URL or a generic pattern where this appears.
+      placeholder: "https://example.com/gallery/*"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options:
+        - Edge
+        - Chrome
+        - Brave
+        - Other Chromium-based
+    validations:
+      required: true
+
+  - type: input
+    id: chromium
+    attributes:
+      label: Chromium Version
+      placeholder: "e.g. 143.0.xxxx.xxx"
+    validations:
+      required: true
+
+  - type: input
+    id: extension
+    attributes:
+      label: Extension Version
+      placeholder: "e.g. 2.08.149"
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical_notes
+    attributes:
+      label: Technical Notes (optional)
+      description: >
+        Optional. Add any technical context worth preserving (MV3 lifecycle, service worker restarts,
+        storage reads, memory/CPU spikes, etc.). Avoid full solutions.
+      placeholder: |
+        - MV3 lifecycle notes (service worker restarts, idle unload):
+        - Memory/CPU observations:
+        - Suspected area (background.js / content script / storage):
+        - Any related console errors:
+    validations:
+      required: false
