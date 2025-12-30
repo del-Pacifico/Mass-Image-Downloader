@@ -112,10 +112,10 @@ Explain **why the system behaves the way it does**, covering design rationale, t
 
 Use this quick guide:
 
-- **First-time user** → [User Manual (Basic)](./user-manual/user-manual.md)
-- **Want to configure something specific** → [Configuration Guides](./configuration-guides/configuration-guides.md)
-- **Want to understand internals** → [Technical User Manual](./technical-user-manual/technical-user-manual.md)
-- **Want to understand design decisions and limits** → [Advanced Manual](./advanced-manual/advanced-manual.md)
+- **First-time user** → [User Manual (Basic)](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/user-manual/README.md)
+- **Want to configure something specific** → [Configuration Guides](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/configuration-guides/configuration-guides.md)
+- **Want to understand internals** → [Technical User Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/technical-manual/README.md)
+- **Want to understand design decisions and limits** → [Advanced Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/advanced-manual/README.md)
 
 ---
 
