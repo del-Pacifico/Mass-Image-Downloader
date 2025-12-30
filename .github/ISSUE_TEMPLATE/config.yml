@@ -1,5 +1,9 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 💬 Discussions
-    url: https://github.com/del-Pacifico/mass-image-downloader/discussions
-    about: Ask questions, share feedback, or propose ideas
+  - name: 💬 Discussions (Questions / Ideas)
+    url: https://github.com/del-Pacifico/Mass-Image-Downloader/discussions
+    about: Please use Discussions for questions, open-ended ideas, or non-actionable topics.
+
+  - name: 🔒 Report a Security Vulnerability
+    url: https://github.com/del-Pacifico/Mass-Image-Downloader/security/policy
+    about: Please review our security policy for reporting instructions. Do NOT open public issues for security reports.
