@@ -72,7 +72,7 @@ Configure the extension to achieve **specific, real-world results** using step-b
 - You are troubleshooting configuration issues
 
 📄 **Open document:**  
-➡️ [Configuration Guides](./configuration-guides/configuration-guides.md)
+➡️ [Configuration Guides](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/configuration-guides/configuration-guides.md)
 
 ---
 
@@ -88,7 +88,7 @@ Explain **how the extension works internally**, including execution flow, state 
 - You plan to contribute or extend the project
 
 📄 **Open document:**  
-➡️ [Technical User Manual](./technical-user-manual/technical-user-manual.md)
+➡️ [Technical User Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/technical-manual/README.md)
 
 ---
 
@@ -104,7 +104,7 @@ Explain **why the system behaves the way it does**, covering design rationale, t
 - You are returning to the project after time away
 
 📄 **Open document:**  
-➡️ [Advanced Manual](./advanced-manual/advanced-manual.md)
+➡️ [Advanced Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/advanced-manual/README.md)
 
 ---
 
