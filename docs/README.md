@@ -56,7 +56,7 @@ Learn how to use the extension from a user perspective.
 - You need basic usage instructions
 
 📄 **Open document:**  
-➡️ [User Manual (Basic)](./user-manual/user-manual.md)
+➡️ [User Manual (Basic)](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/user-manual/README.md)
 
 ---
 
