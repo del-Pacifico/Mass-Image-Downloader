@@ -25,6 +25,7 @@ This file acts as the **entry point and launcher**, allowing direct navigation t
   - [🧠 Technical User Manual](#-technical-user-manual)
   - [🏔️ Advanced Manual](#-advanced-manual)
 - [🧭 Which Document Should I Read First?](#-which-document-should-i-read-first)
+- [🗂️ Backlog & Development Flow](#-backlog--development-flow)
 - [🧾 Version Scope and Consistency](#-version-scope-and-consistency)
 - [🧭 Final Guidance](#-final-guidance)
 
@@ -116,6 +117,57 @@ Use this quick guide:
 - **Want to configure something specific** → [Configuration Guides](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/configuration-guides/configuration-guides.md)
 - **Want to understand internals** → [Technical User Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/technical-manual/README.md)
 - **Want to understand design decisions and limits** → [Advanced Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/advanced-manual/README.md)
+
+---
+
+## 🧭 Backlog & Development Flow
+
+This repository follows a clear separation between **ideas**, **planned work**, and **execution**.
+
+### 💡 Ideas & Early Proposals
+- **Location:** GitHub Discussions
+- Used for:
+  - Early ideas and brainstorming
+  - Open-ended proposals
+  - Design questions and feedback
+- Discussions are exploratory and **do not represent commitments**.
+
+> Ideas may be promoted to Issues once they are clear and actionable.
+
+---
+
+### 🗂️ Development Backlog
+- **Location:** GitHub Issues
+- The backlog consists of Issues labeled with:
+  - `type:*` (classification)
+  - optional `priority:*`
+  - and without a final resolution status
+
+> Issues represent **actionable work** that can be scheduled and implemented.
+
+---
+
+### 🚧 Work in Progress
+- **Location:** GitHub Issues + Pull Requests
+- An Issue enters active development when:
+  - It is assigned or explicitly picked up
+  - A related Pull Request is opened
+
+> Pull Requests are the unit of execution and must reference their corresponding Issue.
+
+---
+
+### 📦 Delivered Work
+- **Location:** Merged Pull Requests + `CHANGELOG.md`
+- A change is considered delivered when:
+  - The Pull Request is merged
+  - The change is documented in the changelog (for user-facing behavior)
+
+> If a change is not in the changelog, it is not considered officially shipped.
+
+---
+
+> This structure helps keep the project predictable, transparent, and easy to maintain.
 
 ---
 
