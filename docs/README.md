@@ -23,6 +23,7 @@ This file acts as the **entry point and launcher**, allowing direct navigation t
   - [👤 User Manual (Basic)](#-user-manual-basic)
   - [⚙️ Configuration Guides](#-configuration-guides)
   - [🧠 Technical User Manual](#-technical-user-manual)
+  - [⌨️ Hotkeys & Keyboard Shortcuts Policy](#-hotkeys--keyboard-shortcuts-policy)
   - [🏔️ Advanced Manual](#-advanced-manual)
 - [🧭 Which Document Should I Read First?](#-which-document-should-i-read-first)
 - [🗂️ Backlog & Development Flow](#-backlog--development-flow)
@@ -90,6 +91,21 @@ Explain **how the extension works internally**, including execution flow, state 
 
 📄 **Open document:**  
 ➡️ [Technical User Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/technical-manual/README.md)
+
+---
+
+## ⌨️ Hotkeys & Keyboard Shortcuts Policy
+
+This section defines the **official keyboard shortcut policy** for Mass Image Downloader.
+
+It documents:
+- Reserved hotkeys that must remain unchanged
+- Rules and constraints for introducing new shortcuts
+- Conflict avoidance strategies across Chromium browsers
+- Fallback behavior when hotkeys are unavailable
+
+👉 **Source of truth:**  
+- **[Hotkey Policy](hotkeys/hotkeys.md)**
 
 ---
 
