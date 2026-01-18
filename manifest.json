@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Mass image downloader",
-  "version": "2.08.149",
+  "version": "2.08.150",
   "minimum_chrome_version": "93",
   "short_name": "MID",
   "description": "Download images from tabs or galleries. With filters, naming rules, batch control, and a lot options!",
@@ -58,11 +58,36 @@
       "matches": ["<all_urls>"]
     }
   ],
-  "commands": {    
+    "commands": {    
     "open-oneclick-icon": {
       "suggested_key": {
         "default": "Alt+Shift+I"
       },
-      "description": "Inject One-click download icon"}
+      "description": "Inject One-click download icon"
+    },
+    "hotkey-bulk-download": {
+      "suggested_key": {
+        "default": "Alt+Shift+B"
+      },
+      "description": "Trigger Bulk Image Download"
+    },
+    "hotkey-extract-gallery-direct": {
+      "suggested_key": {
+        "default": "Alt+Shift+G"
+      },
+      "description": "Trigger Extract Gallery Images (direct links)"
+    },
+    "hotkey-extract-gallery-visual": {
+      "suggested_key": {
+        "default": "Alt+Shift+V"
+      },
+      "description": "Trigger Extract Gallery Images (visual / no links)"
+    },
+    "hotkey-view-settings-peek": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "Trigger View Settings (Peek)"
+    }
   }
 }
