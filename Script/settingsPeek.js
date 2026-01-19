@@ -41,7 +41,6 @@ if (!window.__mdi_settingsPeekInjected) {
                     // Check for runtime error
                     if (chrome.runtime.lastError) {
                         logDebug(1, `❌ Failed to load config: ${chrome.runtime.lastError.message}`);
-                        logDebug(2, `🐛 Stack trace: ${err.stack}`);
                         return resolve();
                     }
 
