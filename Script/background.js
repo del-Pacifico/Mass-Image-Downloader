@@ -1038,23 +1038,116 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     }
 });
 
-// 🎯 Command listener: One-click download icon (injects floating download icon if enabled)
+// 🎯 Command listener: MV3 hotkeys (core actions + one-click icon)
 chrome.commands.onCommand.addListener(async (command) => {
     try {
-        if (command !== "open-oneclick-icon") {
-            logDebug(1, `⚠️ Unknown command received: "${command}"`);
-            logDebug(2, "💡 Unknown hotkey. Please verify 'commands' in manifest.json and feature toggle in options.");
+        logDebug(2, `⌨️ Command received: "${command}"`);
+
+        // Keep legacy behavior intact: One-click icon
+        if (command === "open-oneclick-icon") {
+            await handleOneClickIconHotkey();
             return;
         }
 
-        logDebug(1, "🖱️ Hotkey 'open-oneclick-icon' triggered.");
+        // New core action hotkeys (Issue #42)
+        switch (command) {
+            case "hotkey-bulk-download":
+                await handleBulkDownloadHotkey();
+                return;
+
+            case "hotkey-extract-gallery-direct":
+                await handleExtractLinkedGalleryHotkey();
+                return;
+
+            case "hotkey-extract-gallery-visual":
+                await handleExtractVisualGalleryHotkey();
+                return;
             
+            default:
+                logDebug(1, `⚠️ Unknown command received: "${command}"`);
+                logDebug(2, "💡 Verify 'commands' in manifest.json. Unknown hotkey ignored.");
+                return;
+        }
+
+    } catch (error) {
+        logDebug(1, `❌ Failed while handling command "${command}": ${error.message}`);
+        logDebug(3, `🐛 Stacktrace: ${error.stack}`);
+    }
+});
+
+/**
+ * Returns the active tab in the current window, or null if not available.
+ * This is a defensive wrapper to keep hotkey handlers stable.
+ * @returns {Promise<chrome.tabs.Tab|null>}
+ */
+async function getActiveTabSafe() {
+    try {
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tabs || tabs.length === 0) {
+            logDebug(1, "⛔ No active tab found (hotkey handler).");
+            return null;
+        }
+        return tabs[0];
+    } catch (err) {
+        logDebug(1, `❌ Failed to query active tab: ${err.message}`);
+        logDebug(3, `🐛 Stacktrace: ${err.stack}`);
+        return null;
+    }
+}
+
+/**
+ * Blocks restricted pages where content scripts cannot be injected.
+ * Mirrors the defensive check used in popup.js.
+ * @param {string} url
+ * @returns {boolean}
+ */
+function isRestrictedPageUrl(url) {
+    try {
+        if (!url || typeof url !== "string") return true;
+        return /^(chrome|chrome-extension|edge):\/\//.test(url) || url === "about:blank";
+    } catch (err) {
+        // Fail closed (safer): treat unknown URL as restricted
+        return true;
+    }
+}
+
+/**
+ * Injects a script file into a tab in a defensive manner.
+ * @param {number} tabId
+ * @param {string} filePath
+ * @param {string} contextLabel
+ * @returns {Promise<boolean>}
+ */
+async function injectScriptFileSafe(tabId, filePath, contextLabel) {
+    try {
+        await chrome.scripting.executeScript({
+            target: { tabId },
+            files: [filePath]
+        });
+
+        logDebug(1, `✅ Script injected successfully (${contextLabel}): ${filePath}`);
+        return true;
+
+    } catch (err) {
+        logDebug(1, `❌ Script injection failed (${contextLabel}): ${err.message}`);
+        logDebug(3, `🐛 Stacktrace: ${err.stack}`);
+        return false;
+    }
+}
+
+/**
+ * Hotkey handler: One-click download icon.
+ * This is the existing behavior extracted into its own function for clarity.
+ * @returns {Promise<void>}
+ */
+async function handleOneClickIconHotkey() {
+    try {
+        logDebug(1, "🖱️ Hotkey 'open-oneclick-icon' triggered.");
+
         // Show processing indicator before starting analysis
         setBadgeProcessing();
-            
 
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
+        const tab = await getActiveTabSafe();
         if (!tab || !tab.id) {
             logDebug(1, "⛔ No active tab found. Cannot inject One-click icon.");
             return;
@@ -1080,17 +1173,73 @@ chrome.commands.onCommand.addListener(async (command) => {
             return;
         }
 
-        await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            files: ["script/injectSaveIcon.js"]
-        });
+        const injected = await injectScriptFileSafe(tab.id, "script/injectSaveIcon.js", "one-click-icon");
+        if (!injected) return;
 
         logDebug(1, "✅ One-click download icon injected successfully.");
     } catch (error) {
         logDebug(1, `❌ Failed to inject One-click icon: ${error.message}`);
         logDebug(2, `🐛 Stacktrace: ${error.stack}`);
     }
-});
+}
+
+/**
+ * Hotkey handler: Bulk Image Download.
+ * Reuses the existing background flow by calling handleBulkDownload(...) with the active tab index.
+ * @returns {Promise<void>}
+ */
+async function handleBulkDownloadHotkey() {
+    const tab = await getActiveTabSafe();
+    if (!tab) return;
+
+    logDebug(1, "⌨️ Hotkey triggered: Bulk Image Download.");
+
+    // Reuse the existing handler. It expects message.activeTabIndex.
+    try {
+        await handleBulkDownload({ activeTabIndex: tab.index }, () => {});
+    } catch (err) {
+        logDebug(1, `❌ Bulk hotkey failed: ${err.message}`);
+        logDebug(3, `🐛 Stacktrace: ${err.stack}`);
+    }
+}
+
+/**
+ * Hotkey handler: Extract Gallery Images (direct links).
+ * Mirrors popup.js behavior by injecting extractLinkedGallery.js into the active tab.
+ * @returns {Promise<void>}
+ */
+async function handleExtractLinkedGalleryHotkey() {
+    const tab = await getActiveTabSafe();
+    if (!tab || !tab.id) return;
+
+    logDebug(1, "⌨️ Hotkey triggered: Extract Gallery (direct links).");
+
+    if (isRestrictedPageUrl(tab.url)) {
+        logDebug(1, `⚠️ Linked gallery extraction blocked on restricted page: ${tab.url}`);
+        return;
+    }
+
+    await injectScriptFileSafe(tab.id, "script/extractLinkedGallery.js", "extract-linked-gallery");
+}
+
+/**
+ * Hotkey handler: Extract Gallery Images (visual / no links).
+ * Mirrors popup.js behavior by injecting extractVisualGallery.js into the active tab.
+ * @returns {Promise<void>}
+ */
+async function handleExtractVisualGalleryHotkey() {
+    const tab = await getActiveTabSafe();
+    if (!tab || !tab.id) return;
+
+    logDebug(1, "⌨️ Hotkey triggered: Extract Gallery (visual / no links).");
+
+    if (isRestrictedPageUrl(tab.url)) {
+        logDebug(1, `⚠️ Visual gallery extraction blocked on restricted page: ${tab.url}`);
+        return;
+    }
+
+    await injectScriptFileSafe(tab.id, "script/extractVisualGallery.js", "extract-visual-gallery");
+}
 
 /**
  * 📸 Handle Download images directly in tabs
