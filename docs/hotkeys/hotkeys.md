@@ -1,41 +1,72 @@
 # ⌨️ Hotkey Policy
 
 Mass Image Downloader provides keyboard shortcuts as optional entry points for advanced workflows.
+The following hotkeys are currently implemented and supported as of the latest stable version:
 
-## Principles
+## 🧭 Principles
 
 - Hotkeys are optional and never the only way to trigger a feature
-- Popup and context menu actions always act as fallbacks
+- Popup and context menu actions act as fallbacks when available
 - Backward compatibility is mandatory
 
-## Existing Hotkeys (Stable)
+## 🔒 Existing Hotkeys (Stable)
 
 The following shortcuts are reserved and must not change:
 
-- Ctrl + Shift + P — Set filename prefix (when prefix is available)
-- Ctrl + Shift + S — Set filename suffix (when suffix is available)
-- Ctrl + Shift + M — Image Inspector
-- Alt + Shift + I — One-click Download Icon (manual image download overlay)
+- Ctrl + Shift + P — Set filename prefix (only if prefix is available)
+- Ctrl + Shift + S — Set filename suffix (only if suffix is available)
+- Ctrl + Shift + M — Image Inspector panel (toggle)
+- Alt + Shift + I — One-click Download Icon (manual image overlay)
 
-## Rules for New Hotkeys
+## ⚡Active Core Hotkeys (Current)
+
+The following hotkeys are currently implemented and supported:
+
+- Alt + Shift + D — Bulk Image Download
+- Alt + Shift + G — Extract images from galleries (direct links)
+- Alt + Shift + V — Extract images from galleries (visual / no direct links)
+- Alt + Shift + S — View Settings (Peek panel toggle)
+
+### 📝 Note on Bulk Download Hotkey
+
+Although `Alt + Shift + B` follows the preferred mnemonic pattern, some Chromium-based browsers
+(notably Brave) may not auto-assign this shortcut from the manifest.
+
+For this reason, Bulk Image Download uses:
+
+- **Alt + Shift + D** (Download)
+
+> This improves default compatibility while remaining easy to remember.
+
+## 📐 Rules for New Hotkeys
 
 - Preferred pattern: `Alt + Shift + <Key>`
 - Avoid `Ctrl`-based combinations for new actions
 - Avoid OS- or browser-reserved shortcuts
 - Avoid locale-dependent keys
 
-## User Control
+## 🎛️ User Control
 
 Users can customize or disable shortcuts using the browser’s extension shortcut settings.
 
-The extension does not attempt to override user-defined shortcuts.
+> The extension does not attempt to override or enforce user-defined shortcuts.
 
-## Fallback Behavior
+## 🧱 Technical Constraints (Manifest V3)
+
+Due to Manifest V3 limitations:
+
+- A maximum of **4 commands** can be declared using `chrome.commands`
+- Additional hotkeys may need to be handled via `keydown` listeners in content scripts
+- Not all suggested shortcuts are auto-assigned by the browser
+
+If a shortcut appears as **Not set**, users can assign it manually via:
+
+- `chrome://extensions/shortcuts`
+- `brave://extensions/shortcuts`
+
+## 🧰 Fallback Behavior
 
 If a shortcut is unavailable or not triggered:
+
 - The feature remains accessible via UI or context menu
 - A developer log may be emitted for debugging
-
----
-
-Related to: #41
