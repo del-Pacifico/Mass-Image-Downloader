@@ -20,6 +20,15 @@
             
             // 🕵️ Virtual value for Image Inspector hotkey (read-only in Peek)
             configCache.imageInspectorHotkey = "Ctrl+Shift+M";
+
+            // ⌨️ Virtual values for known hotkeys (read-only in Peek)
+            configCache.peekHotkey = "Alt+Shift+S";
+            configCache.bulkHotkey = "Alt+Shift+D";
+            configCache.galleryDirectHotkey = "Alt+Shift+G";
+            configCache.galleryVisualHotkey = "Alt+Shift+V";
+            configCache.oneClickIconHotkey = "Alt+Shift+I";
+            configCache.prefixHotkey = "Ctrl+Shift+P";
+            configCache.suffixHotkey = "Ctrl+Shift+S";
             
             applyTransparency();
             renderSettings();
@@ -112,6 +121,14 @@
             title.textContent = sectionTitle;
             wrapper.appendChild(title);
 
+            // Special note for Hotkeys section
+            if (sectionTitle === "⌨️ Hotkeys") {
+                const note = document.createElement("p");
+                note.className = "description";
+                note.textContent = "If a shortcut appears as 'Not set' in your browser, assign it in chrome://extensions/shortcuts.";
+                wrapper.appendChild(note);
+            }
+
             for (const [key, label] of Object.entries(keys)) {
                 const group = document.createElement("div");
                 group.className = "option-group";
@@ -181,6 +198,15 @@
             "📋 Clipboard Hotkeys": {
                 enableClipboardHotkeys: "Enable Clipboard Hotkeys",
                 enableOneClickIcon: "One-click Download Icon"
+            },
+            "⌨️ Hotkeys": {
+                peekHotkey: "View Settings (Peek)",
+                bulkHotkey: "Bulk Image Download",
+                galleryDirectHotkey: "Extract Gallery (direct links)",
+                galleryVisualHotkey: "Extract Gallery (visual / no links)",
+                oneClickIconHotkey: "One-click Download Icon",
+                prefixHotkey: "Set Prefix (Clipboard)",
+                suffixHotkey: "Set Suffix (Clipboard)"
             },
             "🕵️ Image Inspector Mode": {
                 imageInspectorEnabled: "Enable Image Inspector",
