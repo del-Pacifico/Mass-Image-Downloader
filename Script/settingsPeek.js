@@ -38,6 +38,7 @@ if (!window.__mdi_settingsPeekInjected) {
         return new Promise((resolve) => {
             try {
                 chrome.storage.sync.get(null, (data) => {
+                    // Check for runtime error
                     if (chrome.runtime.lastError) {
                         logDebug(1, `❌ Failed to load config: ${chrome.runtime.lastError.message}`);
                         logDebug(2, `🐛 Stack trace: ${err.stack}`);
@@ -60,11 +61,13 @@ if (!window.__mdi_settingsPeekInjected) {
      * Registers message listener after config initialized
      */
     function registerMessageListener() {
+        // Listen for messages from background or popup scripts
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             try {
+                // Handle "open-peek-overlay" action
                 if (message?.action === "open-peek-overlay") {
                     logDebug(1, "📨 Message received: open-peek-overlay");
-                    injectPeekPanel();
+                    togglePeekPanel();
                 }
             } catch (err) {
                 logDebug(1, `❌ Failed to handle message in settingsPeek.js: ${err.message}`);
@@ -100,13 +103,38 @@ if (!window.__mdi_settingsPeekInjected) {
                 logDebug(1, "⌨️ Hotkey triggered: View Settings (Peek) (Alt+Shift+S)");
 
                 // Reuse the existing entry point
-                injectPeekPanel();
+                togglePeekPanel();
             }
         } catch (err) {
             logDebug(1, `❌ Peek hotkey handler failed: ${err.message}`);
             logDebug(2, `🐛 Stack trace: ${err.stack}`);
         }
     }, true);
+
+    /**
+     * Toggles the Peek panel on/off.
+     * If the panel already exists, it will be removed.
+     * Otherwise, it will be injected.
+     */
+    function togglePeekPanel() {
+        try {
+            const existing = document.getElementById("__mdi_peekOverlay");
+            // If panel exists, remove it
+            if (existing) {
+                existing.remove();
+                logDebug(1, "✅ Peek panel closed (toggle).");
+                return;
+            }
+
+            // Otherwise, inject it
+            injectPeekPanel();
+            logDebug(1, "✅ Peek panel opened (toggle).");
+
+        } catch (err) {
+            logDebug(1, `❌ Failed to toggle Peek panel: ${err.message}`);
+            logDebug(2, `🐛 Stack trace: ${err.stack}`);
+        }
+    }
 
 
     /**
