@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Mass image downloader",
-  "version": "2.08.150",
+  "version": "2.08.151",
   "minimum_chrome_version": "93",
   "short_name": "MID",
   "description": "Download images from tabs or galleries. With filters, naming rules, batch control, and a lot options!",
@@ -67,7 +67,7 @@
     },
     "hotkey-bulk-download": {
       "suggested_key": {
-        "default": "Alt+Shift+B"
+        "default": "Alt+Shift+D"
       },
       "description": "Trigger Bulk Image Download"
     },
