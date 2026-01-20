@@ -652,7 +652,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                 if (!tabId) throw new Error('Invalid sender tab ID');
 
                 handleExtractVisualGallery(message.payload, sendResponse);
-                logDebug(2, '✅ END: Bulk download process completed.');
                 return true;
 
             } catch (e) {
@@ -1076,18 +1075,29 @@ chrome.commands.onCommand.addListener(async (command) => {
 });
 
 /**
- * Returns the active tab in the current window, or null if not available.
- * This is a defensive wrapper to keep hotkey handlers stable.
+ * 🧠 Utility: Get active tab safely
  * @returns {Promise<chrome.tabs.Tab|null>}
- */
+ * @description This function retrieves the currently active tab in a safe manner, handling potential errors.
+ * It uses lastFocusedWindow to improve reliability in MV3 command contexts.
+ **/
 async function getActiveTabSafe() {
     try {
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        // ✅ MV3-safe: commands can fire when "currentWindow" is not what you think.
+        let tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+
+        // 🔁 Fallback: lastFocusedWindow can still be empty in edge focus cases
+        if (!tabs || tabs.length === 0) {
+            tabs = await chrome.tabs.query({ active: true });
+        }
+
+        // 🧠 Validate result
         if (!tabs || tabs.length === 0) {
             logDebug(1, "⛔ No active tab found (hotkey handler).");
             return null;
         }
+
         return tabs[0];
+        
     } catch (err) {
         logDebug(1, `❌ Failed to query active tab: ${err.message}`);
         logDebug(3, `🐛 Stacktrace: ${err.stack}`);
@@ -1228,6 +1238,7 @@ async function handleExtractLinkedGalleryHotkey() {
  * @returns {Promise<void>}
  */
 async function handleExtractVisualGalleryHotkey() {
+    // 🧠 Get active tab
     const tab = await getActiveTabSafe();
     if (!tab || !tab.id) return;
 
