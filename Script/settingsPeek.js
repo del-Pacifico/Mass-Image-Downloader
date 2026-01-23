@@ -94,7 +94,7 @@ if (!window.__mdi_settingsPeekInjected) {
 
             const key = String(e.key || "").toLowerCase();
 
-            // Check for Alt + Shift + S
+            // Check for Alt + Shift + S → View Settings (Peek)
             if (e.altKey && e.shiftKey && key === "s") {
                 e.preventDefault();
                 e.stopPropagation();
@@ -104,6 +104,7 @@ if (!window.__mdi_settingsPeekInjected) {
                 // Reuse the existing entry point
                 togglePeekPanel();
             }
+
         } catch (err) {
             logDebug(1, `❌ Peek hotkey handler failed: ${err.message}`);
             logDebug(2, `🐛 Stack trace: ${err.stack}`);
