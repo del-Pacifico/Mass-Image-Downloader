@@ -16,6 +16,9 @@
     const allowedExtensions = [];
     let minGroupSizeCache = 3; // Default minimum group size for gallery detection
 
+    const triggerSource = window.__mdiWebLinkedTriggerSource || "popup";
+    logDebug(1, `🧭 Trigger source: ${triggerSource}`);
+
     // get some Extensions values from storage
     // and set the default values if not set
     // This is used to determine which image formats are allowed for gallery detection
@@ -665,7 +668,8 @@
                 chrome.runtime.sendMessage(
                 {
                     action: "processWebLinkedGallery",
-                    images: urlsToSend
+                    images: urlsToSend,
+                    source: triggerSource
                 },
                 (response) => {
                     // Handle response from background script

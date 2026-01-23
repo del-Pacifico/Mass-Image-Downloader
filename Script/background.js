@@ -662,6 +662,40 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             return true;
         }
 
+        // ✅ Inject Web-Linked Gallery extractor (triggered via Alt+Shift+W content hotkey)
+        // Flow: 3.5 - Inject extractWebLinkedGallery.js via hotkey
+        if (message.action === "injectWebLinkedGalleryExtractor") {
+            logDebug(1, "🔗 BEGIN: Inject extractWebLinkedGallery.js (hotkey entry)");
+
+            try {
+                const tabId = sender?.tab?.id;
+                if (!tabId) {
+                    throw new Error("Invalid sender tab ID (injectWebLinkedGalleryExtractor).");
+                }
+
+                // Optional: mark trigger source for the injected script
+                await chrome.scripting.executeScript({
+                    target: { tabId },
+                    func: (src) => { window.__mdiWebLinkedTriggerSource = src; },
+                    args: [message.source || "hotkey"]
+                });
+
+                await chrome.scripting.executeScript({
+                    target: { tabId },
+                    files: ["script/extractWebLinkedGallery.js"]
+                });
+
+                logDebug(1, "✅ END: extractWebLinkedGallery.js injected successfully.");
+                respondSafe(sendResponse, { success: true });
+                return true;
+
+            } catch (e) {
+                logDebug(1, `❌ Failed to inject extractWebLinkedGallery.js: ${e.message}`);
+                respondSafe(sendResponse, { success: false, error: e.message });
+                return true;
+            }
+        }
+
         // ✅ Handle Web-Linked Gallery extraction
         // Flow: 4 - Extract images from web-linked galleries
         if (message.action === 'processWebLinkedGallery') {

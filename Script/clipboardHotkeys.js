@@ -345,4 +345,42 @@
         }
 
     });
+
+    /**
+     * Keydown listener to detect Alt+Shift+W (Web-linked galleries).
+     * This is NOT a chrome.commands hotkey due to MV3 command limits.
+     */
+    window.addEventListener('keydown', (event) => {
+        try {
+            // Ignore hotkeys while typing
+            const target = event.target;
+            const isTypingContext =
+                target &&
+                (target.tagName === "INPUT" ||
+                target.tagName === "TEXTAREA" ||
+                target.isContentEditable);
+
+            if (isTypingContext) return;
+
+            // Alt + Shift + W
+            if (!event.altKey || !event.shiftKey) return;
+            if (event.code !== "KeyW") return;
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            logDebug(1, "⌨️ Hotkey triggered: Extract Web-linked galleries (Alt+Shift+W)");
+
+            // 🔍 Dispatch message to background to inject extractor
+            chrome.runtime.sendMessage(
+                { action: "injectWebLinkedGalleryExtractor", source: "hotkey" },
+                () => {
+                    // Silent by design; extractor + background handle UX.
+                }
+            );
+        } catch (err) {
+            logDebug(1, `❌ Hotkey handler failed (Alt+Shift+W): ${err.message}`);
+        }
+    });
+
 })();    
