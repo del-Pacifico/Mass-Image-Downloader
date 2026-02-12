@@ -176,6 +176,14 @@
         });
     }
 
+    /**
+     * 🕒 Small async delay helper
+     * @param {number} ms
+     * @returns {Promise<void>}
+     */
+    function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
 
     /**
      * ✅ Apply default settings when the extension is installed for the first time.
@@ -550,6 +558,35 @@ function respondSafe(sendResponse, payload) {
 }
 
 /**
+ * Sends a user toast to the sender tab (content script).
+ * MV3 service workers have no DOM, so UI feedback must be rendered in-page.
+ * @param {number} tabId
+ * @param {string} text
+ * @param {"info"|"success"|"error"} type
+ */
+function sendUserToastToTab(tabId, text, type = "info") {
+    try {
+        if (!tabId || typeof tabId !== "number") return;
+        if (!text || typeof text !== "string") return;
+
+        // 🔒 Respect user setting: do not show UI feedback if disabled
+        if (!showUserFeedbackMessages) {
+            logDebug(2, "🚫 User feedback messages disabled. Toast skipped.");
+            return;
+        }
+
+        // Fire-and-forget message (no response expected)
+        chrome.tabs.sendMessage(tabId, {
+            action: "mdiUserToast",
+            text,
+            type
+        });
+    } catch (err) {
+        logDebug(2, `⚠️ sendUserToastToTab failed: ${err.message}`);
+    }
+}
+
+/**
  *
  */
 /**
@@ -601,34 +638,71 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         // Flow: 2 - Extract images from galleries (with direct links)
         if (message.action === 'extractLinkedGallery') {
             logDebug(1, '🌄 Extract Linked Gallery flow started.');
-            
+
             // Show processing indicator before starting analysis
             setBadgeProcessing();
-            try {
-                if (!message.payload || typeof message.payload !== 'object') {
-                    throw new Error('Payload is missing or not an object');
-                }
-                if (!message.payload.options || typeof message.payload.options !== 'object') {
-                    throw new Error('Missing or invalid options in payload');
-                }
-                const tabId = sender.tab?.id;
-                if (!tabId) throw new Error('Invalid sender tab ID');
 
-                // ✅ Validate payload properties
-                handleExtractLinkedGallery(message.payload, sendResponse)
-                .then((result) => respondSafe(sendResponse, result))
-                .catch((error) => {
-                  logDebug(1, '❌ Error in Linked Gallery flow: ' + error.message);
-                  logDebug(2, `🐛 Stacktrace: ${error.stack}`);
-                  respondSafe(sendResponse, { success: false, error: error.message });
-                });
+            try {
+                // ✅ Accept both message formats:
+                // - Popup style: { action, payload: {...} }
+                // - Content script / hotkey style: { action, images, totalImages, ... }
+                const request = (message && typeof message.payload === "object" && message.payload)
+                    ? message.payload
+                    : message;
+
+                const tabId = sender?.tab?.id;
+
+                // ✅ Hotkeys always originate from a tab (MV3 ephemeral port)
+                if (typeof tabId !== "number") {
+                    throw new Error("Invalid sender tab ID (extractLinkedGallery).");
+                }
+
+                const candidateCount = Array.isArray(request.images) ? request.images.length : 0;
+
+                // ✅ MV3: Immediate ACK to avoid "message port closed" warnings
+                respondSafe(sendResponse, { success: true, ack: true });
+
+                // ✅ User feedback (respects showUserFeedbackMessages internally)
+                sendUserToastToTab(tabId, `🌄 Gallery processing started. Candidates: ${candidateCount}`, "info");
+
+                // ✅ QA marker
+                logDebug(1, `[Mass Image Downloader]: 🧾 START (async): handleExtractLinkedGallery() scheduled (tabId=${tabId})`);
+
+                // ✅ Run asynchronously (do NOT rely on sendResponse after ACK)
+                Promise.resolve()
+                    .then(() => handleExtractLinkedGallery(request, (payload) => {
+                        try {
+                            const ok = !!(payload && payload.success);
+                            logDebug(1, `[Mass Image Downloader]: 🧾 END (async): handleExtractLinkedGallery() completed (tabId=${tabId}) -> success=${ok}`);
+
+                            if (ok) {
+                                sendUserToastToTab(tabId, "✅ Gallery processing completed.", "success");
+                            } else {
+                                const errText = (payload && payload.error) ? payload.error : "Unknown error";
+                                sendUserToastToTab(tabId, `❌ Gallery processing failed: ${errText}`, "error");
+                            }
+                        } catch (toastErr) {
+                            logDebug(2, `⚠️ Completion toast failed: ${toastErr.message}`);
+                        }
+                    }))
+                    .catch((err) => {
+                        const errMsg = (err && err.message) ? err.message : String(err);
+                        logDebug(1, `❌ Linked Gallery async failure: ${errMsg}`);
+                        logDebug(2, `🐛 Stacktrace: ${(err && err.stack) ? err.stack : "n/a"}`);
+                        sendUserToastToTab(tabId, `❌ Gallery processing failed: ${errMsg}`, "error");
+                    });
+
+                // ✅ We already ACKed synchronously
+                return false;
+
             } catch (e) {
-                logDebug(1, '❌ Critical error before processing extractLinkedGallery: ' + e.message);
-                logDebug(2, '🐛 Stacktrace: ', e.stack);
+                logDebug(1, `❌ Critical error before processing extractLinkedGallery: ${e.message}`);
+                logDebug(2, `🐛 Stacktrace: ${(e && e.stack) ? e.stack : "n/a"}`);
                 respondSafe(sendResponse, { success: false, error: e.message });
+                return true;
             }
-            return true;
         }
+
 
         // ✅ Handle gallery extraction (visual detection)
         // Flow: 3 - Extract images from galleries (without links)
@@ -742,6 +816,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
                         let activeOpenings = 0;
                         let tabsOpened = 0;
+                        // ⏱️ Global rate limiter to enforce real spacing between tab openings (anti-429)
+                        let nextOpenAt = 0;
 
                         // 🧠 Recursive function to open tabs with controlled concurrency
                         function tryOpenNext() {
@@ -762,39 +838,58 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                                 const targetIndex = baseTabIndex + 1 + tabsOpened; // 🔧 Corrige dirección (hacia la derecha)
 
                                 // 🧠 Validate URL format
-                                chrome.tabs.create({ url: currentUrl, active: false, index: targetIndex }, (tab) => {
-                                    if (chrome.runtime.lastError) {
-                                        if (chrome.runtime.lastError.message.includes('429')) {
-                                            logDebug(1, `⚠️ Rate limit hit (429). Delaying retry.`);
-                                            setTimeout(tryOpenNext, delayBetweenTabs * 2);
+                                // ⏱️ Enforce real spacing between openings (anti-burst / anti-429)
+                                const now = Date.now();
+                                const baseDelay = delayBetweenTabs;
+                                const jitterMax = Math.min(250, Math.floor(baseDelay * 0.25));
+                                const jitter = jitterMax > 0 ? Math.floor(Math.random() * (jitterMax + 1)) : 0;
+                                const scheduledAt = Math.max(now, nextOpenAt);
+                                const waitMs = Math.max(0, scheduledAt - now) + jitter;
+                                nextOpenAt = scheduledAt + baseDelay;
+
+                                if (waitMs > 0) {
+                                    logDebug(3, `⏱️ Rate limiter: waiting ${waitMs} ms before opening next tab...`);
+                                }
+
+                                setTimeout(() => {
+                                    chrome.tabs.create({ url: currentUrl, active: false, index: targetIndex }, (tab) => {
+                                        if (chrome.runtime.lastError) {
+                                            const errMsg = chrome.runtime.lastError.message || "";
+                                            if (errMsg.includes('429')) {
+                                                logDebug(1, `⚠️ Rate limit hit (429). Applying backoff.`);
+                                                // Push the next opening further to reduce bursts against the same host
+                                                nextOpenAt = Math.max(nextOpenAt, Date.now() + (baseDelay * 2));
+                                                setTimeout(tryOpenNext, baseDelay * 2);
+                                            } else {
+                                                logDebug(1, `🧟 Failed to open tab: ${errMsg}`);
+                                                // Continue immediately; the rate limiter will enforce spacing
+                                                setTimeout(tryOpenNext, 0);
+                                            }
                                         } else {
-                                            logDebug(1, `🧟 Failed to open tab: ${chrome.runtime.lastError.message}`);
-                                            setTimeout(tryOpenNext, delayBetweenTabs);
+                                            tabsOpened++;
+                                            updateBadge(tabsOpened);
+                                            logDebug(2, `✅ Opened tab ${index + 1} of ${total}: ${currentUrl}`);
+
+                                            // 🚀 NEW: Inject save icon if option enabled
+                                            if (enableOneClickIcon) {
+                                                chrome.scripting.executeScript({
+                                                    target: { tabId: tab.id },
+                                                    files: ["script/injectSaveIcon.js"]
+                                                }, () => {
+                                                    if (chrome.runtime.lastError) {
+                                                        logDebug(1, `❌ Failed to inject save icon: ${chrome.runtime.lastError.message}`);
+                                                    } else {
+                                                        logDebug(2, `💾 Save icon injected into tabId ${tab.id}`);
+                                                    }
+                                                });
+                                            }
+
+                                            // Continue immediately; the rate limiter will enforce spacing
+                                            setTimeout(tryOpenNext, 0);
                                         }
-                                    } else {
-                                        tabsOpened++;
-                                        updateBadge(tabsOpened);
-                                        logDebug(2, `✅ Opened tab ${index + 1} of ${total}: ${currentUrl}`);
-
-                                        // 🚀 NEW: Inject save icon if option enabled
-                                        if (enableOneClickIcon) {
-                                            chrome.scripting.executeScript({
-                                                target: { tabId: tab.id },
-                                                files: ["script/injectSaveIcon.js"]
-                                            }, () => {
-                                                if (chrome.runtime.lastError) {
-                                                    logDebug(1, `❌ Failed to inject save icon: ${chrome.runtime.lastError.message}`);
-                                                } else {
-                                                    logDebug(2, `💾 Save icon injected into tabId ${tab.id}`);
-                                                }
-                                            });
-                                        }
-
-                                        setTimeout(tryOpenNext, delayBetweenTabs);
-                                    }
-                                    activeOpenings--;
-                                });
-
+                                        activeOpenings--;
+                                    });
+                                }, waitMs);
 
                                 index++;
                                 activeOpenings++;
@@ -1238,12 +1333,16 @@ async function handleBulkDownloadHotkey() {
 
     logDebug(1, "⌨️ Hotkey triggered: Bulk Image Download.");
 
+    // 🔔 UX: immediate feedback so it doesn't look "stuck"
+    sendUserToastToTab(tab.id, "Bulk download started. Scanning tabs...", "info");
+
     // Reuse the existing handler. It expects message.activeTabIndex.
     try {
-        await handleBulkDownload({ activeTabIndex: tab.index }, () => {});
+        await handleBulkDownload({ activeTabIndex: tab.index, toastTabId: tab.id }, () => {});
     } catch (err) {
         logDebug(1, `❌ Bulk hotkey failed: ${err.message}`);
         logDebug(3, `🐛 Stacktrace: ${err.stack}`);
+        sendUserToastToTab(tab.id, `Bulk download failed: ${err.message}`, "error");
     }
 }
 
@@ -1355,16 +1454,26 @@ async function handleBulkDownload(message, sendResponse) {
         logDebug(2, `🔎 END: ${validTabs.length} valid image tabs found`);
         logDebug(3, '------------------------------------');
         logDebug(3, '');
+
+        // 🚦 Show initial toast with count of valid images found (or error if none)
+        if (message && typeof message.toastTabId === "number") {
+            if (validTabs.length === 0) {
+                sendUserToastToTab(message.toastTabId, "Bulk download: no valid images found.", "error");
+            } else {
+                sendUserToastToTab(
+                    message.toastTabId,
+                    `Bulk download: found ${validTabs.length} image(s). Downloading...`,
+                    "info"
+                );
+            }
+        }
+
 		
 		// 🚦 Block if no valid tabs found for download
 		if (validTabs.length === 0) {
 			try {
 				logDebug(1, "⛔ No valid image tabs detected. Aborting download process.");
 				logDebug(2, "💡 Tip: Try using 'Extract Gallery' or 'Web-Linked Gallery' instead.");
-
-				if (showUserFeedbackMessages) {
-					showUserMessage("No valid images found in tabs. Use gallery extraction instead.", "error");
-				}
 
 				// 🧹 Clean up visual badge and internal counters
 				updateBadge(0, true); // 🔵 Paint blue (final)
@@ -1388,12 +1497,34 @@ async function handleBulkDownload(message, sendResponse) {
 
         // 🧠 BEGIN: Batch cycle
         function processNextBatch() {
+            // 🚦 Check if we have processed all batches
             if (remainingTabs.length === 0) {
                 logDebug(1, '🛑 No remaining tabs. Ending process.');
                 updateBadge(totalProcessed, true); // 🔵 Final badge
+
+                // 🕒 End timing metric
+                if (message && typeof message.toastTabId === "number") {
+                    // 🧠 Show final toast with total count
+                    sendUserToastToTab(
+                        message.toastTabId,
+                        `Bulk download completed. Downloaded: ${totalProcessed}`,
+                        "success"
+                    );
+                }
+
+                // 🕒 End timing metric
+                logTimingEnd(timing);
+
+                // 🧹 Clean up memory references
+                validatedUrls.clear();
+                remainingTabs.length = 0;
+
+                logDebug(2, '🧹 Memory cleanup: validatedUrls and remainingTabs cleared');
+
                 respondSafe(sendResponse, { success: true, downloads: totalProcessed });
                 return;
             }
+
 
             const currentBatch = (maxBulkBatch > 0)
                 ? remainingTabs.slice(0, maxBulkBatch)
@@ -1424,7 +1555,7 @@ async function handleBulkDownload(message, sendResponse) {
 
                     logDebug(3, '');
                     updateBadge(totalProcessed, true); // 🔵 Paint blue at the real end
-    	
+                    
                     // 🕒 End timing metric
                     logTimingEnd(timing);
 
@@ -1434,9 +1565,18 @@ async function handleBulkDownload(message, sendResponse) {
 
                     logDebug(2, '🧹 Memory cleanup: validatedUrls and remainingTabs cleared');
 
-                    respondSafe(sendResponse, { success: true, downloads: totalProcessed });
+                    // 🔔 UX: completion toast (only for hotkey flow that provides toastTabId)
+                    if (message && typeof message.toastTabId === "number") {
+                        sendUserToastToTab(
+                            message.toastTabId,
+                            `Bulk download completed. Downloaded: ${totalProcessed}`,
+                            "success"
+                        );
+                    }
 
+                    respondSafe(sendResponse, { success: true, downloads: totalProcessed });
                 }
+
             }, validatedUrls, batchIndex === 1, totalProcessed, timing);
         }
 
@@ -1640,11 +1780,11 @@ async function processValidTabs(validTabs, onComplete, validatedUrls, resetBadge
 }
 
 /**
- * 🌄 Handle Extract images from galleries (with direct links)
- * @param {object} message - The message object sent from the popup or content script.
- * @param {function} sendResponse - The callback function to send the response.
- * @description This function handles the extraction of gallery images by filtering valid image URLs and processing them in batches.
- * It also updates the badge with the number of images downloaded and shows notifications for success or error messages.
+ * 🌄 Handle Extracting linked gallery images (with direct links)
+ * @description This function processes the images extracted from a gallery with direct links. It groups them by path similarity, applies the configured thresholds, and initiates downloads for the dominant group.
+ * It also handles the timing metrics and ensures that the response is sent back to the sender appropriately.
+ * @param {object} message - The message object containing the images and total count.
+ * @param {function} sendResponse - The callback function to send the response back to the sender.
  * @returns {void}
  */
 async function handleExtractLinkedGallery(message, sendResponse) {
@@ -1655,6 +1795,24 @@ async function handleExtractLinkedGallery(message, sendResponse) {
     const timing = logTimingStart("Extract images from galleries (with direct links)");
     const { images, totalImages } = message || {};
 
+    let didTimingEnd = false;
+
+    // ✅ Ensure sendResponse is called at most once per invocation
+    let hasResponded = false;
+    function respondOnce(payload) {
+        try {
+            if (hasResponded) return;
+            hasResponded = true;
+            respondSafe(sendResponse, payload);
+        } catch (err) {
+            logDebug(2, `⚠️ respondOnce failed: ${err.message}`);
+        }
+    }
+
+    // 🧠 Download concurrency (declared early so finally{} can always access them)
+    let activeDownloads = 0;
+    let downloadQueue = [];
+
     // 🧠 Grouping gallery candidates by path similarity (80% threshold)
     logDebug(2, '🧠 Grouping gallery candidates by path similarity...');
 
@@ -1662,39 +1820,79 @@ async function handleExtractLinkedGallery(message, sendResponse) {
     const similarityMap = {};
     let dominantGroup = [];
 
-    logDebug(2, `📥 Configuration Mode: ${extractGalleryMode}`);
-    logDebug(2, `📥 Max images per second: ${galleryMaxImages}`);
-    logDebug(3, '');
+    try {
+        logDebug(2, `📥 Configuration Mode: ${extractGalleryMode}`);
+        logDebug(2, `📥 Max images per second: ${galleryMaxImages}`);
+        logDebug(3, '');
 
-    // 🧠 Validate galleryEnableSmartGrouping and images input || Safe limit
-    const MAX_GROUPING_CANDIDATES = 100;
+        // 🧠 Validate galleryEnableSmartGrouping and images input || Safe limit
+        const MAX_GROUPING_CANDIDATES = 100;
 
-    // 🧠 Validate images input
-    if (galleryEnableSmartGrouping && Array.isArray(images) && images.length <= MAX_GROUPING_CANDIDATES) {
-        logDebug(2, `🤖 BEGIN: Smart grouping enabled. ${images.length} candidates within safe limit (${MAX_GROUPING_CANDIDATES}).`);
+        // 🧠 Validate images input
+        if (galleryEnableSmartGrouping && Array.isArray(images) && images.length <= MAX_GROUPING_CANDIDATES) {
+            logDebug(2, `🤖 BEGIN: Smart grouping enabled. ${images.length} candidates within safe limit (${MAX_GROUPING_CANDIDATES}).`);
 
-        for (let i = 0; i < images.length; i++) {
-            for (let j = i + 1; j < images.length; j++) {
-                const similarity = calculatePathSimilarity(images[i], images[j]);
-                logDebug(2, `🕵 Similarity between image ${i} and ${j}: ${similarity}%`);
-                // 🧠 Check if similarity meets the threshold
+            for (let i = 0; i < images.length; i++) {
+                for (let j = i + 1; j < images.length; j++) {
+                    const similarity = calculatePathSimilarity(images[i], images[j]);
+                    logDebug(2, `🕵 Similarity between image ${i} and ${j}: ${similarity}%`);
 
-                if (similarity >= threshold) {
-                    if (!similarityMap[images[i]]) similarityMap[images[i]] = [];
-                    similarityMap[images[i]].push(images[j]);
+                    // 🧠 Check if similarity meets the threshold
+                    if (similarity >= threshold) {
+                        if (!similarityMap[images[i]]) similarityMap[images[i]] = [];
+                        similarityMap[images[i]].push(images[j]);
+                    }
                 }
             }
+
+            // ✅ Build dominantGroup from similarityMap (largest cluster)
+            // Note: similarityMap keys are the "base" URLs, values are arrays of similar URLs.
+            if (galleryEnableSmartGrouping && Array.isArray(images) && images.length <= MAX_GROUPING_CANDIDATES) {
+                let bestGroup = [];
+                for (const baseUrl in similarityMap) {
+                    const group = [baseUrl, ...(similarityMap[baseUrl] || [])];
+
+                    // Deduplicate within the group defensively
+                    const uniqueGroup = [...new Set(group)];
+
+                    if (uniqueGroup.length > bestGroup.length) {
+                        bestGroup = uniqueGroup;
+                    }
+                }
+
+                // If we found a best group, use it; otherwise keep dominantGroup empty for validation below
+                dominantGroup = bestGroup;
+
+                logDebug(1, `🧩 Dominant group computed from similarityMap: ${dominantGroup.length} image(s).`);
+                logDebug(3, '');
+            }
+
+            // 🧠 Select dominant group from similarityMap using primary threshold
+            logDebug(2, '🧠 Selecting dominant group from similarity map (primary threshold)...');
+
+            // 🧠 Iterate through similarityMap to find the largest group of similar images
+            for (const key in similarityMap) {
+                // 🧪 Defensive check: ensure similarityMap[key] is an array
+                const group = Array.from(new Set([key, ...(similarityMap[key] || [])]));
+                const groupSize = group.length;
+
+                // 🧪 Check if group meets minimum size requirement
+                if (groupSize > dominantGroup.length) {
+                    dominantGroup = group;
+                }
+            }
+
+            logDebug(2, `🧠 Primary dominant group size: ${dominantGroup.length}`);
+
+
+        } else if (galleryEnableSmartGrouping && images && images.length > MAX_GROUPING_CANDIDATES) {
+            logDebug(1, `⚠️ Smart grouping skipped: too many candidates (${images.length} > ${MAX_GROUPING_CANDIDATES}). Using all detected images.`);
+            dominantGroup = [...images];
+
+        } else {
+            logDebug(2, '🚀 Smart grouping disabled. Using all detected images.');
+            dominantGroup = [...images];
         }
-    } else if (galleryEnableSmartGrouping && images.length > MAX_GROUPING_CANDIDATES) {
-        logDebug(1, `⚠️ Smart grouping skipped: too many candidates (${images.length} > ${MAX_GROUPING_CANDIDATES}). Using all detected images.`);
-        dominantGroup = [...images];
-
-    } else {
-        logDebug(2, '🚀 Smart grouping disabled. Using all detected images.');
-        dominantGroup = [...images];
-    }
-
-    try{
 
         // 🧪 Check if galleryMinGroupSize is defined
         if (typeof galleryMinGroupSize === "undefined") {
@@ -1703,404 +1901,199 @@ async function handleExtractLinkedGallery(message, sendResponse) {
         }
 
         // 🧪 Check if dominant group is valid
-        if (dominantGroup.length < galleryMinGroupSize) {
-            logDebug(1, `⚠️ Group too small (${dominantGroup.length} < ${galleryMinGroupSize})`);
+        if (!dominantGroup || !Array.isArray(dominantGroup)) {
+            logDebug(1, '❌ Error: dominantGroup is not a valid array.');
+            if (!didTimingEnd) { logTimingEnd(timing); didTimingEnd = true; }
+            respondOnce({ success: false, error: 'No valid group by similarity' });
+            return;
+        }
 
-            // 🛟 Fallback to path similarity level (30% threshold)
+        // 🧪 Final validation: ensure group meets minimum size
+        if (dominantGroup.length < galleryMinGroupSize) {
+            logDebug(1, `⚠️ Dominant group too small: ${dominantGroup.length} < ${galleryMinGroupSize}`);
+
+            // 🧪 Check if fallback is enabled
             if (!galleryEnableFallback) {
-                logDebug(1, '⛔ Fallback disabled. Aborting.');
-                logDebug(3, '--------------------------------------------------');
-                respondSafe(sendResponse, { success: false, error: 'Group too small and fallback disabled' });
+                logDebug(1, '🚫 Similarity fallback disabled. Aborting.');
+                if (!didTimingEnd) { logTimingEnd(timing); didTimingEnd = true; }
+                
+                // 🔔 UX: user must know the flow stopped
+                if (message && message.toastTabId) {
+                    sendUserToastToTab(
+                        message.toastTabId,
+                        `❌ Stopped: dominant group too small (${dominantGroup.length} < ${galleryMinGroupSize}) and fallback is disabled.`,
+                        "error"
+                    );
+                }
+
+                respondOnce({ success: false, error: 'Group too small and fallback disabled' });
                 return;
             }
 
             // 🛟 Retry with fallback threshold
-            const fallbackThreshold = Math.max(gallerySimilarityLevel - 10, 30);
-            logDebug(3, `🛟 Retrying with fallback threshold: ${fallbackThreshold}%`);
-
-            const fallbackMap = {};
-            // 🧪 Calculate path similarity for fallback grouping
-            for (let i = 0; i < images.length; i++) {
-                for (let j = i + 1; j < images.length; j++) {
-                    const similarity = calculatePathSimilarity(images[i], images[j]);
-                    if (similarity >= fallbackThreshold) {
-                        if (!fallbackMap[images[i]]) fallbackMap[images[i]] = [];
-                        fallbackMap[images[i]].push(images[j]);
-                    }
-                }
+            const fallbackThreshold = Math.max((gallerySimilarityLevel || 70) - 10, 30);
+            logDebug(1, `🛟 Retrying dominant group detection with fallback threshold: ${fallbackThreshold}%`);
+            
+            // 🔔 UX: inform user we are applying fallback grouping
+            if (message && message.toastTabId) {
+                sendUserToastToTab(message.toastTabId, `🛟 Grouping fallback applied (${fallbackThreshold}%). Continuing...`, "info");
             }
 
             dominantGroup = [];
-            // 🧪 Identify dominant group from fallback map
-            for (const [baseImage, group] of Object.entries(fallbackMap)) {
-                const groupCandidate = [baseImage, ...group];
-                if (groupCandidate.length > dominantGroup.length) {
-                    dominantGroup = groupCandidate;
+
+            // 🧠 Rebuild similarity map with fallback threshold
+            for (const key in similarityMap) {
+                const group = [key, ...(similarityMap[key] || [])];
+                const groupSize = group.length;
+                if (groupSize >= galleryMinGroupSize && groupSize > dominantGroup.length) {
+                    dominantGroup = group;
                 }
             }
 
-            // 🧪 Log fallback group
+            // 🧪 Final check on fallback group
             if (dominantGroup.length < galleryMinGroupSize) {
-                logDebug(1, '❌ Fallback failed. Group still too small.');
-                logDebug(3, '--------------------------------------------------');
-                respondSafe(sendResponse, { success: false, error: 'Fallback group too small' });
+                logDebug(1, `❌ Fallback group still too small: ${dominantGroup.length} < ${galleryMinGroupSize}`);
+                if (!didTimingEnd) { logTimingEnd(timing); didTimingEnd = true; }
+                respondOnce({ success: false, error: 'Fallback group too small' });
                 return;
-            } else {
-                logDebug(1, `✅ Fallback group accepted. Size: ${dominantGroup.length}`);
             }
+
+            logDebug(1, `✅ Fallback dominant group accepted: ${dominantGroup.length} images`);
         }
-    }catch (error) {
-        logDebug(1, `⚠️ Error during group size validation: ${error.message}`);
-        logDebug(2, `🐛 Stacktrace: ${error.stack}`);
-        logDebug(3, '--------------------------------------------------');
-        respondSafe(sendResponse, { success: false, error: 'Error during group size validation' });
-        return;
-    }
 
-    // 🧪 Filter out invalid images from the dominant group
-    if (!dominantGroup.length) {
-        logDebug(2, '⚠️ No valid similarity group found. Skipping.');
-        logDebug(3, '--------------------------------------------------');
-        respondSafe(sendResponse, { success: false, error: 'No valid group by similarity' });
-        return;
-    }
-
-    // 🧪 Filter out duplicates from the dominant group
-    if (!Array.isArray(images) || images.length === 0 || !totalImages) {
-        logDebug(2, '⚠️ No images provided for extraction.');
-        logDebug(3, '--------------------------------------------------');
-        logDebug(3, '');
-        respondSafe(sendResponse, { success: false, error: 'No images to extract' });
-        return;
-    }
-
-    updateBadge(0);
-    let imagesProcessed = 0;
-    const parsedDelayLimit = parseInt(message.options?.galleryMaxImages);
-
-    const delay = (parsedDelayLimit >= 1 && parsedDelayLimit <= 10)
-        ? 1000 / parsedDelayLimit
-        : 1000 / galleryMaxImages;
-
-    logDebug(2, `⏱️ Gallery download delay calculated: ${Math.round(delay)} ms per image`);
-    logDebug(3, '--------------------------------------------------');
-    logDebug(3, '');
-
-    /**
-     * * 🧠 Update badge with current progress
-     * * @param {number} count - Number of images processed
-     * * @param {boolean} isFinal - If true, set badge to blue
-     * * @returns {void}
-     */
-    function onGalleryProgress() {
-        imagesProcessed++;
-        updateBadge(imagesProcessed);
-        logDebug(2, `🔄 Progress: ${imagesProcessed} of ${totalImages}`);
-        logDebug(3, '');
-
-        if (imagesProcessed === totalImages) {
-            updateBadge(imagesProcessed, true);
-            logDebug(1, '✅ END: All gallery images processed.');
-            logDebug(3, '--------------------------------------------------');
-            logDebug(3, '');
+        // 🧪 Edge case: no images
+        if (!Array.isArray(images) || images.length === 0) {
+            logDebug(1, '⚠️ No images received for Extract Linked Gallery.');
+            if (!didTimingEnd) { logTimingEnd(timing); didTimingEnd = true; }
+            respondOnce({ success: false, error: 'No images to extract' });
+            return;
         }
-    }
 
-    // 🧠 Download concurrency queue (respects downloadLimit)
-    let activeDownloads = 0;
-    const downloadQueue = [];
+        // ✅ Badge start
+        updateBadge(0, false);
 
-    // 🧠 Enqueue download tasks
-    async function enqueueDownload(task) {
-        return new Promise(resolve => {
-            downloadQueue.push(() => task().then(resolve));
-            processDownloadQueue();
-        });
-    }
+        // ✅ Rate limiting / delay
+        // ✅ galleryMaxImages is treated as "images per second" (rate). Convert to ms delay.
+        const rate = Math.max(0, parseInt(galleryMaxImages || 0, 10));
+        const delay = (rate > 0) ? Math.round(1000 / rate) : 0;
 
-    // 20250621 Smid - Not working - replaced by processImagesSequentially(...)
-    // chrome.tabs.create is not optimized with Index
-    // 🧠 Process images in batches with controlled concurrency
-    async function openTabsInBatches(imageUrls, limit, onProgress) {
+        // 🧠 Progress tracking
+        let processedCount = 0;
 
-        let index = 0;
-        const total = imageUrls.length;
+        function onGalleryProgress() {
+            processedCount++;
+            if (processedCount >= (totalImages || dominantGroup.length)) {
+                logDebug(2, `✅ END: All gallery images processed.`);
+                logDebug(3, '--------------------------------------------------');
+                logDebug(3, '');
 
-        async function worker() {
-            while (index < total) {
-                const currentIndex = index++;
-                const url = imageUrls[currentIndex];
-
-                try {
-                    await new Promise((resolve) => {
-                        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                            const activeTab = tabs[0];
-                            const insertionIndex = activeTab ? activeTab.index + currentIndex + 1 : undefined;
-
-                            const createProperties = { url, active: false };
-                            if (typeof insertionIndex === 'number') {
-                                createProperties.index = insertionIndex;
-                            }
-
-                            chrome.tabs.create(createProperties, () => {
-                                logDebug(2, `🆕 Tab opened at index ${createProperties.index ?? 'default'} | URL: ${url}`);
-                                onProgress();
-                                resolve();
-                            });
-                        });
-                    });
-                } catch (err) {
-                    logDebug(1, `[Mass image downloader]: ❌ Failed to open tab: ${url} | ${err.message}`);
-                }
+                updateBadge(processedCount, true); // 🔵 final badge
             }
         }
 
-        const workers = [];
-        for (let i = 0; i < limit; i++) {
-            workers.push(worker());
-        }
-
-        await Promise.all(workers);
-    }
-
-    /**
-     * * 🧠 Process the download queue
-     */
-    function processDownloadQueue() {
-        while (activeDownloads < downloadLimit && downloadQueue.length > 0) {
-            const next = downloadQueue.shift();
-            activeDownloads++;
-            next().finally(() => {
-                activeDownloads--;
-                processDownloadQueue();
+        // 🧠 Enqueue download tasks
+        async function enqueueDownload(task) {
+            return new Promise((resolve) => {
+                downloadQueue.push(async () => {
+                    activeDownloads++;
+                    try {
+                        await task();
+                    } finally {
+                        activeDownloads--;
+                        resolve();
+                    }
+                });
             });
         }
-    }
 
-    // 🧠 Sequential processor with rate limiting
-    async function processImagesSequentially(images, delayMs) {
+        // 🧠 Run queue respecting downloadLimit
+        async function processQueue() {
+            // ✅ Respect global downloadLimit setting (clamped 1..4)
+            const effectiveLimit = Math.max(1, Math.min(4, parseInt(downloadLimit || 1, 10)));
 
-        // ✅ One-time capture of the initial tab index
-        let baseTabIndex = 0;
-        let imagesOpened = 0;
-
-        try {
-            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-            if (tabs.length > 0 && typeof tabs[0].index === 'number') {
-                baseTabIndex = tabs[0].index;
-                logDebug(2, `🧭 Initial tab index captured: ${baseTabIndex}`);
-            } else {
-                logDebug(1, `⚠️ Could not determine initial tab index. Defaulting to 0`);
+            while (downloadQueue.length > 0 || activeDownloads > 0) {
+                while (downloadQueue.length > 0 && activeDownloads < effectiveLimit) {
+                    const next = downloadQueue.shift();
+                    if (next) next();
+                }
+                await sleep(50);
             }
-        } catch (tabErr) {
-            logDebug(1, `❌ Failed to retrieve initial tab index: ${tabErr.message}`);
         }
 
-        // ✅ Process each image URL in the gallery
-        for (let i = 0; i < images.length; i++) {
-            const imageUrl = images[i];
 
-            await new Promise(resolve => setTimeout(resolve, delayMs)); // 🕒 Delay between each image
-
-            try {
-                logDebug(3, '--------------------------------------------------');
-                logDebug(2, `🔍 BEGIN: Processing gallery image index ${i}`);
-                logDebug(2, `📷 Is a direct image URL?: ${imageUrl}`);
-
-                // ✅ Step 1: Validate direct image URL
-                // 🧪 Validate that the URL is a string
-                if (typeof imageUrl !== 'string') {
-                    logDebug(1, `⛔ Skipped (image URL is not a string): ${imageUrl}`);
-                    logDebug(3, '--------------------------------------------------');
-                    logDebug(3, '');
-                    onGalleryProgress();
-                    continue;
-                }
-
-                // 🔍 Check if it is a direct image with allowed format
-                const isDirect = await isDirectImageUrl(imageUrl);
-
-                if (!isDirect) {
-                    logDebug(1, '⛔ Skipped (not a valid direct image or disallowed format).');
-                    logDebug(3, '--------------------------------------------------');
-                    logDebug(3, '');
-                    onGalleryProgress();
-                    continue;
-                }
-
-                // ✅ Step 2: Validate allowed image format
-                const isAllowed = await isAllowedImageFormat(imageUrl);
-                if (!isAllowed) {
-                    logDebug(1, '⛔ Disallowed image format (skipped).');
-                    logDebug(3, '--------------------------------------------------');
-                    logDebug(3, '');
-                    onGalleryProgress();
-                    continue;
-                }
-
-                // ✅ Step 3: Extract gallery mode (tab or immediate)
-                let mode = (typeof extractGalleryMode === 'string')
-                ? extractGalleryMode.trim().toLowerCase()
-                : 'tab';
-
-                if (mode === 'tab') {
-                    logDebug(1, '🔗 Mode is set to "tab". Opening image in new tab...');
-                    logDebug(2, `🔗 URL: ${imageUrl}`);
-
-                    // ✅ Use fixed base index captured once
-                    const targetIndex = baseTabIndex + imagesOpened;
-
-                    // ✅ Open image in new tab 
-                    chrome.tabs.create({ url: imageUrl, active: false, index: targetIndex }, () => {
-                        // ✅ Notifies gallery progress
-                        onGalleryProgress(); 
-                        logDebug(1, '🔚 END: Image opened in tab.');
-                        logDebug(2, `📍 Tab opened at index: ${targetIndex}`);
-                        logDebug(3, '--------------------------------------------------');
-                    });
-                    imagesOpened++;
-                    continue;
-                }
-
-
-                // ✅ Step 4: Extract file name and extension robustly
-                let fileName = 'image';
-                let extension = '';
+        // 🧠 Main loop
+        async function processImagesSequentially(urls, delayMs) {
+            for (let i = 0; i < urls.length; i++) {
                 try {
-                    // Trim any trailing slashes so "/photo.jpg/" becomes "/photo.jpg"
-                    const rawPath = new URL(imageUrl).pathname.replace(/\/+$/g, "");
-                    // The segment after the last "/" is our raw name
-                    const rawName = rawPath.split('/').pop() || '';
-
-                    if (rawName.includes('.')) {
-                        const lastDot = rawName.lastIndexOf('.');
-                        fileName = rawName.slice(0, lastDot);
-                        extension = rawName.slice(lastDot);
-                    } else if (rawName) {
-                        // No dot but a valid name
-                        fileName = rawName;
+                    const imgUrl = urls[i];
+                    if (!imgUrl) {
+                        onGalleryProgress();
+                        continue;
                     }
-                } catch (err) {
-                    logDebug(1, `❌ Error extracting filename: ${err.message}`);
-                }
 
-                // ✅ Step 5: Generate final path (wait settings+config, then normalize folder)
-                // Wait for BOTH: storage-backed folder and utils/configCache-based naming
-                await Promise.all([settingsReady, configReady]);
+                    // Respect delay between launches (if configured)
+                    if (delayMs > 0) await sleep(delayMs);
 
-                // Generate final filename after settings/config are ready
-                const finalName = await generateFilename(fileName, extension);
-
-                // Normalize custom folder and avoid leading/trailing slashes
-                const safeFolder = (downloadFolder === 'custom' && typeof customFolderPath === 'string')
-                    ? customFolderPath
-                        .trim()
-                        .replace(/\\/g, '/')
-                        .replace(/^\/+|\/+$/g, '') // strip both ends
-                    : '';
-
-                const finalPath = safeFolder ? `${safeFolder}/${finalName}` : finalName;
-                logDebug(2, `📁 Final name/path: ${finalPath}`);
-
-                // ✅ Step 6: Download image using controlled queue
-                if (mode === 'immediate') {
                     await enqueueDownload(async () => {
-                        logDebug(3, '--------------------------------------------------');
-                        logDebug(2, `📥 BEGIN: Download process for image index ${i}`);
-
                         try {
-                            // ✅ Attempt early size validation using HEAD
-                            let skipDownload = false;
-                            try {
-                                const headResp = await fetch(imageUrl, { method: 'HEAD' });
-                                const contentLength = parseInt(headResp.headers.get('Content-Length'), 10);
-                                if (!isNaN(contentLength) && contentLength < 20000) {
-                                    logDebug(2, `⛔ Skipped: File too small by header (${contentLength} bytes)`);
-                                    skipDownload = true;
-                                }
-                            } catch (headError) {
-                                logDebug(2, `⚠️ HEAD request failed: ${headError.message}`);
-                            }
-
-                            if (skipDownload) {
-                                logDebug(1, '🔚 END: Skipped by HEAD check');
-                                logDebug(3, '--------------------------------------------------');
-                                logDebug(3, '');
-                                onGalleryProgress();
-                                return;
-                            }
-
-                            // ✅ Fallback: Full size validation with bitmap
-                            const response = await fetch(imageUrl);
-                            const blob = await response.blob();
-                            const bitmap = await createImageBitmap(blob);
-
-                            if (bitmap.width < minWidth || bitmap.height < minHeight) {
-                                logDebug(2, `⛔ Skipped (too small): (${bitmap.width}x${bitmap.height})`);
-                                logDebug(1, '🔚 END: Skipped image index');
-                                logDebug(3, '--------------------------------------------------');
-                                logDebug(3, '');
-                                onGalleryProgress();
-                                return;
-                            }
-
-                            // 🔒 Register desired filename so the onDeterminingFilename listener can enforce it
-                            pendingDownloadPaths.set(imageUrl, finalPath);
-
-                            // ✅ Begin download (listener will enforce finalPath regardless of server headers)
-                            await new Promise(resolve => {
-                                chrome.downloads.download({
-                                    url: imageUrl,
-                                    filename: finalPath,           // still passed; listener enforces it
-                                    conflictAction: 'uniquify'
-                                }, (downloadId) => {
-                                    if (downloadId) {
-                                        logDebug(1, `💾 Downloaded: ${finalName}`);
-                                    } else {
-                                        logDebug(1, '❌ Download failed.');
-                                        // Cleanup the map on failure
-                                        pendingDownloadPaths.delete(imageUrl);
-                                    }
-
-                                    logDebug(2, `🔚 END: Download process for image index ${i}`);
-                                    logDebug(3, '--------------------------------------------------');
-                                    logDebug(3, '');
-
-                                    onGalleryProgress();
-                                    resolve();
-                                });
-                            });
+                            await downloadImageFromUrl(imgUrl, "linkedGallery");
                         } catch (err) {
-                            logDebug(1, `❌ Error downloading image index: ${err.message}`);
-                            logDebug(2, `🐛 Stacktrace: ${err.stack}`);
-                            logDebug(2, '🔚 END: Download process for image index.');
-                            logDebug(3, '--------------------------------------------------');
-                            logDebug(3, '');
+                            logDebug(1, `⚠️ Download task failed: ${err.message}`);
+                        } finally {
                             onGalleryProgress();
                         }
                     });
-                }
 
-            } catch (error) {
-                logDebug(1, `⚠️ Error processing image index: ${error.message}`);
-                logDebug(2, `🐛 Stacktrace: ${error.stack}`);
-                logDebug(2, '🔚 END: Image index.');
-                logDebug(3, '--------------------------------------------------');
-                logDebug(3, '');
-                onGalleryProgress();
+                } catch (error) {
+                    logDebug(1, `⚠️ Error processing image index: ${error.message}`);
+                    logDebug(2, `🐛 Stacktrace: ${error.stack}`);
+                    logDebug(2, '🔚 END: Image index.');
+                    logDebug(3, '--------------------------------------------------');
+                    logDebug(3, '');
+                    onGalleryProgress();
+                }
             }
+
+            await processQueue();
+        }
+
+        // 🧠 Start processing
+        await processImagesSequentially(dominantGroup, delay);
+
+        // ✅ Success response (completionResponder in the caller will translate to toast)
+        respondOnce({ success: true });
+
+    } catch (e) {
+        const errMsg = (e && e.message) ? e.message : String(e);
+        logDebug(1, `❌ Extract Linked Gallery unexpected failure: ${errMsg}`);
+        logDebug(2, `🐛 Stacktrace: ${(e && e.stack) ? e.stack : "n/a"}`);
+        respondOnce({ success: false, error: errMsg });
+
+    } finally {
+        // 🧹 Defensive cleanup: release references to reduce memory pressure (MV3 SW longevity)
+        try {
+            if (Array.isArray(dominantGroup)) dominantGroup.length = 0;
+            if (Array.isArray(downloadQueue)) downloadQueue.length = 0;
+            activeDownloads = 0;
+
+            if (message && Array.isArray(message.images)) message.images.length = 0;
+
+            logDebug(2, "🧹 Memory cleanup: dominantGroup/downloadQueue/message.images cleared");
+        } catch (cleanupErr) {
+            logDebug(3, `⚠️ Linked Gallery cleanup warning: ${cleanupErr.message}`);
+        }
+
+        // 🕒 End timing metric (defensive: avoid double-end)
+        try {
+            if (!didTimingEnd) {
+                logTimingEnd(timing);
+                didTimingEnd = true;
+            }
+        } catch (timingErr) {
+            logDebug(3, `⚠️ Timing end warning: ${timingErr.message}`);
         }
     }
-	
-    // 🧠 Start new optimized loop
-    await processImagesSequentially(dominantGroup, delay);
-
-    //  🕒 End timing metric
-    logTimingEnd(timing);
-
-    respondSafe(sendResponse, { success: true });
 }
-
 
 /*
  * 🌄 Handle Extract images from galleries (without links)

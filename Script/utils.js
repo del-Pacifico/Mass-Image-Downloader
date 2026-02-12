@@ -17,6 +17,8 @@
         allowWEBP: true,
         allowAVIF: false, // Default to false for compatibility
         allowBMP: false, // Default to false for compatibility
+        minWidth: 800,
+        minHeight: 600,
         filenameMode: "none",
         prefix: "",
         suffix: ""
@@ -26,6 +28,7 @@
         return new Promise((resolve) => {
             chrome.storage.sync.get([
                 "debugLogLevel", "showUserFeedbackMessages",
+                "minWidth", "minHeight",
                 "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", 
                 "filenameMode", "prefix", "suffix", "downloadFolder", "customFolderPath",
                 "allowExtendedImageUrls" // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
@@ -44,6 +47,8 @@
                 configCache.suffix = data.suffix ?? "";
                 configCache.downloadFolder = data.downloadFolder ?? "default";
                 configCache.customFolderPath = data.customFolderPath ?? "";
+                configCache.minWidth = parseInt(data.minWidth ?? 800);
+                configCache.minHeight = parseInt(data.minHeight ?? 600);
                 resolve();
             });
         });
@@ -57,26 +62,47 @@
     // 🧠 Listen to live updates to keep configCache in sync with changes from clipboardHotkeys.js
     if (chrome?.storage?.onChanged) {
         chrome.storage.onChanged.addListener((changes) => {
+            
+            // if prefix changed, update cache and log
             if (changes.prefix) {
                 configCache.prefix = changes.prefix.newValue ?? '';
                 logDebug(2, `🔄 Prefix updated in cache: "${configCache.prefix}"`);
             }
+
+            // if suffix changed, update cache and log
             if (changes.suffix) {
                 configCache.suffix = changes.suffix.newValue ?? '';
                 logDebug(2, `🔄 Suffix updated in cache: "${configCache.suffix}"`);
             }
 
+            // if filenameMode changed, update cache and log
             if (changes.filenameMode) {
                 // 🛠️ Patch: sync filenameMode so generateFilename sees new mode immediately
                 configCache.filenameMode = changes.filenameMode.newValue ?? 'none';
                 logDebug(2, `🔄 Filename mode updated in cache: "${configCache.filenameMode}"`);
             }
 
+            // if allowExtendedImageUrls changed, update cache and log
             if (changes.debugLogLevel) {
                 const oldLevel = configCache.debugLogLevel;
                 configCache.debugLogLevel = parseInt(changes.debugLogLevel.newValue ?? 1);
                 logDebug(1, `🪵 Debug level changed: ${oldLevel} → ${configCache.debugLogLevel}`);
             }
+
+            // if allowExtendedImageUrls changed, update cache and log
+            if (changes.minWidth) {
+                const oldValue = configCache.minWidth;
+                configCache.minWidth = parseInt(changes.minWidth.newValue ?? 800);
+                logDebug(2, `🔄 Min width updated in cache: ${oldValue} → ${configCache.minWidth}`);
+            }
+
+            // if allowExtendedImageUrls changed, update cache and log
+            if (changes.minHeight) {
+                const oldValue = configCache.minHeight;
+                configCache.minHeight = parseInt(changes.minHeight.newValue ?? 600);
+                logDebug(2, `🔄 Min height updated in cache: ${oldValue} → ${configCache.minHeight}`);
+            }
+
         });
     }
 

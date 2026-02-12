@@ -162,6 +162,27 @@
             logDebug(2, '❌ Stacktrace:', err.stack);
         }
     }
+
+    /**
+     * Receives toast requests from background.js and displays them in-page.
+     * MV3 service workers have no DOM, so user feedback must be rendered from a content script.
+     */
+    chrome.runtime.onMessage.addListener((message) => {
+        try {
+            if (!message || typeof message !== "object") return;
+            if (message.action !== "mdiUserToast") return;
+
+            const text = (typeof message.text === "string") ? message.text : "";
+            const type = (typeof message.type === "string") ? message.type : "info";
+
+            if (!text) return;
+
+            showUserMessage(text, type);
+        } catch (err) {
+            logDebug(1, "❌ mdiUserToast handler failed:", err.message);
+            logDebug(2, "🐛 Stacktrace:", err.stack);
+        }
+    });
     
     /**
      * Removes invalid characters from filename components.
