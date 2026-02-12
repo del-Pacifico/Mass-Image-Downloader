@@ -38,8 +38,9 @@ if (!window.__mdi_settingsPeekInjected) {
         return new Promise((resolve) => {
             try {
                 chrome.storage.sync.get(null, (data) => {
+                    // Check for runtime error
                     if (chrome.runtime.lastError) {
-                        console.log("[Mass image downloader]: ❌ Failed to load config:", chrome.runtime.lastError.message);
+                        logDebug(1, `❌ Failed to load config: ${chrome.runtime.lastError.message}`);
                         return resolve();
                     }
 
@@ -49,7 +50,7 @@ if (!window.__mdi_settingsPeekInjected) {
                     resolve();
                 });
             } catch (err) {
-                console.log("[Mass image downloader]: ❌ Exception loading config:", err.message);
+                logDebug(1, `❌ Exception loading config: ${err.message}`);
                 resolve();
             }
         });
@@ -59,19 +60,81 @@ if (!window.__mdi_settingsPeekInjected) {
      * Registers message listener after config initialized
      */
     function registerMessageListener() {
+        // Listen for messages from background or popup scripts
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             try {
+                // Handle "open-peek-overlay" action
                 if (message?.action === "open-peek-overlay") {
                     logDebug(1, "📨 Message received: open-peek-overlay");
-                    injectPeekPanel();
+                    togglePeekPanel();
                 }
             } catch (err) {
-                console.log("[Mass image downloader]: ❌ Failed to handle message in settingsPeek.js:", err.message);
+                logDebug(1, `❌ Failed to handle message in settingsPeek.js: ${err.message}`);
+                logDebug(2, `🐛 Stack trace: ${err.stack}`);
             }
         });
 
         logDebug(1, "🧭 Message listener registered.");
     }
+
+    // ⌨️ Hotkey: Toggle Settings Peek panel (Alt + Shift + S)
+    document.addEventListener("keydown", (e) => {
+        try {
+            const target = e.target;
+
+            // Ignore hotkey while typing in input/textarea/contenteditable
+            const isTypingContext =
+                target &&
+                (target.tagName === "INPUT" ||
+                target.tagName === "TEXTAREA" ||
+                target.isContentEditable);
+
+            // If typing, ignore hotkey
+            if (isTypingContext) return;
+
+            const key = String(e.key || "").toLowerCase();
+
+            // Check for Alt + Shift + S
+            if (e.altKey && e.shiftKey && key === "s") {
+                e.preventDefault();
+                e.stopPropagation();
+
+                logDebug(1, "⌨️ Hotkey triggered: View Settings (Peek) (Alt+Shift+S)");
+
+                // Reuse the existing entry point
+                togglePeekPanel();
+            }
+        } catch (err) {
+            logDebug(1, `❌ Peek hotkey handler failed: ${err.message}`);
+            logDebug(2, `🐛 Stack trace: ${err.stack}`);
+        }
+    }, true);
+
+    /**
+     * Toggles the Peek panel on/off.
+     * If the panel already exists, it will be removed.
+     * Otherwise, it will be injected.
+     */
+    function togglePeekPanel() {
+        try {
+            const existing = document.getElementById("__mdi_peekOverlay");
+            // If panel exists, remove it
+            if (existing) {
+                existing.remove();
+                logDebug(1, "✅ Peek panel closed (toggle).");
+                return;
+            }
+
+            // Otherwise, inject it
+            injectPeekPanel();
+            logDebug(1, "✅ Peek panel opened (toggle).");
+
+        } catch (err) {
+            logDebug(1, `❌ Failed to toggle Peek panel: ${err.message}`);
+            logDebug(2, `🐛 Stack trace: ${err.stack}`);
+        }
+    }
+
 
     /**
      * Injects the peek panel overlay if it is not already present
@@ -149,7 +212,8 @@ if (!window.__mdi_settingsPeekInjected) {
             document.addEventListener("keydown", escKeyHandler);
             logDebug(1, "🪟 Peek overlay injected into page.");
         } catch (err) {
-            console.log("[Mass image downloader]: ❌ Error injecting peek overlay:", err.message);
+            logDebug(1, `❌ Error injecting peek overlay: ${err.message}`);
+            logDebug(2, `🐛 Stack trace: ${err.stack}`);
         }
     }
 
@@ -165,7 +229,8 @@ if (!window.__mdi_settingsPeekInjected) {
             }
             document.removeEventListener("keydown", escKeyHandler);
         } catch (err) {
-            console.log("[Mass image downloader]: ❌ Failed to remove overlay:", err.message);
+            logDebug(1, `❌ Failed to remove overlay: ${err.message}`);
+            logDebug(2, `🐛 Stack trace: ${err.stack}`);
         }
     }
 
@@ -179,7 +244,8 @@ if (!window.__mdi_settingsPeekInjected) {
                 removePeekPanel();
             }
         } catch (err) {
-            console.log("[Mass image downloader]: ❌ Escape key handler error:", err.message);
+            logDebug(1, `❌ Escape key handler error: ${err.message}`);
+            logDebug(2, `🐛 Stack trace: ${err.stack}`);
         }
     }
 
