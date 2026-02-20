@@ -576,11 +576,20 @@ function sendUserToastToTab(tabId, text, type = "info") {
         }
 
         // Fire-and-forget message (no response expected)
-        chrome.tabs.sendMessage(tabId, {
-            action: "mdiUserToast",
-            text,
-            type
-        });
+        chrome.tabs.sendMessage(
+            tabId,
+            {
+                action: "mdiUserToast",
+                text,
+                type
+            },
+            () => {
+                // ✅ MV3: prevent "Receiving end does not exist" from surfacing as an uncaught error
+                if (chrome.runtime.lastError) {
+                    logDebug(2, `⚠️ Toast send skipped: ${chrome.runtime.lastError.message}`);
+                }
+            }
+        );
     } catch (err) {
         logDebug(2, `⚠️ sendUserToastToTab failed: ${err.message}`);
     }
@@ -706,34 +715,73 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
         // ✅ Handle gallery extraction (visual detection)
         // Flow: 3 - Extract images from galleries (without links)
-        if (message.action === 'extractVisualGallery') {
-            logDebug(2, '🖼️ BEGIN: Extract Visual Gallery flow started.');
-            
+        if (message.action === "extractVisualGallery") {
+            logDebug(2, "🖼️ BEGIN: Extract Visual Gallery flow started.");
+
             // Show processing indicator before starting analysis
             setBadgeProcessing();
 
             try {
-                if (!message.payload || typeof message.payload !== 'object') {
-                    throw new Error('Payload is missing or not an object');
-                }
-                if (!message.payload.options || typeof message.payload.options !== 'object') {
-                    throw new Error('Missing or invalid options in payload');
-                }
-                if (!message.payload.baseUrl || typeof message.payload.baseUrl !== 'string') {
-                    throw new Error('Missing or invalid baseUrl in payload');
-                }
-                const tabId = sender.tab?.id;
-                if (!tabId) throw new Error('Invalid sender tab ID');
+                // ✅ Accept both message formats:
+                // - Legacy/content: { action, images: [...] }
+                // - Payload style:  { action, payload: { images: [...] } }
+                const request = (message && typeof message.payload === "object" && message.payload)
+                    ? message.payload
+                    : message;
 
-                handleExtractVisualGallery(message.payload, sendResponse);
+                const tabId = sender?.tab?.id;
+                const isTabOrigin = (typeof tabId === "number");
+
+                const candidateCount = Array.isArray(request.images) ? request.images.length : 0;
+
+                // ✅ MV3 hotkey/tab origin: ACK immediately to avoid "message port closed" warnings
+                if (isTabOrigin) {
+                    respondSafe(sendResponse, { success: true, ack: true });
+
+                    // ✅ Minimal UX feedback (standardization comes in next phase)
+                    sendUserToastToTab(tabId, `MID: Gallery (visual / no links) started. Scanning page...`, "info");
+                    if (candidateCount > 0) {
+                        sendUserToastToTab(tabId, `MID: Gallery (visual / no links): found ${candidateCount} image(s). Downloading...`, "info");
+                    }
+
+                    Promise.resolve()
+                        .then(() => handleExtractVisualGallery(request, (payload) => {
+                            const ok = !!(payload && payload.success);
+                            const n = (payload && typeof payload.downloads === "number") ? payload.downloads : 0;
+
+                            if (ok) {
+                                sendUserToastToTab(tabId, `MID: Gallery (visual / no links): completed. Downloaded: ${n} image(s).`, "success");
+                            } else {
+                                const errText = (payload && payload.error) ? payload.error : "Unknown error";
+                                sendUserToastToTab(tabId, `MID: Gallery (visual / no links): failed. ${errText}`, "error");
+                            }
+                        }))
+                        .catch((err) => {
+                            const errMsg = (err && err.message) ? err.message : String(err);
+                            logDebug(1, `❌ Visual Gallery async failure: ${errMsg}`);
+                            sendUserToastToTab(tabId, `MID: Gallery (visual / no links): failed. ${errMsg}`, "error");
+                        });
+
+                    return false; // ✅ Already ACKed synchronously
+                }
+
+                // ✅ Popup/extension origin: keep async response behavior
+                Promise.resolve()
+                    .then(() => handleExtractVisualGallery(request, sendResponse))
+                    .catch((err) => {
+                        const errMsg = (err && err.message) ? err.message : String(err);
+                        logDebug(1, `❌ Error in Visual Gallery flow (popup origin): ${errMsg}`);
+                        respondSafe(sendResponse, { success: false, error: errMsg });
+                    });
+
                 return true;
 
             } catch (e) {
-                logDebug(1, '❌ Critical error before processing extractVisualGallery: ' + e.message);
-                logDebug(1, '🐛 Stacktrace: ', e.stack);
+                logDebug(1, `❌ Critical error before processing extractVisualGallery: ${e.message}`);
+                logDebug(2, `🐛 Stacktrace: ${(e && e.stack) ? e.stack : "n/a"}`);
                 respondSafe(sendResponse, { success: false, error: e.message });
+                return true;
             }
-            return true;
         }
 
         // ✅ Inject Web-Linked Gallery extractor (triggered via Alt+Shift+W content hotkey)
@@ -1780,6 +1828,121 @@ async function processValidTabs(validTabs, onComplete, validatedUrls, resetBadge
 }
 
 /**
+ * ✅ Download a single image URL using the same naming + filename enforcement strategy
+ * used across the extension (pendingDownloadPaths + onDeterminingFilename).
+ * @param {string} imageUrl - The image URL to download
+ * @param {string} sourceTag - Optional source label for logging context
+ * @returns {Promise<number>} Resolves with downloadId
+ */
+async function downloadImageFromUrl(imageUrl, sourceTag = "unknown") {
+    // ✅ Basic input validation
+    if (!imageUrl || typeof imageUrl !== "string") {
+        throw new Error("Invalid imageUrl (downloadImageFromUrl).");
+    }
+
+    // ✅ Ensure both settings (folder) and naming rules are ready
+    await Promise.all([settingsReady, configReady]);
+
+    // ✅ Normalize URL if the extension allows extended image suffixes (optional behavior)
+    let urlForDownload = imageUrl;
+    try {
+        const allowExtended = allowExtendedImageUrls ?? false;
+        const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
+        const hasExtendedSuffix = extendedSuffixPattern.test(imageUrl);
+
+        if (allowExtended && hasExtendedSuffix) {
+            urlForDownload = normalizeImageUrl(imageUrl);
+            logDebug(3, `🔵 [${sourceTag}] Extended suffix normalized for download: ${urlForDownload}`);
+        }
+    } catch (e) {
+        logDebug(2, `⚠️ [${sourceTag}] URL normalization warning: ${e.message}`);
+    }
+
+    // ✅ Derive base filename + extension from URL path
+    let baseName = "image";
+    let extension = ".jpg";
+
+    try {
+        const urlObj = new URL(urlForDownload);
+        const parts = urlObj.pathname.split("/");
+        const lastPart = parts.pop() || "image.jpg";
+
+        if (lastPart.includes(".")) {
+            const lastDot = lastPart.lastIndexOf(".");
+            baseName = lastPart.slice(0, lastDot) || "image";
+            extension = lastPart.slice(lastDot) || ".jpg";
+        } else {
+            baseName = lastPart || "image";
+            extension = ".jpg";
+        }
+    } catch (e) {
+        logDebug(2, `⚠️ [${sourceTag}] URL parse warning, using fallback filename: ${e.message}`);
+    }
+
+    // ✅ Generate final filename based on prefix/suffix/timestamp rules
+    const finalName = await generateFilename(baseName, extension);
+
+    // ✅ Build final download path based on folder mode
+    let finalPath;
+    try {
+        const isCustom = (downloadFolder === "custom" && typeof customFolderPath === "string" && customFolderPath.trim());
+        if (isCustom) {
+            const safeFolder = customFolderPath
+                .trim()
+                .replace(/\\/g, "/")
+                .replace(/^\/+|\/+$/g, ""); // strip leading/trailing slashes
+
+            finalPath = safeFolder ? `${safeFolder}/${finalName}` : finalName;
+            logDebug(3, `📁 [${sourceTag}] Using custom folder path: ${finalPath}`);
+        } else {
+            finalPath = finalName;
+            logDebug(3, `📁 [${sourceTag}] Using default download folder`);
+        }
+    } catch (e) {
+        logDebug(1, `❌ [${sourceTag}] Error building download path: ${e.message}`);
+        finalPath = finalName;
+    }
+
+    // 🔒 Register desired path so the onDeterminingFilename listener can enforce it
+    pendingDownloadPaths.set(urlForDownload, finalPath);
+
+    // ⏳ Safety timeout (same spirit as bulk flow)
+    const stallTimeoutMs = 15000;
+
+    return await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+            pendingDownloadPaths.delete(urlForDownload);
+            reject(new Error(`Timeout: download stalled for ${urlForDownload}`));
+        }, stallTimeoutMs);
+
+        chrome.downloads.download({
+            url: urlForDownload,
+            // filename is still passed; listener will enforce it anyway
+            filename: finalPath,
+            conflictAction: "uniquify"
+        }, (downloadId) => {
+            clearTimeout(timeout);
+
+            if (chrome.runtime.lastError) {
+                pendingDownloadPaths.delete(urlForDownload);
+                reject(new Error(chrome.runtime.lastError.message || "chrome.downloads.download failed"));
+                return;
+            }
+
+            if (!downloadId) {
+                pendingDownloadPaths.delete(urlForDownload);
+                reject(new Error("Download failed (no downloadId returned)."));
+                return;
+            }
+
+            logDebug(2, `✅ [${sourceTag}] Download started: ${finalPath}`);
+            resolve(downloadId);
+        });
+    });
+}
+
+
+/**
  * 🌄 Handle Extracting linked gallery images (with direct links)
  * @description This function processes the images extracted from a gallery with direct links. It groups them by path similarity, applies the configured thresholds, and initiates downloads for the dominant group.
  * It also handles the timing metrics and ensures that the response is sent back to the sender appropriately.
@@ -1815,6 +1978,8 @@ async function handleExtractLinkedGallery(message, sendResponse) {
 
     // 🧠 Grouping gallery candidates by path similarity (80% threshold)
     logDebug(2, '🧠 Grouping gallery candidates by path similarity...');
+    logDebug(3, '---------------------------');
+    logDebug(3, '');
 
     const threshold = gallerySimilarityLevel || 80; // Default threshold
     const similarityMap = {};
@@ -1979,9 +2144,16 @@ async function handleExtractLinkedGallery(message, sendResponse) {
 
         // 🧠 Progress tracking
         let processedCount = 0;
-
+        
+        // 🧠 Progress callback to update badge and check for completion
         function onGalleryProgress() {
             processedCount++;
+
+            // ✅ Keep badge incremental during processing (green),
+            // and only paint blue at the real end.
+            updateBadge(processedCount, false);
+
+            // ✅ Check if all images are processed (using totalImages from message if available, otherwise fallback to dominantGroup length)
             if (processedCount >= (totalImages || dominantGroup.length)) {
                 logDebug(2, `✅ END: All gallery images processed.`);
                 logDebug(3, '--------------------------------------------------');
@@ -1992,12 +2164,22 @@ async function handleExtractLinkedGallery(message, sendResponse) {
         }
 
         // 🧠 Enqueue download tasks
-        async function enqueueDownload(task) {
+        // Note: we enqueue all tasks immediately but control execution with activeDownloads and processQueue to respect concurrency limits.
+        // This allows us to maintain a single progress callback (onGalleryProgress) that is called as soon as each download task finishes, regardless of the concurrency level.
+        // This design also simplifies the logic for handling the delay between launches, as we can apply it directly in the task function without needing to manage separate timers for each image.
+        // The downloadQueue is a simple array of async functions that we will execute respecting the concurrency limit defined by downloadLimit.
+        // Each task will call onGalleryProgress() when it finishes, allowing us to update the badge and check for completion in a consistent way.
+        function enqueueDownload(task) {
             return new Promise((resolve) => {
                 downloadQueue.push(async () => {
                     activeDownloads++;
                     try {
                         await task();
+                    } catch (err) {
+                        // ✅ Never block the queue, but do log unexpected task failures
+                        const msg = (err && err.message) ? err.message : String(err);
+                        logDebug(1, `⚠️ Queue task failed: ${msg}`);
+                        logDebug(2, `🐛 Stacktrace: ${(err && err.stack) ? err.stack : "n/a"}`);
                     } finally {
                         activeDownloads--;
                         resolve();
@@ -2007,6 +2189,11 @@ async function handleExtractLinkedGallery(message, sendResponse) {
         }
 
         // 🧠 Run queue respecting downloadLimit
+        // Note: this function will keep running until all tasks are processed and activeDownloads is 0, ensuring that we wait for all downloads to finish before allowing the main flow to complete.
+        // The inner while loop checks if we can start new tasks based on the concurrency limit, and the outer loop ensures we keep checking until everything is done.
+        // The sleep(50) is a small delay to prevent a tight loop that could consume CPU unnecessarily while waiting for downloads to complete or for the queue to have new tasks.
+        // This design allows us to maintain a responsive and efficient processing of the download tasks while respecting the user-configured concurrency limits.
+        // By using a queue and controlling the execution with activeDownloads, we can ensure that we never exceed the allowed number of concurrent downloads, while still processing all tasks in a timely manner.
         async function processQueue() {
             // ✅ Respect global downloadLimit setting (clamped 1..4)
             const effectiveLimit = Math.max(1, Math.min(4, parseInt(downloadLimit || 1, 10)));
@@ -2019,7 +2206,6 @@ async function handleExtractLinkedGallery(message, sendResponse) {
                 await sleep(50);
             }
         }
-
 
         // 🧠 Main loop
         async function processImagesSequentially(urls, delayMs) {
@@ -2034,7 +2220,7 @@ async function handleExtractLinkedGallery(message, sendResponse) {
                     // Respect delay between launches (if configured)
                     if (delayMs > 0) await sleep(delayMs);
 
-                    await enqueueDownload(async () => {
+                    enqueueDownload(async () => {
                         try {
                             await downloadImageFromUrl(imgUrl, "linkedGallery");
                         } catch (err) {
@@ -2043,6 +2229,7 @@ async function handleExtractLinkedGallery(message, sendResponse) {
                             onGalleryProgress();
                         }
                     });
+
 
                 } catch (error) {
                     logDebug(1, `⚠️ Error processing image index: ${error.message}`);
@@ -2054,8 +2241,14 @@ async function handleExtractLinkedGallery(message, sendResponse) {
                 }
             }
 
+            logDebug(1, `🚚 Queue ready. Pending tasks: ${downloadQueue.length}. Starting processQueue()...`);
             await processQueue();
         }
+
+        logDebug(3, '---------------------------');
+        logDebug(2, `🚀 Starting downloads. Queue size: ${Array.isArray(dominantGroup) ? dominantGroup.length : 0}`);
+        logDebug(3, '---------------------------');
+        logDebug(3, '');
 
         // 🧠 Start processing
         await processImagesSequentially(dominantGroup, delay);
