@@ -410,59 +410,76 @@ function proceedWithInjection() {
     }
 }
 
-
-    /**
-     * Displays a styled feedback message to the user if enabled in settings.
-     * - 5 seconds for success/progress messages.
-     * - 10 seconds for error messages.
-     * - Only visible if "showUserFeedbackMessages" setting is enabled.
-     * @param {string} text - The message text to display.
-     * @param {string} type - Type of message ("info", "success", "error").
-     * @returns {void}
-     * @description This function creates a styled message element and appends it to the document body.
-     */
-    function showUserMessage(text, type = "info") {
-        try {
-            // Display messages only if user feedback is enabled
-            if (!configCache.showUserFeedbackMessages) {
-                logDebug(2, `🚫 User feedback messages disabled. Skipping display.`);
-                return;
-            }
-
-            const duration = (type === "error") ? 10000 : 5000;
-            const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
-
-            const messageElement = document.createElement("div");
-            messageElement.textContent = "Mass image downloader: " + text;
-            messageElement.style.position = "fixed";
-            messageElement.style.top = "20px";
-            messageElement.style.right = "20px";
-            messageElement.style.backgroundColor = backgroundColor;
-            messageElement.style.color = "#FFFFFF";
-            messageElement.style.padding = "12px";
-            messageElement.style.borderRadius = "6px";
-            messageElement.style.fontSize = "14px";
-            messageElement.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
-            messageElement.style.opacity = "1";
-            messageElement.style.transition = "opacity 0.5s ease-in-out";
-            messageElement.style.zIndex = "9999";
-            document.body.appendChild(messageElement);
-
-            logDebug(3, `📢 Showing user message: "${text}" (${type})`);
-
-            setTimeout(() => {
-                messageElement.style.opacity = "0";
-                setTimeout(() => {
-                    try {
-                        messageElement.remove();
-                    } catch (removeError) {
-                        logDebug(1, `⚠️ Error removing message element: ${removeError.message}`);
-                    }
-                }, 500);
-            }, duration);
-
-        } catch (error) {
-            logDebug(1, `❌ Error displaying user message: ${error.message}`);
-            logDebug(3, `❌ Stacktrace: ${error.stack}`);
+/**
+ * Displays a temporary user message on the page.
+ * @param {string} text - The message text to display.
+ * @param {'info'|'success'|'error'} type - The type of message, which determines styling and duration.
+ * @returns {void}
+ * @description This function creates a temporary message element on the page to provide feedback to the user.
+ * It checks if the user has enabled feedback messages before displaying anything.
+ * The message is styled based on the type (info, success, error) and automatically disappears after a certain duration.
+ * If a new message is shown while another is still visible, the previous one is removed immediately to ensure that only one message is displayed at a time.
+ * This function is useful for providing feedback to the user about actions taken, such as successfully setting a prefix/suffix or encountering an error.
+ */
+function showUserMessage(text, type = "info") {
+    try {
+        // Display messages only if user feedback is enabled
+        if (!configCache.showUserFeedbackMessages) {
+            logDebug(2, `🚫 User feedback messages disabled. Skipping display.`);
+            return;
         }
+
+        const duration = (type === "error") ? 10000 : 5000;
+        const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
+
+        // ✅ Last toast wins: remove previous toast + cancel previous timer
+        const TOAST_ID = "mdi-user-toast";
+        const TIMER_KEY = "__mdiUserToastTimer";
+
+        try {
+            const existing = document.getElementById(TOAST_ID);
+            if (existing) existing.remove();
+
+            if (window[TIMER_KEY]) {
+                clearTimeout(window[TIMER_KEY]);
+                window[TIMER_KEY] = null;
+            }
+        } catch (_) {}
+
+        const messageElement = document.createElement("div");
+        messageElement.id = TOAST_ID;
+        messageElement.textContent = "Mass image downloader: " + text;
+        messageElement.style.position = "fixed";
+        messageElement.style.top = "20px";
+        messageElement.style.right = "20px";
+        messageElement.style.backgroundColor = backgroundColor;
+        messageElement.style.color = "#FFFFFF";
+        messageElement.style.padding = "12px";
+        messageElement.style.borderRadius = "6px";
+        messageElement.style.fontSize = "14px";
+        messageElement.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
+        messageElement.style.opacity = "1";
+        messageElement.style.transition = "opacity 0.5s ease-in-out";
+        messageElement.style.zIndex = "9999";
+        document.body.appendChild(messageElement);
+
+        logDebug(3, `📢 Showing user message: "${text}" (${type})`);
+
+        // ✅ Store timer id so the next toast can cancel it
+        window[TIMER_KEY] = setTimeout(() => {
+            messageElement.style.opacity = "0";
+            setTimeout(() => {
+                try {
+                    messageElement.remove();
+                } catch (removeError) {
+                    logDebug(1, `⚠️ Error removing message element: ${removeError.message}`);
+                }
+            }, 500);
+            window[TIMER_KEY] = null;
+        }, duration);
+
+    } catch (error) {
+        logDebug(1, `❌ Error displaying user message: ${error.message}`);
+        logDebug(3, `❌ Stacktrace: ${error.stack}`);
     }
+}

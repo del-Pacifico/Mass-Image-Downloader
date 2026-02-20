@@ -506,6 +506,7 @@
             const { filenameMode, prefix, suffix } = configCache;
             let name = baseName;
 
+            logDebug(3, '');
             logDebug(3, `🧪 File name mode: ${filenameMode}`);
             logDebug(3, `📄 Original Name: ${baseName}`);
 
@@ -578,15 +579,15 @@
     }
 
     /**
-     * Displays a styled feedback message to the user if enabled in settings.
-     * - 5 seconds for success/progress messages.
-     * - 10 seconds for error messages.
-     * - Only visible if "showUserFeedbackMessages" setting is enabled.
-     * @param {string} text - The message text to display.
-     * @param {string} type - Type of message ("info", "success", "error").
+     * Displays a temporary toast message to the user.
+     * @param {string} text - The message to display.
+     * @param {string} type - The type of message ('info' or 'error') which determines styling and duration.
      * @returns {void}
-     * @description This function creates a styled message element and appends it to the document body.
-     */
+     * @description This function creates a toast message element and appends it to the document body.
+     * The message will automatically fade out and be removed after a certain duration (5 seconds for info, 10 seconds for error).
+     * If multiple messages are triggered in quick succession, the previous message will be removed and its timer cleared to ensure only one message is visible at a time.
+     * The function also checks user settings to determine if feedback messages should be shown and logs the display of messages for debugging purposes.
+     */ 
     function showUserMessage(text, type = "info") {
         try {
             if (!configCache.showUserFeedbackMessages) {
@@ -597,7 +598,22 @@
             const duration = (type === "error") ? 10000 : 5000;
             const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
 
+            // ✅ Last toast wins: remove previous toast + cancel previous timer
+            const TOAST_ID = "mdi-user-toast";
+            const TIMER_KEY = "__mdiUserToastTimer";
+
+            try {
+                const existing = document.getElementById(TOAST_ID);
+                if (existing) existing.remove();
+
+                if (window[TIMER_KEY]) {
+                    clearTimeout(window[TIMER_KEY]);
+                    window[TIMER_KEY] = null;
+                }
+            } catch (_) {}
+
             const messageElement = document.createElement("div");
+            messageElement.id = TOAST_ID;
             messageElement.textContent = "Mass image downloader: " + text;
             messageElement.style.position = "fixed";
             messageElement.style.top = "20px";
@@ -615,7 +631,8 @@
 
             logDebug(3, `📢 Showing user message: "${text}" (${type})`);
 
-            setTimeout(() => {
+            // ✅ Store timer id so the next toast can cancel it
+            window[TIMER_KEY] = setTimeout(() => {
                 messageElement.style.opacity = "0";
                 setTimeout(() => {
                     try {
@@ -624,6 +641,7 @@
                         logDebug(1, `⚠️ Error removing message element: ${removeError.message}`);
                     }
                 }, 500);
+                window[TIMER_KEY] = null;
             }, duration);
 
         } catch (error) {

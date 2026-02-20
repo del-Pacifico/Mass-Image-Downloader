@@ -35,13 +35,15 @@
     let minHeight = 300;
 
     /**
-     * Show user feedback messages on the screen.
-     * @param {string} text - The message to display.
-     * @param {string} [type="info"] - The type of message (info, error).
-     * @description
-     * This function creates a message element and displays it on the screen for a specified duration.
-     * It uses a fixed position and styles to make the message visually distinct.
-     * The message fades out after the duration and is removed from the DOM.
+     * Displays a temporary user message on the page.
+     * @param {string} text - The message text to display.
+     * @param {'info'|'success'|'error'} type - The type of message, which determines styling and duration.
+     * @returns {void}
+     * @description This function creates a temporary message element on the page to provide feedback to the user.
+     * It checks if the user has enabled feedback messages before displaying anything.
+     * The message is styled based on the type (info, success, error) and automatically disappears after a certain duration.
+     * If a new message is shown while another is still visible, the previous one is removed immediately to ensure that only one message is displayed at a time.
+     * This function is useful for providing feedback to the user about actions taken, such as successfully setting a prefix/suffix or encountering an error.
      */
     function showUserMessage(text, type = "info") {
         try {
@@ -54,7 +56,22 @@
             const duration = (type === "error") ? 10000 : 5000;
             const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
 
+            // ✅ Last toast wins: remove previous toast + cancel previous timer
+            const TOAST_ID = "mdi-user-toast";
+            const TIMER_KEY = "__mdiUserToastTimer";
+
+            try {
+                const existing = document.getElementById(TOAST_ID);
+                if (existing) existing.remove();
+
+                if (window[TIMER_KEY]) {
+                    clearTimeout(window[TIMER_KEY]);
+                    window[TIMER_KEY] = null;
+                }
+            } catch (_) {}
+
             const messageElement = document.createElement("div");
+            messageElement.id = TOAST_ID;
             messageElement.textContent = text;
             messageElement.style.position = "fixed";
             messageElement.style.top = "20px";
@@ -72,7 +89,8 @@
 
             logDebug(2, `📢 Showing user message: "${text}" (${type})`);
 
-            setTimeout(() => {
+            // ✅ Store timer id so the next toast can cancel it
+            window[TIMER_KEY] = setTimeout(() => {
                 messageElement.style.opacity = "0";
                 setTimeout(() => {
                     try {
@@ -81,12 +99,13 @@
                         logDebug(1, `⚠️ Error removing message element: ${removeError.message}`);
                     }
                 }, 500);
+                window[TIMER_KEY] = null;
             }, duration);
 
         } catch (error) {
             logDebug(1, `❌ Error displaying user message: ${error.message}`);
         }
-    }    
+    }   
 
     /**
      * Logs debug messages to the console based on the current log level.

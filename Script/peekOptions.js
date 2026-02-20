@@ -301,13 +301,36 @@
     }
 
     /**
-     * Shows user feedback messages visually.
+     * Displays a temporary message to the user.
+     * @param {string} text - The message text to display.
+     * @param {'info'|'error'} type - The type of message, which determines styling and duration.
+     * @description This function creates a temporary message element on the page to provide feedback to the user.
+     * It checks if the user has enabled feedback messages before displaying anything.
+     * The message is styled based on the type (info or error) and automatically disappears after a certain duration.
+     * If a new message is shown while another is still visible, the previous one is removed immediately to ensure that only one message is displayed at a time.
+     * This function is useful for providing feedback to the user about actions taken, such as successfully copying settings to clipboard or encountering an error.
      */
     function showMessage(text, type = "info") {
         try {
-            const msg = document.createElement("div");
             const duration = type === "error" ? 10000 : 5000;
             const backgroundColor = type === "error" ? "#d9534f" : "#007EE3";
+
+            // ✅ Last toast wins: remove previous toast + cancel previous timer
+            const TOAST_ID = "mdi-user-toast";
+            const TIMER_KEY = "__mdiUserToastTimer";
+
+            try {
+                const existing = document.getElementById(TOAST_ID);
+                if (existing) existing.remove();
+
+                if (window[TIMER_KEY]) {
+                    clearTimeout(window[TIMER_KEY]);
+                    window[TIMER_KEY] = null;
+                }
+            } catch (_) {}
+
+            const msg = document.createElement("div");
+            msg.id = TOAST_ID;
 
             msg.textContent = "Mass image downloader: " + text;
             msg.style.position = "fixed";
@@ -325,11 +348,13 @@
 
             document.body.appendChild(msg);
 
-            setTimeout(() => {
+            // ✅ Store timer id so the next toast can cancel it
+            window[TIMER_KEY] = setTimeout(() => {
                 msg.style.opacity = "0";
                 setTimeout(() => {
-                    try { msg.remove(); } catch {}
+                    try { msg.remove(); } catch (_) {}
                 }, 500);
+                window[TIMER_KEY] = null;
             }, duration);
         } catch (err) {
             logDebug(1, "❌ Failed to show message:", err.message);

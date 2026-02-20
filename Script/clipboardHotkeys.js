@@ -118,25 +118,46 @@
     }
 
     /**
-     * Shows a visual message to the user.
-     * @param {string} text 
-     * @param {string} type - "info", "success", "error"
+     * Displays a temporary user message on the page.
+     * @param {string} text - The message text to display.
+     * @param {'info'|'success'|'error'} type - The type of message, which determines styling and duration.
+     * @returns {void}
+     * @description This function creates a temporary message element on the page to provide feedback to the user.
+     * It checks if the user has enabled feedback messages before displaying anything.
+     * The message is styled based on the type (info, success, error) and automatically disappears after a certain duration.
+     * If a new message is shown while another is still visible, the previous one is removed immediately to ensure that only one message is displayed at a time.
+     * This function is useful for providing feedback to the user about actions taken, such as successfully setting a prefix/suffix or encountering an error.
      */
     function showUserMessage(text, type = 'info') {
         try {
-            
+
             // ✅ Check if the user has enabled user feedback messages
             if (!showUserFeedbackMessagesCache) {
                 logDebug(2, '🛑 User feedback messages are disabled. Skipping message display.');
                 return;
             }
-                
+
             logDebug(2, `🗨️ Showing user message: [${type}] ${text}`);
 
             const duration = type === 'error' ? 10000 : 5000;
             const backgroundColor = type === 'error' ? '#d9534f' : '#007EE3';
 
+            // ✅ Last toast wins: remove previous toast + cancel previous timer
+            const TOAST_ID = 'mdi-user-toast';
+            const TIMER_KEY = '__mdiUserToastTimer';
+
+            try {
+                const existing = document.getElementById(TOAST_ID);
+                if (existing) existing.remove();
+
+                if (window[TIMER_KEY]) {
+                    clearTimeout(window[TIMER_KEY]);
+                    window[TIMER_KEY] = null;
+                }
+            } catch (_) {}
+
             const msg = document.createElement('div');
+            msg.id = TOAST_ID;
             msg.textContent = text;
             msg.style.position = 'fixed';
             msg.style.top = '20px';
@@ -152,9 +173,13 @@
             msg.style.opacity = '1';
             document.body.appendChild(msg);
 
-            setTimeout(() => {
+            // ✅ Store timer id so the next toast can cancel it
+            window[TIMER_KEY] = setTimeout(() => {
                 msg.style.opacity = '0';
-                setTimeout(() => msg.remove(), 400);
+                setTimeout(() => {
+                    try { msg.remove(); } catch (_) {}
+                }, 400);
+                window[TIMER_KEY] = null;
             }, duration);
 
         } catch (err) {
@@ -167,7 +192,7 @@
      * Receives toast requests from background.js and displays them in-page.
      * MV3 service workers have no DOM, so user feedback must be rendered from a content script.
      */
-    chrome.runtime.onMessage.addListener((message) => {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         try {
             if (!message || typeof message !== "object") return;
             if (message.action !== "mdiUserToast") return;
@@ -175,14 +200,25 @@
             const text = (typeof message.text === "string") ? message.text : "";
             const type = (typeof message.type === "string") ? message.type : "info";
 
-            if (!text) return;
+            if (!text) {
+                try { sendResponse({ ok: false, reason: "empty_text" }); } catch (_) {}
+                return;
+            }
 
             showUserMessage(text, type);
+
+            // ✅ Reply immediately to avoid MV3 "message port closed" warnings.
+            try { sendResponse({ ok: true }); } catch (_) {}
+            return;
         } catch (err) {
             logDebug(1, "❌ mdiUserToast handler failed:", err.message);
             logDebug(2, "🐛 Stacktrace:", err.stack);
+
+            try { sendResponse({ ok: false, error: err.message }); } catch (_) {}
+            return;
         }
     });
+
     
     /**
      * Removes invalid characters from filename components.
