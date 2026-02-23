@@ -903,7 +903,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                                             if (isTabOrigin) {
                                                 sendUserToastToTab(
                                                     tabId,
-                                                    `MID: Gallery (web-linked): completed. Downloaded: ${tabsOpened} image(s).`,
+                                                    `MID: Gallery (web-linked): completed. Opened: ${tabsOpened} tab(s).`,
                                                     "success"
                                                 );
                                             }

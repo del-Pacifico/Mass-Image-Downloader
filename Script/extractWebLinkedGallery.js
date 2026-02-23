@@ -714,11 +714,11 @@
                             // Soft-log only; do not show error balloon to the user
                             logDebug(2, `ℹ️ Ignoring MV3 ephemeral error: ${err.message}`);
                             // Provide positive UX because the background most likely received the message
-                            showUserMessage("Gallery detected and sent for processing!", "success");
+                            // Do not show a legacy success toast here; background will drive standardized toasts.
                         } else {
                             // Real error: surface it to the user
                             logDebug(1, `❌ Background communication error: ${err.message}`);
-                            showUserMessage("Failed to communicate with background script. Try again.", "error");
+                            showUserMessage("MID: Gallery (web-linked): failed. Failed to communicate with background script.", "error");
                         }
 
                         logDebug(1, "📤 END: Message exchange with background completed.");
@@ -728,11 +728,11 @@
                     // No lastError: trust the structured response when present
                     if (response?.success) {
                         logDebug(2, "✅ Background script confirmed gallery processing.");
-                        showUserMessage("Gallery detected and sent for processing!", "success");
+                        // Do not show a legacy success toast here; background will drive standardized toasts.
                     } else {
                         const errorMsg = response?.error || "Unknown response from background.";
                         logDebug(2, `⚠️ Background rejected gallery request: ${errorMsg}`);
-                        showUserMessage(`Gallery not processed: ${errorMsg}`, "error");
+                        showUserMessage(`MID: Gallery (web-linked): Gallery not processed: ${errorMsg}`, "error");
                     }
 
                     logDebug(1, "📤 END: Message exchange with background completed.");
