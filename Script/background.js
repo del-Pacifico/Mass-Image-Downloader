@@ -828,6 +828,15 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             
             logDebug(3, '');
 
+            // ✅ Toast target (tab-origin)
+            const tabId = sender?.tab?.id;
+            const isTabOrigin = (typeof tabId === "number");
+
+            // ✅ UX: Start toast (web-linked)
+            if (isTabOrigin) {
+                sendUserToastToTab(tabId, "MID: Gallery (web-linked) started. Scanning page...", "info");
+            }
+
             try {
                 
                 const timing = logTimingStart("processWebLinkedGallery");
@@ -839,6 +848,12 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
                 const urls = candidates.filter(url => typeof url === 'string' && url.startsWith('http'));
                 const total = urls.length;
+
+                // ✅ UX: Found toast (web-linked)
+                if (isTabOrigin) {
+                    sendUserToastToTab(tabId, `MID: Gallery (web-linked): found ${total} image(s). Downloading...`, "info");
+                }
+
                 const concurrencyLimit = Math.max(1, Math.min(10, maxOpenTabs));
                 let opened = 0;
                 let index = 0;
@@ -875,7 +890,29 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                                     logDebug(1, `🏁 All tabs opened successfully.`);
                                     logDebug(1, "💾 End: Finished injecting save icon script into tabs");
                                     updateBadge(tabsOpened, true);
-                                    respondSafe(sendResponse, { success: true });
+
+                                    // ✅ if tab-origin, show completion toast with count
+                                    if (index >= total) {
+                                        // ✅ UX: Completed toast (web-linked)
+                                        if (activeOpenings === 0) {
+                                            logDebug(1, `🏁 All tabs opened successfully.`);
+                                            logDebug(1, "💾 End: Finished injecting save icon script into tabs");
+                                            updateBadge(tabsOpened, true);
+
+                                            // ✅ UX: Completed toast (web-linked)
+                                            if (isTabOrigin) {
+                                                sendUserToastToTab(
+                                                    tabId,
+                                                    `MID: Gallery (web-linked): completed. Downloaded: ${tabsOpened} image(s).`,
+                                                    "success"
+                                                );
+                                            }
+
+                                            respondSafe(sendResponse, { success: true });
+                                        }
+                                        return;
+                                    }
+
                                 }
                                 return;
                             }
@@ -949,8 +986,15 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                         tryOpenNext();
 
                     } catch (err) {
-                        logDebug(1, `❌ Exception in openNextTabsControlled: ${err.message}`);
-                        respondSafe(sendResponse, { success: false, error: err.message });
+                        const errMsg = (err && err.message) ? err.message : String(err);
+                        logDebug(1, `❌ Exception in openNextTabsControlled: ${errMsg}`);
+
+                        // ✅ UX: Failed toast (web-linked)
+                        if (isTabOrigin) {
+                            sendUserToastToTab(tabId, `MID: Gallery (web-linked): failed. ${errMsg}`, "error");
+                        }
+
+                        respondSafe(sendResponse, { success: false, error: errMsg });
                     }
                 }
 
@@ -960,9 +1004,16 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                 
                 // respondSafe(sendResponse, { success: true });
             } catch (err) {
-                logDebug(1, `❌ Error in Web-Linked Gallery flow: ${err.message}`);
-                logDebug
-                respondSafe(sendResponse, { success: false, error: err.message });
+                const errMsg = (err && err.message) ? err.message : String(err);
+                logDebug(1, `❌ Error in Web-Linked Gallery flow: ${errMsg}`);
+                logDebug(2, `🐛 Stacktrace: ${(err && err.stack) ? err.stack : "n/a"}`);
+
+                // ✅ UX: Failed toast (web-linked)
+                if (isTabOrigin) {
+                    sendUserToastToTab(tabId, `MID: Gallery (web-linked): failed. ${errMsg}`, "error");
+                }
+
+                respondSafe(sendResponse, { success: false, error: errMsg });
             }
 
             return true;
