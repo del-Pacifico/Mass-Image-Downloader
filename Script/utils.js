@@ -11,6 +11,7 @@
     const configCache = {
         debugLogLevel: 1,
         showUserFeedbackMessages: true,
+        toastMinVisibleMs: 0,
         allowJPG: true,
         allowJPEG: true,
         allowPNG: true,
@@ -27,7 +28,7 @@
     async function initConfigCache() {
         return new Promise((resolve) => {
             chrome.storage.sync.get([
-                "debugLogLevel", "showUserFeedbackMessages",
+                "debugLogLevel", "showUserFeedbackMessages", "toastMinVisibleMs",
                 "minWidth", "minHeight",
                 "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", 
                 "filenameMode", "prefix", "suffix", "downloadFolder", "customFolderPath",
@@ -35,6 +36,7 @@
             ], (data) => {
                 configCache.debugLogLevel = parseInt(data.debugLogLevel ?? 1);
                 configCache.showUserFeedbackMessages = data.showUserFeedbackMessages ?? true;
+                configCache.toastMinVisibleMs = parseInt(data.toastMinVisibleMs ?? 0);
                 configCache.allowJPG = data.allowJPG !== false;
                 configCache.allowJPEG = data.allowJPEG !== false;
                 configCache.allowPNG = data.allowPNG !== false;
@@ -598,10 +600,52 @@
             const duration = (type === "error") ? 10000 : 5000;
             const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
 
-            // ✅ Last toast wins: remove previous toast + cancel previous timer
+            // ✅ Toast engine: last toast wins + optional minimum visible time (prevents fast overlap)
             const TOAST_ID = "mdi-user-toast";
             const TIMER_KEY = "__mdiUserToastTimer";
+            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+            const DEFER_KEY = "__mdiUserToastDeferTimer";
+            const PENDING_KEY = "__mdiUserToastPending";
 
+            // 🧠 Read minimum visible time from settings (default to 0 for no minimum)
+            const minVisibleMs = Math.max(0, parseInt(configCache.toastMinVisibleMs ?? 0, 10) || 0);
+
+            // ✅ If a toast is already visible and we must keep it for a minimum time,
+            // defer the replacement and keep only the latest pending toast.
+            try {
+                const now = Date.now();
+                const minUntil = window[MINUNTIL_KEY] || 0;
+
+                // If we're within the minimum visible window, defer the new toast and
+                // store it as pending (overwriting any previous pending toast)
+                // If the minimum visible time has already passed, we can proceed to show the new toast immediately
+                // 🧠 This ensures that toasts are visible for at least the minimum time, while still allowing new messages to replace old ones without queuing up multiple timers.
+                if (minVisibleMs > 0 && now < minUntil) {
+                    window[PENDING_KEY] = { text, type };
+
+                    // Clear any existing defer timer to ensure only the latest pending toast will be shown after the current one expires
+                    if (window[DEFER_KEY]) {
+                        clearTimeout(window[DEFER_KEY]);
+                        window[DEFER_KEY] = null;
+                    }
+
+                    // Set a new defer timer to show the pending toast as soon as the current minimum visible window expires
+                    window[DEFER_KEY] = setTimeout(() => {
+                        const pending = window[PENDING_KEY];
+                        window[PENDING_KEY] = null;
+                        window[DEFER_KEY] = null;
+
+                        // If there's a pending toast, show it immediately (it will also reset the minimum visible window)
+                        if (pending && pending.text) {
+                            showUserMessage(pending.text, pending.type || "info");
+                        }
+                    }, Math.max(0, minUntil - now));
+
+                    return;
+                }
+            } catch (_) {}
+
+            // ✅ Last toast wins: remove previous toast + cancel previous timer
             try {
                 const existing = document.getElementById(TOAST_ID);
                 if (existing) existing.remove();
@@ -610,6 +654,11 @@
                     clearTimeout(window[TIMER_KEY]);
                     window[TIMER_KEY] = null;
                 }
+            } catch (_) {}
+
+            // ✅ Mark the minimum visible window for the newly shown toast
+            try {
+                window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
             } catch (_) {}
 
             const messageElement = document.createElement("div");

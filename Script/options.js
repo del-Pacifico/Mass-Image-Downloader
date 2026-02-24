@@ -123,6 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const continueBulkLoopCheckbox = document.getElementById("continueFromLastBulkBatch");
     let galleryMaxImagesInput;
     const showUserFeedbackMessagesCheckbox = document.getElementById("showUserFeedbackMessages");
+    const toastMinVisibleMsInput = document.getElementById("toastMinVisibleMs");
     const peekTransparencyInput = document.getElementById("peekTransparencyLevel");
     const enableClipboardHotkeysCheckbox = document.getElementById("enableClipboardHotkeys"); 
     const enableOneClickIconCheckbox = document.getElementById("chkEnableOneClickIcon");
@@ -393,7 +394,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "minWidth", "minHeight", "galleryMaxImages",
             "maxBulkBatch", "continueFromLastBulkBatch",
             "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", 
-            "allowExtendedImageUrls",
+            "allowExtendedImageUrls", "toastMinVisibleMs", 
             "gallerySimilarityLevel", "galleryMinGroupSize",
             "galleryEnableSmartGrouping", "galleryEnableFallback",
             "showUserFeedbackMessages", "enableClipboardHotkeys",
@@ -578,6 +579,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 // 📢 Notifications
                 if (showUserFeedbackMessagesCheckbox) {
                     showUserFeedbackMessagesCheckbox.checked = data.showUserFeedbackMessages ?? true; // Default: enabled
+                }
+
+                // 📢 Toast behavior
+                if (toastMinVisibleMsInput) {
+                    toastMinVisibleMsInput.value = parseInt(data.toastMinVisibleMs ?? 0);
                 }
 
                 // 🔍 Peek Transparency Setting
@@ -786,6 +792,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // 📢 Global Settings: Notifications
             const showUserFeedbackMessages = showUserFeedbackMessagesCheckbox ? showUserFeedbackMessagesCheckbox.checked : true;
+            // 📢 Toast behavior
+            const toastMinVisibleMs = toastMinVisibleMsInput ? parseInt(toastMinVisibleMsInput.value ?? 0) : 0;
 
             // 🫥 Peek Transparency
             let peekTransparencyLevel = 0.8;
@@ -827,6 +835,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 maxBulkBatch,
                 continueFromLastBulkBatch,
                 showUserFeedbackMessages,
+                toastMinVisibleMs,
                 enableClipboardHotkeys: enableClipboardHotkeysCheckbox ? enableClipboardHotkeysCheckbox.checked : false,
                 enableOneClickIcon: enableOneClickIconCheckbox ? enableOneClickIconCheckbox.checked : false,
                 maxOpenTabs: maxOpenTabsInput ? Math.min(10, Math.max(1, parseInt(maxOpenTabsInput.value))) : 5,
