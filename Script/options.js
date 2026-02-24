@@ -583,7 +583,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // 📢 Toast behavior
                 if (toastMinVisibleMsInput) {
-                    toastMinVisibleMsInput.value = parseInt(data.toastMinVisibleMs ?? 0);
+                    const raw = parseInt(data.toastMinVisibleMs ?? 2000, 10);
+                    const safe = (!isNaN(raw) && raw >= 0 && raw <= 10000) ? raw : 2000;
+                    toastMinVisibleMsInput.value = safe;
                 }
 
                 // 🔍 Peek Transparency Setting
@@ -792,8 +794,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // 📢 Global Settings: Notifications
             const showUserFeedbackMessages = showUserFeedbackMessagesCheckbox ? showUserFeedbackMessagesCheckbox.checked : true;
+
             // 📢 Toast behavior
-            const toastMinVisibleMs = toastMinVisibleMsInput ? parseInt(toastMinVisibleMsInput.value ?? 0) : 0;
+            let toastMinVisibleMs = 2000;
+            if (toastMinVisibleMsInput) {
+                const raw = parseInt(toastMinVisibleMsInput.value, 10);
+                if (!isNaN(raw)) {
+                    toastMinVisibleMs = Math.min(10000, Math.max(0, raw));
+                }
+            }
 
             // 🫥 Peek Transparency
             let peekTransparencyLevel = 0.8;
