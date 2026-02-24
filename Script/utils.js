@@ -11,7 +11,7 @@
     const configCache = {
         debugLogLevel: 1,
         showUserFeedbackMessages: true,
-        toastMinVisibleMs: 0,
+        toastMinVisibleMs: 2000,
         allowJPG: true,
         allowJPEG: true,
         allowPNG: true,
@@ -36,7 +36,10 @@
             ], (data) => {
                 configCache.debugLogLevel = parseInt(data.debugLogLevel ?? 1);
                 configCache.showUserFeedbackMessages = data.showUserFeedbackMessages ?? true;
-                configCache.toastMinVisibleMs = parseInt(data.toastMinVisibleMs ?? 0);
+                const rawToastMinVisibleMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
+                configCache.toastMinVisibleMs = (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
+                    ? rawToastMinVisibleMs
+                    : 2000;
                 configCache.allowJPG = data.allowJPG !== false;
                 configCache.allowJPEG = data.allowJPEG !== false;
                 configCache.allowPNG = data.allowPNG !== false;
@@ -597,7 +600,8 @@
                 return;
             }
 
-            const duration = (type === "error") ? 10000 : 5000;
+            // 🧠 Determine duration and styling based on message type
+            const baseDuration = (type === "error") ? 10000 : 5000;
             const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
 
             // ✅ Toast engine: last toast wins + optional minimum visible time (prevents fast overlap)
@@ -607,8 +611,9 @@
             const DEFER_KEY = "__mdiUserToastDeferTimer";
             const PENDING_KEY = "__mdiUserToastPending";
 
-            // 🧠 Read minimum visible time from settings (default to 0 for no minimum)
-            const minVisibleMs = Math.max(0, parseInt(configCache.toastMinVisibleMs ?? 0, 10) || 0);
+            // 🧠 Ensure minimum visible time is respected: if a toast is already visible and the new toast arrives, defer it until the current one has been visible for at least the minimum time. This prevents toasts from being replaced too quickly and ensures users have enough time to read messages.
+            const minVisibleMs = Math.max(0, parseInt(configCache.toastMinVisibleMs ?? 2000, 10) || 2000);
+            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
 
             // ✅ If a toast is already visible and we must keep it for a minimum time,
             // defer the replacement and keep only the latest pending toast.
@@ -663,7 +668,14 @@
 
             const messageElement = document.createElement("div");
             messageElement.id = TOAST_ID;
-            messageElement.textContent = "Mass image downloader: " + text;
+            
+            // ✅ Normalize text: if it already starts with "MID:", keep as is (allows for custom formatting), 
+            // otherwise prepend "MID: " for consistency
+            const normalizedText = (typeof text === "string" && text.trim().startsWith("MID:"))
+                ? text.trim()
+                : `MID: ${String(text || "").trim()}`;
+            messageElement.textContent = normalizedText;
+
             messageElement.style.position = "fixed";
             messageElement.style.top = "20px";
             messageElement.style.right = "20px";
@@ -689,7 +701,7 @@
                     } catch (removeError) {
                         logDebug(1, `⚠️ Error removing message element: ${removeError.message}`);
                     }
-                }, 500);
+                }, effectiveDuration);
                 window[TIMER_KEY] = null;
             }, duration);
 
