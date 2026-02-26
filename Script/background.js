@@ -834,7 +834,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
             // ✅ UX: Start toast (web-linked)
             if (isTabOrigin) {
-                sendUserToastToTab(tabId, "MID: Gallery (web-linked) started. Scanning page...", "info");
+                sendUserToastToTab(tabId, "MID: Web-linked Gallery - start", "info");
             }
 
             try {
@@ -849,9 +849,9 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                 const urls = candidates.filter(url => typeof url === 'string' && url.startsWith('http'));
                 const total = urls.length;
 
-                // ✅ UX: Found toast (web-linked)
+                // ✅ UX: b) MID: Web-linked Gallery - analyzing / send to download
                 if (isTabOrigin) {
-                    sendUserToastToTab(tabId, `MID: Gallery (web-linked): found ${total} image(s). Downloading...`, "info");
+                    sendUserToastToTab(tabId, `MID: Web-linked Gallery - analyzing / send to download (${total} pages)`, "info");
                 }
 
                 const concurrencyLimit = Math.max(1, Math.min(10, maxOpenTabs));
@@ -899,11 +899,11 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                                             logDebug(1, "💾 End: Finished injecting save icon script into tabs");
                                             updateBadge(tabsOpened, true);
 
-                                            // ✅ UX: Completed toast (web-linked)
+                                            // ✅ UX: c) MID: Web-linked Gallery - done - n images downloaded | n pages opened
                                             if (isTabOrigin) {
                                                 sendUserToastToTab(
                                                     tabId,
-                                                    `MID: Gallery (web-linked): completed. Opened: ${tabsOpened} tab(s).`,
+                                                    `MID: Web-linked Gallery - done | ${tabsOpened} pages opened`,
                                                     "success"
                                                 );
                                             }
