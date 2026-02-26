@@ -19,7 +19,8 @@
 
     let currentLogLevel = 1; // Default log level
     let showUserFeedbackMessagesCache = true;
- 
+    let toastMinVisibleMsCache = 2000; // Default: 2000ms
+
     logDebug(1, "⚓ Extract Linked Gallery script injected.");
 
     // 🔒 Prevent multiple simultaneous executions
@@ -53,7 +54,9 @@
                 return;
             }
 
-            const duration = (type === "error") ? 10000 : 5000;
+            const baseDuration = (type === "error") ? 10000 : 5000;
+            const minVisibleMs = Math.max(0, parseInt(toastMinVisibleMsCache ?? 2000, 10) || 2000);
+            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
             const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
 
             // ✅ Last toast wins: remove previous toast + cancel previous timer
@@ -72,7 +75,11 @@
 
             const messageElement = document.createElement("div");
             messageElement.id = TOAST_ID;
-            messageElement.textContent = text;
+            
+            // ✅ Ensure text starts with "MID:" for consistency, but avoid double prefixing
+            const finalText = (typeof text === "string" && text.trim().startsWith("MID:")) ? text.trim() : `MID: ${text}`;
+            messageElement.textContent = finalText;
+            
             messageElement.style.position = "fixed";
             messageElement.style.top = "20px";
             messageElement.style.right = "20px";
@@ -100,7 +107,7 @@
                     }
                 }, 500);
                 window[TIMER_KEY] = null;
-            }, duration);
+            }, effectiveDuration);
 
         } catch (error) {
             logDebug(1, `❌ Error displaying user message: ${error.message}`);
@@ -225,6 +232,8 @@
         logDebug(3, '----------------------------------------------------');
         logDebug(1, '🌄 Begin: Extract Linked Gallery process');
         logDebug(3, '----------------------------------------------------');
+        // 📨 Show initial user message
+        showUserMessage("Extract Linked Gallery - start", "info");
         
 		// 📌 Step 1: Find anchor <a> with internal <img>
 		const anchors = Array.from(document.querySelectorAll('a[href]'));
@@ -309,6 +318,9 @@
 
         // ✉️ Step 3: Send the grouped gallery images to the background script
         logDebug(1, '📤 Sending gallery to background for download/tab handling...');
+        
+        // Sending the count of unique images for user feedback
+        showUserMessage(`Extract Linked Gallery - analyzing / send to download (${uniqueGalleryUrls.length} images)`, "info");
 
         // 🔒 Step 3.1: Check for duplicates and limit the number of images sent
         try {
@@ -317,9 +329,8 @@
                 return;
             }
             
-            // ✅ Ensure we deduplicate gallery URLs properly
-			// 🔁 Previous version expected {url: "..."} objects. We're now working with direct string URLs.
-			const uniqueGalleryUrls = [...new Set(gallery)];
+            // ✅ Remove duplicates while preserving order
+            const uniqueGalleryUrls = [...new Set(gallery)];
 
             // 🔒 Step 3.1: Check for duplicates and limit the number of images sent
             chrome.runtime.sendMessage({
@@ -337,8 +348,12 @@
                     logDebug(2, `❌ Failed to send images: ${chrome.runtime.lastError.message}`);
                 } else if (response?.success) {
                     logDebug(2, '✅ Images sent to background successfully.');
+                    // 📨 Show completion message with count of unique images sent
+                    showUserMessage(`Extract Linked Gallery - done - ${uniqueGalleryUrls.length} images sent | 0 pages opened`, "success");
                 } else {
                     logDebug(1, '⚠️ No response or process failed.');
+                    // 📨 Show completion message indicating no images sent
+                    showUserMessage("Extract Linked Gallery - done (no response) - 0 images sent | 0 pages opened", "error");
                 }
             
                 logDebug(2, '✅ End: Extract Linked Gallery Process');
@@ -368,7 +383,7 @@
         chrome.storage.sync.get([
             "minWidth", "minHeight", "galleryMaxImages",
             "debugLogLevel", "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP",
-            "showUserFeedbackMessages"
+            "showUserFeedbackMessages", "toastMinVisibleMs"
         ], (data) => {
         
             // 🔒 Error handling for storage access
@@ -387,7 +402,12 @@
                     ? data.galleryMaxImages
                     : galleryRateLimit;
 
-                showUserFeedbackMessagesCache = data.showUserFeedbackMessages ?? true;    
+                showUserFeedbackMessagesCache = data.showUserFeedbackMessages ?? true;
+                // 🔒 Validate toastMinVisibleMs: must be a number between 0 and 10000
+                const rawToastMinVisibleMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
+                toastMinVisibleMsCache = (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
+                    ? rawToastMinVisibleMs
+                    : 2000;
         
                 logDebug(2, `📐 Using resolution threshold: ${minWidth}x${minHeight}`);
                 logDebug(2, `⚡ Using gallery rate limit (images/sec): ${galleryRateLimit}`);
