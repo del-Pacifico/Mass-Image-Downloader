@@ -11,6 +11,8 @@
     const configCache = {
         debugLogLevel: 1,
         showUserFeedbackMessages: true,
+        // ⏱️ Minimum time a toast stays visible before it can be replaced.
+        // Range: 0..10000, Default: 2000
         toastMinVisibleMs: 2000,
         allowJPG: true,
         allowJPEG: true,
@@ -701,9 +703,9 @@
                     } catch (removeError) {
                         logDebug(1, `⚠️ Error removing message element: ${removeError.message}`);
                     }
-                }, effectiveDuration);
+                }, 500); // Match CSS transition: opacity 0.5s
                 window[TIMER_KEY] = null;
-            }, duration);
+            }, effectiveDuration);
 
         } catch (error) {
             logDebug(1, `❌ Error displaying user message: ${error.message}`);
