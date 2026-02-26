@@ -313,7 +313,9 @@
      */
     function showMessage(text, type = "info") {
         try {
-            const duration = type === "error" ? 10000 : 5000;
+            const baseDuration = type === "error" ? 10000 : 5000;
+            const minVisibleMs = Math.max(0, parseInt(configCache.toastMinVisibleMs ?? 2000, 10) || 2000);
+            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
             const backgroundColor = type === "error" ? "#d9534f" : "#007EE3";
 
             // ✅ Last toast wins: remove previous toast + cancel previous timer
@@ -356,7 +358,7 @@
                     try { msg.remove(); } catch (_) {}
                 }, 500);
                 window[TIMER_KEY] = null;
-            }, duration);
+            }, effectiveDuration);
         } catch (err) {
             logDebug(1, "❌ Failed to show message:", err.message);
             logDebug(2, "🐛 Stacktrace: ", err.stack);
