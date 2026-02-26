@@ -335,7 +335,8 @@
             const msg = document.createElement("div");
             msg.id = TOAST_ID;
 
-            msg.textContent = "Mass image downloader: " + text;
+            const finalText = (typeof text === "string" && text.trim().startsWith("MID:")) ? text.trim() : `MID: ${text}`;
+            msg.textContent = finalText;
             msg.style.position = "fixed";
             msg.style.top = "20px";
             msg.style.right = "20px";
