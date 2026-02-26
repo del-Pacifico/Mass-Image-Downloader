@@ -20,6 +20,7 @@
     let currentLogLevel = 1; // Default log level
     let showUserFeedbackMessagesCache = true;
     let toastMinVisibleMsCache = 2000; // Default: 2000ms
+    const allowedExtensions = [];
 
     logDebug(1, "⚓ Extract Linked Gallery script injected.");
 
@@ -59,17 +60,36 @@
             const effectiveDuration = Math.max(baseDuration, minVisibleMs);
             const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
 
-            // ✅ Last toast wins: remove previous toast + cancel previous timer
+            // ✅ Minimum visible time: defer replacement inside the min window (last pending toast wins)
             const TOAST_ID = "mdi-user-toast";
             const TIMER_KEY = "__mdiUserToastTimer";
+            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+            const DEFER_KEY = "__mdiUserToastDeferTimer";
+            const PENDING_KEY = "__mdiUserToastPending";
 
             try {
-                const existing = document.getElementById(TOAST_ID);
-                if (existing) existing.remove();
+                const now = Date.now();
+                const minUntil = window[MINUNTIL_KEY] || 0;
 
-                if (window[TIMER_KEY]) {
-                    clearTimeout(window[TIMER_KEY]);
-                    window[TIMER_KEY] = null;
+                if (minVisibleMs > 0 && now < minUntil) {
+                    window[PENDING_KEY] = { text, type };
+
+                    if (window[DEFER_KEY]) {
+                        clearTimeout(window[DEFER_KEY]);
+                        window[DEFER_KEY] = null;
+                    }
+
+                    window[DEFER_KEY] = setTimeout(() => {
+                        const pending = window[PENDING_KEY];
+                        window[PENDING_KEY] = null;
+                        window[DEFER_KEY] = null;
+
+                        if (pending && pending.text) {
+                            showUserMessage(pending.text, pending.type || "info");
+                        }
+                    }, Math.max(0, minUntil - now));
+
+                    return;
                 }
             } catch (_) {}
 
@@ -95,6 +115,11 @@
             document.body.appendChild(messageElement);
 
             logDebug(2, `📢 Showing user message: "${text}" (${type})`);
+
+            // ⏱️ Mark minimum visible window start
+            try {
+                window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
+            } catch (_) {}
 
             // ✅ Store timer id so the next toast can cancel it
             window[TIMER_KEY] = setTimeout(() => {
@@ -318,9 +343,6 @@
 
         // ✉️ Step 3: Send the grouped gallery images to the background script
         logDebug(1, '📤 Sending gallery to background for download/tab handling...');
-        
-        // Sending the count of unique images for user feedback
-        showUserMessage(`Extract Linked Gallery - analyzing / send to download (${uniqueGalleryUrls.length} images)`, "info");
 
         // 🔒 Step 3.1: Check for duplicates and limit the number of images sent
         try {
@@ -331,6 +353,9 @@
             
             // ✅ Remove duplicates while preserving order
             const uniqueGalleryUrls = [...new Set(gallery)];
+
+            // Sending the count of unique images for user feedback
+            showUserMessage(`Extract Linked Gallery - analyzing / send to download (${uniqueGalleryUrls.length} images)`, "info");
 
             // 🔒 Step 3.1: Check for duplicates and limit the number of images sent
             chrome.runtime.sendMessage({
