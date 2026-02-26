@@ -228,6 +228,7 @@
             },
             "📢 Notifications": {
                 showUserFeedbackMessages: "Show User Feedback Messages",
+                toastMinVisibleMs: "Toast minimum visible time (ms)",
                 peekTransparencyLevel: "Peek Transparency Level"
             },
             "🐛 Debugging": {
