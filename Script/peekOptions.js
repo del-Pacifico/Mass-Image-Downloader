@@ -322,6 +322,37 @@
             const TOAST_ID = "mdi-user-toast";
             const TIMER_KEY = "__mdiUserToastTimer";
 
+            // ⏱️ Minimum visible time: defer replacement inside the min window (last pending wins)
+            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+            const DEFER_KEY = "__mdiUserToastDeferTimer";
+            const PENDING_KEY = "__mdiUserToastPending";
+
+            try {
+                const now = Date.now();
+                const minUntil = window[MINUNTIL_KEY] || 0;
+
+                if (minVisibleMs > 0 && now < minUntil) {
+                    window[PENDING_KEY] = { text, type };
+
+                    if (window[DEFER_KEY]) {
+                        clearTimeout(window[DEFER_KEY]);
+                        window[DEFER_KEY] = null;
+                    }
+
+                    window[DEFER_KEY] = setTimeout(() => {
+                        const pending = window[PENDING_KEY];
+                        window[PENDING_KEY] = null;
+                        window[DEFER_KEY] = null;
+
+                        if (pending && pending.text) {
+                            showMessage(pending.text, pending.type || "info");
+                        }
+                    }, Math.max(0, minUntil - now));
+
+                    return;
+                }
+            } catch (_) {}
+
             try {
                 const existing = document.getElementById(TOAST_ID);
                 if (existing) existing.remove();
@@ -351,6 +382,11 @@
             msg.style.zIndex = "9999";
 
             document.body.appendChild(msg);
+
+            // ⏱️ Mark minimum visible window start
+            try {
+                window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
+            } catch (_) {}
 
             // ✅ Store timer id so the next toast can cancel it
             window[TIMER_KEY] = setTimeout(() => {
