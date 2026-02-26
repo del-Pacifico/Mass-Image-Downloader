@@ -22,6 +22,7 @@
 
     let debugLogLevelCache = 1;
     let showUserFeedbackMessagesCache = true;
+    let toastMinVisibleMsCache = 2000; // Default: 2000ms
     let enableClipboardHotkeysCache = false;
     let filenameModeCache = 'none';
 
@@ -46,11 +47,17 @@
             }
 
             chrome.storage.sync.get(
-                ["debugLogLevel", "showUserFeedbackMessages", "enableClipboardHotkeys", "filenameMode"],
+                ["debugLogLevel", "showUserFeedbackMessages", "toastMinVisibleMs", "enableClipboardHotkeys", "filenameMode"],
                 (data) => {
                     try {
                         debugLogLevelCache = parseInt(data.debugLogLevel ?? 1);
                         showUserFeedbackMessagesCache = data.showUserFeedbackMessages ?? true;
+
+                        const rawToastMinVisibleMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
+                        toastMinVisibleMsCache = (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
+                            ? rawToastMinVisibleMs
+                            : 2000;
+
                         enableClipboardHotkeysCache = data.enableClipboardHotkeys ?? false;
                         filenameModeCache = data.filenameMode ?? "none";
                     } catch (err) {
@@ -64,6 +71,38 @@
 
     // ✅ Initialize config
     await initConfig();
+
+    // 🔄 Keep local config in sync with settings changes (MV3 friendly)
+    if (chrome?.storage?.onChanged) {
+        chrome.storage.onChanged.addListener((changes, area) => {
+            try {
+                if (area !== "sync") return;
+
+                if (changes.debugLogLevel) {
+                    debugLogLevelCache = parseInt(changes.debugLogLevel.newValue ?? 1);
+                }
+
+                if (changes.showUserFeedbackMessages) {
+                    showUserFeedbackMessagesCache = changes.showUserFeedbackMessages.newValue ?? true;
+                }
+
+                if (changes.toastMinVisibleMs) {
+                    const raw = parseInt(changes.toastMinVisibleMs.newValue ?? 2000, 10);
+                    toastMinVisibleMsCache = (!isNaN(raw) && raw >= 0 && raw <= 10000) ? raw : 2000;
+                }
+
+                if (changes.enableClipboardHotkeys) {
+                    enableClipboardHotkeysCache = changes.enableClipboardHotkeys.newValue ?? false;
+                }
+
+                if (changes.filenameMode) {
+                    filenameModeCache = changes.filenameMode.newValue ?? "none";
+                }
+            } catch (err) {
+                logDebug(2, "⚠️ storage.onChanged handler failed:", err.message);
+            }
+        });
+    }
     
     // ✅ Check if the script is already loaded
     logDebug(1, '📋 ClipboardHotkeys script loaded.');
@@ -140,9 +179,8 @@
 
             if (!text || typeof text !== "string") return;
 
-            // ✅ Temporary QA behavior: enforce a minimum gap so users can see each toast
-            // You said you'll remove this later.
-            const TOAST_MIN_GAP_MS = 2000;
+            // ✅ Minimum visible time (configurable): reuse global setting.
+            const TOAST_MIN_GAP_MS = Math.max(0, parseInt(toastMinVisibleMsCache ?? 2000, 10) || 2000);
 
             // ✅ "Last toast wins" state (global per page)
             const state = window.__mdiToastState || (window.__mdiToastState = {
@@ -189,7 +227,10 @@
 
                     const msg = document.createElement("div");
                     msg.id = "__mdi_user_toast";
-                    msg.textContent = next.text;
+                    const finalText = (typeof next.text === "string" && next.text.trim().startsWith("MID:"))
+                        ? next.text.trim()
+                        : `MID: ${next.text}`;
+                    msg.textContent = finalText;
                     msg.style.position = "fixed";
                     msg.style.top = "20px";
                     msg.style.right = "20px";
