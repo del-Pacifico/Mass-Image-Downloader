@@ -14,6 +14,7 @@
     let minWidth = 300;
     let minHeight = 500;
 	let showUserFeedbackMessagesCache = true;
+    let toastMinVisibleMsCache = 2000; // Default minimum visible time for toast (ms)
 
     let allowJPG = true;
     let allowJPEG = true;
@@ -28,11 +29,18 @@
 		"minWidth", "minHeight", "galleryMaxImages",
 		"debugLogLevel", 
         "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP",
-		"showUserFeedbackMessages"
+		"showUserFeedbackMessages", "toastMinVisibleMs"
 	], (data) => {
 
         const level = parseInt(data.debugLogLevel ?? 0);
 		showUserFeedbackMessagesCache = data.showUserFeedbackMessages ?? true;
+
+        const rawToastMinVisibleMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
+        toastMinVisibleMsCache = (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
+            ? rawToastMinVisibleMs
+            : 2000;
+
+        logDebug(2, `⏱️ Config → Toast minimum visible time (ms): ${toastMinVisibleMsCache}`);
 
         if (!isNaN(level)) debugLogLevelCache = level;
     
@@ -108,26 +116,60 @@
 				return;
 			}
 
-			const duration = type === "error" ? 10000 : 5000;
-			const bg = type === "error" ? "#d9534f" : "#007EE3";
+			const baseDuration = type === "error" ? 10000 : 5000;
+            const minVisibleMs = Math.max(0, parseInt(toastMinVisibleMsCache ?? 2000, 10) || 2000);
+            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
+            const bg = type === "error" ? "#d9534f" : "#007EE3";
 
 			// ✅ Last toast wins: remove previous toast + cancel previous timer
-			const TOAST_ID = "mdi-user-toast";
-			const TIMER_KEY = "__mdiUserToastTimer";
+            const TOAST_ID = "mdi-user-toast";
+            const TIMER_KEY = "__mdiUserToastTimer";
 
-			try {
-				const existing = document.getElementById(TOAST_ID);
-				if (existing) existing.remove();
+            // ⏱️ Minimum visible time: defer replacement inside the min window (last pending toast wins)
+            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+            const DEFER_KEY = "__mdiUserToastDeferTimer";
+            const PENDING_KEY = "__mdiUserToastPending";
 
-				if (window[TIMER_KEY]) {
-					clearTimeout(window[TIMER_KEY]);
-					window[TIMER_KEY] = null;
-				}
-			} catch (_) {}
+            try {
+                const now = Date.now();
+                const minUntil = window[MINUNTIL_KEY] || 0;
+
+                if (minVisibleMs > 0 && now < minUntil) {
+                    window[PENDING_KEY] = { text, type };
+
+                    if (window[DEFER_KEY]) {
+                        clearTimeout(window[DEFER_KEY]);
+                        window[DEFER_KEY] = null;
+                    }
+
+                    window[DEFER_KEY] = setTimeout(() => {
+                        const pending = window[PENDING_KEY];
+                        window[PENDING_KEY] = null;
+                        window[DEFER_KEY] = null;
+
+                        if (pending && pending.text) {
+                            showUserMessage(pending.text, pending.type || "info");
+                        }
+                    }, Math.max(0, minUntil - now));
+
+                    return;
+                }
+            } catch (_) {}
+
+            try {
+                const existing = document.getElementById(TOAST_ID);
+                if (existing) existing.remove();
+
+                if (window[TIMER_KEY]) {
+                    clearTimeout(window[TIMER_KEY]);
+                    window[TIMER_KEY] = null;
+                }
+            } catch (_) {}
 
 			const msg = document.createElement("div");
 			msg.id = TOAST_ID;
-			msg.textContent = text;
+			const finalText = (typeof text === "string" && text.trim().startsWith("MID:")) ? text.trim() : `MID: ${text}`;
+            msg.textContent = finalText;
 			msg.style = `
 				position:fixed; top:20px; right:20px;
 				background:${bg}; color:#fff; padding:12px;
@@ -140,6 +182,11 @@
 
 			logDebug(2, `📢 Showing user message: "${text}" (${type})`);
 
+            // ⏱️ Mark minimum visible window start
+            try {
+                window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
+            } catch (_) {}
+
 			// ✅ Store timer id so the next toast can cancel it
 			window[TIMER_KEY] = setTimeout(() => {
 				msg.style.opacity = "0";
@@ -147,7 +194,7 @@
 					try { msg.remove(); } catch (e) { logDebug(1, `⚠️ Failed to remove message: ${e.message}`); }
 				}, 500);
 				window[TIMER_KEY] = null;
-			}, duration);
+			}, effectiveDuration);
 		} catch (e) {
 			logDebug(1, `❌ showUserMessage error: ${e.message}`);
 		}
@@ -197,6 +244,7 @@
         }
 
         window.__mdi_extractVisualGalleryRunning = true;
+        showUserMessage("Visual Gallery - start", "info");
 
         try {
             const imagesFound = [];
@@ -316,6 +364,7 @@
             logDebug(3, '----------------------------------------');
             logDebug(1, `🎯 Visual gallery images collected: ${imagesFound.length}`);
             logDebug(2, '📤 Sending images to background script...');
+            showUserMessage(`Visual Gallery - analyzing / send to download (${imagesFound.length} images)`, "info");
 
             try {
                 // Send the images to the background script
@@ -330,8 +379,10 @@
                     // Check for errors in the response
                     if (chrome.runtime.lastError) {
                         logDebug(1, `❌ Error sending images: ${chrome.runtime.lastError.message}`);
+                        showUserMessage("Visual Gallery - done (error) - 0 images downloaded | 0 pages opened", "error");
                     } else if (response?.success) {
                         logDebug(1, "✅ Images sent to background successfully.");
+                        showUserMessage(`Visual Gallery - done - 0 images downloaded | 0 pages opened`, "success");
                     } else {
                         logDebug(2, "⚠️ No response or process failed.");
                     }
