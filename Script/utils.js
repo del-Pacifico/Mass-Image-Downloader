@@ -110,6 +110,22 @@
                 logDebug(2, `🔄 Min height updated in cache: ${oldValue} → ${configCache.minHeight}`);
             }
 
+            // if showUserFeedbackMessages changed, update cache and log
+            if (changes.showUserFeedbackMessages) {
+                const oldValue = configCache.showUserFeedbackMessages;
+                configCache.showUserFeedbackMessages = changes.showUserFeedbackMessages.newValue ?? true;
+                logDebug(2, `🔄 showUserFeedbackMessages updated in cache: ${oldValue} → ${configCache.showUserFeedbackMessages}`);
+            }
+
+            // if toastMinVisibleMs changed, update cache and log
+            if (changes.toastMinVisibleMs) {
+                const oldValue = configCache.toastMinVisibleMs;
+                const raw = parseInt(changes.toastMinVisibleMs.newValue ?? 2000, 10);
+                const safe = (!isNaN(raw) && raw >= 0 && raw <= 10000) ? raw : 2000;
+                configCache.toastMinVisibleMs = safe;
+                logDebug(2, `🔄 toastMinVisibleMs updated in cache: ${oldValue} → ${configCache.toastMinVisibleMs}`);
+            }
+
         });
     }
 
