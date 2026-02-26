@@ -83,18 +83,21 @@
 
                 // update debugLogLevelCache if changed
                 if (changes.debugLogLevel) {
+                    const oldValue = debugLogLevelCache;
                     debugLogLevelCache = parseInt(changes.debugLogLevel.newValue ?? 1);
                     logDebug(2, `🔄 debugLogLevel updated: ${oldValue} → ${debugLogLevelCache}`);
                 }
 
                 // update showUserFeedbackMessagesCache if changed
                 if (changes.showUserFeedbackMessages) {
+                    const oldValue = showUserFeedbackMessagesCache;
                     showUserFeedbackMessagesCache = changes.showUserFeedbackMessages.newValue ?? true;
                     logDebug(2, `🔄 showUserFeedbackMessages updated: ${oldValue} → ${showUserFeedbackMessagesCache}`);
                 }
 
                 // update toastMinVisibleMsCache if changed
                 if (changes.toastMinVisibleMs) {
+                    const oldValue = toastMinVisibleMsCache;
                     const raw = parseInt(changes.toastMinVisibleMs.newValue ?? 2000, 10);
                     toastMinVisibleMsCache = (!isNaN(raw) && raw >= 0 && raw <= 10000) ? raw : 2000;
                     logDebug(2, `🔄 toastMinVisibleMs updated: ${oldValue} → ${toastMinVisibleMsCache}`);
@@ -102,16 +105,18 @@
 
                 // update enableClipboardHotkeysCache if changed
                 if (changes.enableClipboardHotkeys) {
+                    const oldValue = enableClipboardHotkeysCache;
                     enableClipboardHotkeysCache = changes.enableClipboardHotkeys.newValue ?? false;
                     logDebug(2, `🔄 enableClipboardHotkeys updated: ${oldValue} → ${enableClipboardHotkeysCache}`);
                 }
 
                 // update filenameModeCache if changed
                 if (changes.filenameMode) {
+                    const oldValue = filenameModeCache;
                     filenameModeCache = changes.filenameMode.newValue ?? "none";
                     logDebug(2, `🔄 filenameMode updated: ${oldValue} → ${filenameModeCache}`);
                 }
-                
+
             } catch (err) {
                 logDebug(2, "⚠️ storage.onChanged handler failed:", err.message);
             }
