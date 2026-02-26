@@ -13,6 +13,7 @@
     
     let debugLogLevelCache = 1;
     let showUserFeedbackMessagesCache = true;
+    let toastMinVisibleMsCache = 2000; // Default minimum visible time for toast (ms)
     const allowedExtensions = [];
     let minGroupSizeCache = 3; // Default minimum group size for gallery detection
 
@@ -22,7 +23,7 @@
     // get some Extensions values from storage
     // and set the default values if not set
     // This is used to determine which image formats are allowed for gallery detection
-    chrome.storage.sync.get(["debugLogLevel", "gallerySimilarityLevel", "showUserFeedbackMessages",
+    chrome.storage.sync.get(["debugLogLevel", "gallerySimilarityLevel", "showUserFeedbackMessages", "toastMinVisibleMs",
     "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", "galleryMinGroupSize"
     ], (data) => {
         debugLogLevelCache = parseInt(data.debugLogLevel ?? 1);
@@ -31,6 +32,13 @@
             : 70;
 
 		showUserFeedbackMessagesCache = data.showUserFeedbackMessages ?? true;
+
+        const rawToastMinVisibleMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
+        toastMinVisibleMsCache = (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
+            ? rawToastMinVisibleMs
+            : 2000;
+
+        logDebug(2, `⏱️ Config → Toast minimum visible time (ms): ${toastMinVisibleMsCache}`);
 
         const allowJPG = data.allowJPG !== false;
         const allowJPEG = data.allowJPEG !== false;
@@ -152,8 +160,10 @@
 				return;
 			}
 
-			const duration = (type === "error") ? 10000 : 5000;
-			const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
+			const baseDuration = (type === "error") ? 10000 : 5000;
+            const minVisibleMs = Math.max(0, parseInt(toastMinVisibleMsCache ?? 2000, 10) || 2000);
+            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
+            const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
 
 			// ✅ Last toast wins: remove previous toast + cancel previous timer
 			const TOAST_ID = "mdi-user-toast";
@@ -171,7 +181,8 @@
 
 			const messageElement = document.createElement("div");
 			messageElement.id = TOAST_ID;
-			messageElement.textContent = text;
+			const finalText = (typeof text === "string" && text.trim().startsWith("MID:")) ? text.trim() : `MID: ${text}`;
+            messageElement.textContent = finalText;
 			messageElement.style.position = "fixed";
 			messageElement.style.top = "20px";
 			messageElement.style.right = "20px";
@@ -199,7 +210,7 @@
 					}
 				}, 500);
 				window[TIMER_KEY] = null;
-			}, duration);
+			}, effectiveDuration);
 		} catch (error) {
 			logDebug(1, `❌ Error displaying user message: ${error.message}`);
             logDebug(2, `🐛 Stack trace: ${error.stack}`);
@@ -362,6 +373,7 @@
         try {
 
             logDebug(1, "🔗 Script injected: Extract Web-Linked Gallery");
+            showUserMessage("Web-linked Gallery - start", "info");
 
             const results = [];
 
@@ -686,6 +698,7 @@
             
                 // Send the URLs to the background script
                 logDebug(1, "📤 BEGIN: Sending gallery URLs to background...");
+                showUserMessage(`Web-linked Gallery - analyzing / send to download (${urlsToSend.length} links)`, "info");
 
                 // Use chrome.runtime.sendMessage to communicate with the background script
                 chrome.runtime.sendMessage(
