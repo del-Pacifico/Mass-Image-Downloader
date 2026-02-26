@@ -104,6 +104,7 @@ if (typeof configCache === 'undefined') {
         minHeight: 600,
         allowedExts: [],
         showUserFeedbackMessages: false,
+        toastMinVisibleMs: 2000, // Default: 2000ms
         allowExtendedImageUrls: false,
         enableOneClickIcon: false
     };
@@ -112,7 +113,7 @@ if (typeof configCache === 'undefined') {
 // 🔧 Initialize local config for this script only
 function initConfigForInjectSaveIcon(callback) {
     chrome.storage.sync.get(
-        ["debugLogLevel", "minWidth", "minHeight", "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", "enableOneClickIcon", "showUserFeedbackMessages", "allowExtendedImageUrls"],
+        ["debugLogLevel", "minWidth", "minHeight", "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", "enableOneClickIcon", "showUserFeedbackMessages", "toastMinVisibleMs", "allowExtendedImageUrls"],
         (data) => {
             debugLogLevelCache = parseInt(data.debugLogLevel ?? 1);
 
@@ -128,7 +129,13 @@ function initConfigForInjectSaveIcon(callback) {
             if (data.allowBMP) configCache.allowedExts.push('.bmp');
             if (data.showUserFeedbackMessages) configCache.showUserFeedbackMessages = true;
             else configCache.showUserFeedbackMessages = false;
-            if (data.allowExtendedImageUrls) configCache.allowExtendedImageUrls = true;
+
+            const rawToastMinVisibleMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
+            configCache.toastMinVisibleMs = (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
+                ? rawToastMinVisibleMs
+                : 2000;
+
+                if (data.allowExtendedImageUrls) configCache.allowExtendedImageUrls = true;
             else configCache.allowExtendedImageUrls = false;
             if (data.enableOneClickIcon) configCache.enableOneClickIcon = true;
             else configCache.enableOneClickIcon = false;
@@ -429,8 +436,9 @@ function showUserMessage(text, type = "info") {
             return;
         }
 
-        const duration = (type === "error") ? 10000 : 5000;
-        const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
+        const baseDuration = (type === "error") ? 10000 : 5000;
+        const minVisibleMs = Math.max(0, parseInt(configCache.toastMinVisibleMs ?? 2000, 10) || 2000);
+        const effectiveDuration = Math.max(baseDuration, minVisibleMs);
 
         // ✅ Last toast wins: remove previous toast + cancel previous timer
         const TOAST_ID = "mdi-user-toast";
@@ -448,7 +456,11 @@ function showUserMessage(text, type = "info") {
 
         const messageElement = document.createElement("div");
         messageElement.id = TOAST_ID;
-        messageElement.textContent = "Mass image downloader: " + text;
+        
+        // ✅ Ensure consistent "MID: " prefix for all messages, but avoid duplication if already present
+        const finalText = (typeof text === "string" && text.trim().startsWith("MID:")) ? text.trim() : `MID: ${text}`;
+        messageElement.textContent = finalText;
+        
         messageElement.style.position = "fixed";
         messageElement.style.top = "20px";
         messageElement.style.right = "20px";
@@ -476,7 +488,7 @@ function showUserMessage(text, type = "info") {
                 }
             }, 500);
             window[TIMER_KEY] = null;
-        }, duration);
+        }, effectiveDuration);
 
     } catch (error) {
         logDebug(1, `❌ Error displaying user message: ${error.message}`);
