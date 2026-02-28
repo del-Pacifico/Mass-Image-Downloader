@@ -178,14 +178,15 @@
 				opacity:1; transition:opacity 0.5s ease-in-out;
 				z-index:9999;
 			`;
-			document.body.appendChild(msg);
 
 			logDebug(2, `📢 Showing user message: "${text}" (${type})`);
 
-            // ⏱️ Mark minimum visible window start
+			// ⏱️ Mark minimum visible window start (before append to avoid ultra-fast overwrite)
             try {
                 window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
             } catch (_) {}
+
+            document.body.appendChild(msg);
 
 			// ✅ Store timer id so the next toast can cancel it
 			window[TIMER_KEY] = setTimeout(() => {
