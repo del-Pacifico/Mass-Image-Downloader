@@ -37,107 +37,128 @@
     let minHeight = 300;
 
     /**
-     * Displays a temporary user message on the page.
-     * @param {string} text - The message text to display.
-     * @param {'info'|'success'|'error'} type - The type of message, which determines styling and duration.
-     * @returns {void}
-     * @description This function creates a temporary message element on the page to provide feedback to the user.
-     * It checks if the user has enabled feedback messages before displaying anything.
-     * The message is styled based on the type (info, success, error) and automatically disappears after a certain duration.
-     * If a new message is shown while another is still visible, the previous one is removed immediately to ensure that only one message is displayed at a time.
-     * This function is useful for providing feedback to the user about actions taken, such as successfully setting a prefix/suffix or encountering an error.
+     * Displays a user message as a toast notification on the page.
+     * @param {string} text - The message text to display. If it starts with "MID:", it will be displayed as is; otherwise, "MID: " will be prefixed.
+     * @param {string} [type="info"] - The type of message: "info", "success", or "error". This affects the background color and duration.
+     * @description
+     * This function retrieves user settings for showing feedback messages and minimum visible duration from Chrome's storage.
+     * It then creates a styled toast notification element and displays it on the page. The toast will automatically fade out after the effective duration.
+     * If a new message is triggered while another toast is still visible, it will defer the new message until the current one has been visible for at least the minimum duration.
+     * The function also handles errors gracefully and logs them to the console.
      */
     function showUserMessage(text, type = "info") {
         try {
-            // 🔒 Check if user feedback messages are enabled
-            if (!showUserFeedbackMessagesCache) {
-                logDebug(1, `🚫 User feedback messages disabled. Skipping display.`);
-                return;
-            }
-
-            const baseDuration = (type === "error") ? 10000 : 5000;
-            const minVisibleMs = Math.max(0, parseInt(toastMinVisibleMsCache ?? 2000, 10) || 2000);
-            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
-            const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
-
-            // ✅ Minimum visible time: defer replacement inside the min window (last pending toast wins)
-            const TOAST_ID = "mdi-user-toast";
-            const TIMER_KEY = "__mdiUserToastTimer";
-            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
-            const DEFER_KEY = "__mdiUserToastDeferTimer";
-            const PENDING_KEY = "__mdiUserToastPending";
-
-            try {
-                const now = Date.now();
-                const minUntil = window[MINUNTIL_KEY] || 0;
-
-                if (minVisibleMs > 0 && now < minUntil) {
-                    window[PENDING_KEY] = { text, type };
-
-                    if (window[DEFER_KEY]) {
-                        clearTimeout(window[DEFER_KEY]);
-                        window[DEFER_KEY] = null;
+            chrome.storage.sync.get(["showUserFeedbackMessages", "toastMinVisibleMs"], (data) => {
+                try {
+                    if (chrome.runtime.lastError) {
+                        logDebug(2, `⚠ Failed to retrieve toast settings: ${chrome.runtime.lastError.message}`);
+                        return;
                     }
 
-                    window[DEFER_KEY] = setTimeout(() => {
-                        const pending = window[PENDING_KEY];
-                        window[PENDING_KEY] = null;
-                        window[DEFER_KEY] = null;
+                    const enabled = data.showUserFeedbackMessages ?? true;
+                    if (!enabled) {
+                        logDebug(2, "🚫 User feedback messages disabled. Skipping display.");
+                        return;
+                    }
 
-                        if (pending && pending.text) {
-                            showUserMessage(pending.text, pending.type || "info");
-                        }
-                    }, Math.max(0, minUntil - now));
+                    const baseDuration = (type === "error") ? 10000 : 5000;
+                    const minVisibleMs = Math.max(0, parseInt(data.toastMinVisibleMs ?? 2000, 10) || 2000);
+                    const effectiveDuration = Math.max(baseDuration, minVisibleMs);
+                    const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
 
-                    return;
-                }
-            } catch (_) {}
+                    // ✅ Toast engine: last toast wins + optional minimum visible time (prevents fast overlap)
+                    const TOAST_ID = "mdi-user-toast";
+                    const TIMER_KEY = "__mdiUserToastTimer";
+                    const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+                    const DEFER_KEY = "__mdiUserToastDeferTimer";
+                    const PENDING_KEY = "__mdiUserToastPending";
 
-            const messageElement = document.createElement("div");
-            messageElement.id = TOAST_ID;
-            
-            // ✅ Ensure text starts with "MID:" for consistency, but avoid double prefixing
-            const finalText = (typeof text === "string" && text.trim().startsWith("MID:")) ? text.trim() : `MID: ${text}`;
-            messageElement.textContent = finalText;
-            
-            messageElement.style.position = "fixed";
-            messageElement.style.top = "20px";
-            messageElement.style.right = "20px";
-            messageElement.style.backgroundColor = backgroundColor;
-            messageElement.style.color = "#FFFFFF";
-            messageElement.style.padding = "12px";
-            messageElement.style.borderRadius = "6px";
-            messageElement.style.fontSize = "14px";
-            messageElement.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
-            messageElement.style.opacity = "1";
-            messageElement.style.transition = "opacity 0.5s ease-in-out";
-            messageElement.style.zIndex = "9999";
-            document.body.appendChild(messageElement);
-
-            logDebug(2, `📢 Showing user message: "${text}" (${type})`);
-
-            // ⏱️ Mark minimum visible window start
-            try {
-                window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
-            } catch (_) {}
-
-            // ✅ Store timer id so the next toast can cancel it
-            window[TIMER_KEY] = setTimeout(() => {
-                messageElement.style.opacity = "0";
-                setTimeout(() => {
+                    // ✅ Defer replacement if the previous toast must remain visible
                     try {
-                        messageElement.remove();
-                    } catch (removeError) {
-                        logDebug(1, `⚠️ Error removing message element: ${removeError.message}`);
-                    }
-                }, 500);
-                window[TIMER_KEY] = null;
-            }, effectiveDuration);
+                        const now = Date.now();
+                        const minUntil = window[MINUNTIL_KEY] || 0;
 
+                        if (minVisibleMs > 0 && now < minUntil) {
+                            window[PENDING_KEY] = { text, type };
+
+                            if (window[DEFER_KEY]) {
+                                clearTimeout(window[DEFER_KEY]);
+                                window[DEFER_KEY] = null;
+                            }
+
+                            window[DEFER_KEY] = setTimeout(() => {
+                                const pending = window[PENDING_KEY];
+                                window[PENDING_KEY] = null;
+                                window[DEFER_KEY] = null;
+
+                                if (pending && pending.text) {
+                                    showUserMessage(pending.text, pending.type || "info");
+                                }
+                            }, Math.max(0, minUntil - now));
+
+                            return;
+                        }
+                    } catch (_) {}
+
+                    // ✅ Last toast wins: remove previous toast + cancel previous timer
+                    try {
+                        const existing = document.getElementById(TOAST_ID);
+                        if (existing) existing.remove();
+
+                        if (window[TIMER_KEY]) {
+                            clearTimeout(window[TIMER_KEY]);
+                            window[TIMER_KEY] = null;
+                        }
+                    } catch (_) {}
+
+                    // ✅ Mark the minimum visible window for the newly shown toast
+                    try {
+                        window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
+                    } catch (_) {}
+
+                    const msg = document.createElement("div");
+                    msg.id = TOAST_ID;
+
+                    const finalText = (typeof text === "string" && text.trim().startsWith("MID:"))
+                        ? text.trim()
+                        : `MID: ${text}`;
+
+                    msg.textContent = finalText;
+                    msg.style.position = "fixed";
+                    msg.style.top = "20px";
+                    msg.style.right = "20px";
+                    msg.style.backgroundColor = backgroundColor;
+                    msg.style.color = "#FFFFFF";
+                    msg.style.padding = "12px";
+                    msg.style.borderRadius = "6px";
+                    msg.style.fontSize = "14px";
+                    msg.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
+                    msg.style.opacity = "1";
+                    msg.style.transition = "opacity 0.5s ease-in-out";
+                    msg.style.zIndex = "9999";
+
+                    document.body.appendChild(msg);
+
+                    logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
+
+                    window[TIMER_KEY] = setTimeout(() => {
+                        msg.style.opacity = "0";
+                        setTimeout(() => {
+                            try { msg.remove(); } catch (e) { logDebug(1, `⚠ Failed to remove toast: ${e.message}`); }
+                        }, 500);
+                        window[TIMER_KEY] = null;
+                    }, effectiveDuration);
+
+                } catch (innerError) {
+                    logDebug(1, `❌ Toast rendering error: ${innerError.message}`);
+                    logDebug(2, `🐛 Stacktrace: ${innerError.stack}`);
+                }
+            });
         } catch (error) {
             logDebug(1, `❌ Error displaying user message: ${error.message}`);
+            logDebug(2, `🐛 Stacktrace: ${error.stack}`);
         }
-    }   
+    }  
 
     /**
      * Logs debug messages to the console based on the current log level.
