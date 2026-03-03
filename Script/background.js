@@ -672,7 +672,11 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                 respondSafe(sendResponse, { success: true, ack: true });
 
                 // ✅ User feedback (respects showUserFeedbackMessages internally)
-                sendUserToastToTab(tabId, `🌄 Gallery processing started. Candidates: ${candidateCount}`, "info");
+                sendUserToastToTab(tabId, "MID: Gallery (linked / direct) started. Scanning page...", "info");
+
+                if (candidateCount > 0) {
+                    sendUserToastToTab(tabId, `MID: Gallery (linked / direct): found ${candidateCount} image(s). Downloading...`, "info");
+                }
 
                 // ✅ QA marker
                 logDebug(1, `[Mass Image Downloader]: 🧾 START (async): handleExtractLinkedGallery() scheduled (tabId=${tabId})`);
@@ -684,11 +688,13 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                             const ok = !!(payload && payload.success);
                             logDebug(1, `[Mass Image Downloader]: 🧾 END (async): handleExtractLinkedGallery() completed (tabId=${tabId}) -> success=${ok}`);
 
+                            // if payload is successful, show number of images downloaded; otherwise show error message
                             if (ok) {
-                                sendUserToastToTab(tabId, "✅ Gallery processing completed.", "success");
+                                const n = (payload && typeof payload.downloads === "number") ? payload.downloads : 0;
+                                sendUserToastToTab(tabId, `MID: Gallery (linked / direct): completed. Downloaded: ${n} image(s).`, "success");
                             } else {
                                 const errText = (payload && payload.error) ? payload.error : "Unknown error";
-                                sendUserToastToTab(tabId, `❌ Gallery processing failed: ${errText}`, "error");
+                                sendUserToastToTab(tabId, `MID: Gallery (linked / direct) failed: ${errText}`, "error");
                             }
                         } catch (toastErr) {
                             logDebug(2, `⚠️ Completion toast failed: ${toastErr.message}`);
@@ -2026,6 +2032,7 @@ async function handleExtractLinkedGallery(message, sendResponse) {
     // 🧠 Download concurrency (declared early so finally{} can always access them)
     let activeDownloads = 0;
     let downloadQueue = [];
+    let downloadedCount = 0;
 
     // 🧠 Grouping gallery candidates by path similarity (80% threshold)
     logDebug(2, '🧠 Grouping gallery candidates by path similarity...');
@@ -2272,11 +2279,15 @@ async function handleExtractLinkedGallery(message, sendResponse) {
                     if (delayMs > 0) await sleep(delayMs);
 
                     enqueueDownload(async () => {
+                        let ok = false;
+
                         try {
                             await downloadImageFromUrl(imgUrl, "linkedGallery");
+                            ok = true;
                         } catch (err) {
                             logDebug(1, `⚠️ Download task failed: ${err.message}`);
                         } finally {
+                            if (ok) downloadedCount++;
                             onGalleryProgress();
                         }
                     });
@@ -2305,7 +2316,7 @@ async function handleExtractLinkedGallery(message, sendResponse) {
         await processImagesSequentially(dominantGroup, delay);
 
         // ✅ Success response (completionResponder in the caller will translate to toast)
-        respondOnce({ success: true });
+        respondOnce({ success: true, downloads: downloadedCount });
 
     } catch (e) {
         const errMsg = (e && e.message) ? e.message : String(e);
