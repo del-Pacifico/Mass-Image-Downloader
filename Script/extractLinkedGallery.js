@@ -281,7 +281,7 @@
         logDebug(1, '🌄 Begin: Extract Linked Gallery process');
         logDebug(3, '----------------------------------------------------');
         // 📨 Show initial user message
-        showUserMessage("Extract Linked Gallery - start", "info");
+        showUserMessage("Extract linked gallery started. Scanning page...", "info");
         
 		// 📌 Step 1: Find anchor <a> with internal <img>
 		const anchors = Array.from(document.querySelectorAll('a[href]'));
@@ -393,6 +393,7 @@
                     }
                 }
             }, (response) => {
+                // ✅ Handle response and errors from background
                 if (chrome.runtime.lastError) {
                     logDebug(2, `❌ Failed to send images: ${chrome.runtime.lastError.message}`);
                 } else if (response?.success) {
@@ -402,7 +403,7 @@
                 } else {
                     logDebug(1, '⚠️ No response or process failed.');
                     // 📨 Show completion message indicating no images sent
-                    showUserMessage("Extract Linked Gallery - done (no response) - 0 images sent | 0 pages opened", "error");
+                    showUserMessage("No gallery links found. Try the 'Visual gallery (no links)' mode instead.", "error");
                 }
             
                 logDebug(2, '✅ End: Extract Linked Gallery Process');
