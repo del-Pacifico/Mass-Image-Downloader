@@ -22,9 +22,11 @@
 
     let debugLogLevelCache = 1;
     let showUserFeedbackMessagesCache = true;
-    let toastMinVisibleMsCache = 2000; // Default: 2000ms
     let enableClipboardHotkeysCache = false;
     let filenameModeCache = 'none';
+
+    // 📢 Toast minimum visible time (ms). Range: 0..10000. Default: 2000.
+    let toastMinVisibleMsCache = 2000;
 
     // ✅ Initialize config from chrome.storage.sync
     /**
@@ -47,19 +49,18 @@
             }
 
             chrome.storage.sync.get(
-                ["debugLogLevel", "showUserFeedbackMessages", "toastMinVisibleMs", "enableClipboardHotkeys", "filenameMode"],
+                ["debugLogLevel", "showUserFeedbackMessages", "toastMinVisibleMs", "enableClipboardHotkeys", 
+                    "filenameMode", "toastMinVisibleMs"],
                 (data) => {
                     try {
                         debugLogLevelCache = parseInt(data.debugLogLevel ?? 1);
                         showUserFeedbackMessagesCache = data.showUserFeedbackMessages ?? true;
-
-                        const rawToastMinVisibleMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
-                        toastMinVisibleMsCache = (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
-                            ? rawToastMinVisibleMs
-                            : 2000;
-
                         enableClipboardHotkeysCache = data.enableClipboardHotkeys ?? false;
                         filenameModeCache = data.filenameMode ?? "none";
+
+                        const rawToastMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
+                        toastMinVisibleMsCache = (!isNaN(rawToastMs) && rawToastMs >= 0 && rawToastMs <= 10000) ? rawToastMs : 2000;
+
                     } catch (err) {
                         logDebug(1, "❌ Failed to assign config values:", err.message);
                     }
@@ -115,6 +116,14 @@
                     const oldValue = filenameModeCache;
                     filenameModeCache = changes.filenameMode.newValue ?? "none";
                     logDebug(2, `🔄 filenameMode updated: ${oldValue} → ${filenameModeCache}`);
+                }
+            
+                // update toastMinVisibleMsCache if changed (duplicate check for safety)
+                if (changes.toastMinVisibleMs) {
+                    const oldValue = toastMinVisibleMsCache;
+                    const raw = parseInt(changes.toastMinVisibleMs.newValue ?? 2000, 10);
+                    toastMinVisibleMsCache = (!isNaN(raw) && raw >= 0 && raw <= 10000) ? raw : 2000;
+                    logDebug(2, `🔄 toastMinVisibleMs updated: ${oldValue} → ${toastMinVisibleMsCache}`);
                 }
 
             } catch (err) {
@@ -176,114 +185,117 @@
     }
 
     /**
-     * Displays a temporary user message on the page.
+     * Displays a user feedback message as a toast notification.
      * @param {string} text - The message text to display.
-     * @param {"info"|"success"|"error"} type - The type of message, which affects styling and duration.
+     * @param {"info"|"error"|"success"} type - The type of message, which determines styling and duration.
      * @returns {void}
-     * @description This function creates a temporary message element on the page to provide feedback to the user.
-     * It checks if user feedback messages are enabled in the configuration before displaying the message.
-     * The message is styled based on the type (info, success, error) and automatically disappears after a certain duration.
-     * It also implements a "last toast wins" behavior to ensure that messages do not overlap and that the most recent message is shown.
-     * This function is useful for providing feedback to the user about the success or failure of operations, especially those triggered by keyboard shortcuts.
-     * It enhances the user experience by giving immediate visual feedback without relying on console logs or alerts.
+     * @description This function creates a toast notification on the page to provide feedback to the user.
+     * It checks if user feedback messages are enabled in the settings before displaying.
+     * The message is styled based on the type (info, error, success) and automatically disappears after a certain duration.
+     * It also handles multiple messages by ensuring that the last message is shown and that messages do not overlap too quickly.
+     * This function is useful for providing immediate feedback to the user about actions they have taken, such as setting a prefix or suffix from the clipboard.
+     * It is designed to be non-intrusive and automatically manages the display and removal of messages.
      */
     function showUserMessage(text, type = "info") {
         try {
-
-            // ✅ Check if the user has enabled user feedback messages
             if (!showUserFeedbackMessagesCache) {
-                logDebug(2, "🛑 User feedback messages are disabled. Skipping message display.");
+                logDebug(2, "🚫 User feedback messages disabled. Skipping display.");
                 return;
             }
 
-            if (!text || typeof text !== "string") return;
+            const safeText = (typeof text === "string") ? text.trim() : String(text || "").trim();
+            if (!safeText) return;
 
-            // ✅ Minimum visible time (configurable): reuse global setting.
-            const TOAST_MIN_GAP_MS = Math.max(0, parseInt(toastMinVisibleMsCache ?? 2000, 10) || 2000);
+            // ✅ Normalize to MID standard
+            const finalText = safeText.startsWith("MID:") ? safeText : `MID: ${safeText}`;
 
-            // ✅ "Last toast wins" state (global per page)
-            const state = window.__mdiToastState || (window.__mdiToastState = {
-                lastShownAt: 0,
-                pending: null,
-                pendingTimer: null,
-                hideTimer: null
-            });
+            const baseDuration = (type === "error") ? 10000 : 5000;
+            const minVisibleMs = Math.max(0, parseInt(toastMinVisibleMsCache ?? 2000, 10) || 2000);
+            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
+            const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
 
-            // Always overwrite pending with the latest request
-            state.pending = { text, type };
+            // ✅ Toast engine: last toast wins + optional minimum visible time (prevents fast overlap)
+            const TOAST_ID = "mdi-user-toast";
+            const TIMER_KEY = "__mdiUserToastTimer";
+            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+            const DEFER_KEY = "__mdiUserToastDeferTimer";
+            const PENDING_KEY = "__mdiUserToastPending";
 
-            // If a pending timer exists, cancel it (last wins)
-            if (state.pendingTimer) {
-                clearTimeout(state.pendingTimer);
-                state.pendingTimer = null;
-            }
+            // ✅ Defer replacement if current toast must remain visible for the minimum time
+            try {
+                const now = Date.now();
+                const minUntil = window[MINUNTIL_KEY] || 0;
 
-            const now = Date.now();
-            const elapsed = now - (state.lastShownAt || 0);
-            const waitMs = Math.max(0, TOAST_MIN_GAP_MS - elapsed);
+                if (minVisibleMs > 0 && now < minUntil) {
+                    window[PENDING_KEY] = { text: finalText, type };
 
-            state.pendingTimer = setTimeout(() => {
-                try {
-                    const next = state.pending;
-                    state.pending = null;
-
-                    if (!next || !next.text) return;
-
-                    // Remove previous toast (no overlap)
-                    const existing = document.getElementById("__mdi_user_toast");
-                    if (existing) existing.remove();
-
-                    // Cancel previous hide timer
-                    if (state.hideTimer) {
-                        clearTimeout(state.hideTimer);
-                        state.hideTimer = null;
+                    if (window[DEFER_KEY]) {
+                        clearTimeout(window[DEFER_KEY]);
+                        window[DEFER_KEY] = null;
                     }
 
-                    logDebug(2, `🗨️ Showing user message: [${next.type}] ${next.text}`);
+                    window[DEFER_KEY] = setTimeout(() => {
+                        const pending = window[PENDING_KEY];
+                        window[PENDING_KEY] = null;
+                        window[DEFER_KEY] = null;
 
-                    const duration = next.type === "error" ? 10000 : 5000;
-                    const backgroundColor = next.type === "error" ? "#d9534f" : "#007EE3";
+                        if (pending && pending.text) {
+                            showUserMessage(pending.text, pending.type || "info");
+                        }
+                    }, Math.max(0, minUntil - now));
 
-                    const msg = document.createElement("div");
-                    msg.id = "__mdi_user_toast";
-                    const finalText = (typeof next.text === "string" && next.text.trim().startsWith("MID:"))
-                        ? next.text.trim()
-                        : `MID: ${next.text}`;
-                    msg.textContent = finalText;
-                    msg.style.position = "fixed";
-                    msg.style.top = "20px";
-                    msg.style.right = "20px";
-                    msg.style.backgroundColor = backgroundColor;
-                    msg.style.color = "#fff";
-                    msg.style.padding = "10px";
-                    msg.style.borderRadius = "5px";
-                    msg.style.zIndex = "9999";
-                    msg.style.fontSize = "14px";
-                    msg.style.boxShadow = "2px 2px 6px rgba(0,0,0,0.3)";
-                    msg.style.transition = "opacity 0.4s ease-in-out";
-                    msg.style.opacity = "1";
-
-                    document.body.appendChild(msg);
-
-                    // Mark shown timestamp (for the min-gap rule)
-                    state.lastShownAt = Date.now();
-
-                    state.hideTimer = setTimeout(() => {
-                        msg.style.opacity = "0";
-                        setTimeout(() => {
-                            try { msg.remove(); } catch (_) {}
-                        }, 400);
-                    }, duration);
-
-                } catch (innerErr) {
-                    logDebug(1, "❌ showUserMessage (render) failed:", innerErr.message);
-                    logDebug(2, "🐛 Stacktrace:", innerErr.stack);
+                    return;
                 }
-            }, waitMs);
+            } catch (_) {}
+
+            // ✅ Last toast wins: remove previous toast + cancel previous timer
+            try {
+                const existing = document.getElementById(TOAST_ID);
+                if (existing) existing.remove();
+
+                if (window[TIMER_KEY]) {
+                    clearTimeout(window[TIMER_KEY]);
+                    window[TIMER_KEY] = null;
+                }
+            } catch (_) {}
+
+            // ✅ Mark the minimum visible window for the newly shown toast
+            try {
+                window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
+            } catch (_) {}
+
+            const msg = document.createElement("div");
+            msg.id = TOAST_ID;
+            msg.textContent = finalText;
+
+            msg.style.position = "fixed";
+            msg.style.top = "20px";
+            msg.style.right = "20px";
+            msg.style.backgroundColor = backgroundColor;
+            msg.style.color = "#FFFFFF";
+            msg.style.padding = "12px";
+            msg.style.borderRadius = "6px";
+            msg.style.fontSize = "14px";
+            msg.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
+            msg.style.opacity = "1";
+            msg.style.transition = "opacity 0.5s ease-in-out";
+            msg.style.zIndex = "9999";
+
+            document.body.appendChild(msg);
+
+            logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
+
+            window[TIMER_KEY] = setTimeout(() => {
+                msg.style.opacity = "0";
+                setTimeout(() => {
+                    try { msg.remove(); } catch (_) {}
+                }, 500);
+                window[TIMER_KEY] = null;
+            }, effectiveDuration);
 
         } catch (err) {
-            logDebug(1, "❌ Failed to show user message:", err.message);
-            logDebug(2, "🐛 Stacktrace:", err.stack);
+            logDebug(1, `❌ Failed to show user message: ${err.message}`);
+            logDebug(2, `🐛 Stacktrace: ${(err && err.stack) ? err.stack : "n/a"}`);
         }
     }
 
