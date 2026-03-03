@@ -245,7 +245,7 @@
         }
 
         window.__mdi_extractVisualGalleryRunning = true;
-        showUserMessage("Visual Gallery - start", "info");
+        showUserMessage("Visual gallery started. Scanning page...", "info");    
 
         try {
             const imagesFound = [];
@@ -351,7 +351,7 @@
                 try {
                     logDebug(1, '⛔ No valid standalone images found on this page.');
                     logDebug(2, '💡 Tip: Use "Extract Web-Linked Gallery" instead.');
-                    showUserMessage("No images found. Try 'Extract Web-Linked Gallery' instead.", "error");
+                    showUserMessage('Visual gallery found no valid images. Try "Extract Web-Linked Gallery" instead.', "error");
 
                     if (Array.isArray(imagesFound)) imagesFound.length = 0;
                 } catch (cleanupError) {
@@ -365,7 +365,7 @@
             logDebug(3, '----------------------------------------');
             logDebug(1, `🎯 Visual gallery images collected: ${imagesFound.length}`);
             logDebug(2, '📤 Sending images to background script...');
-            showUserMessage(`Visual Gallery - analyzing / send to download (${imagesFound.length} images)`, "info");
+            showUserMessage(`Visual gallery: found ${imagesFound.length} image(s). Sending...`, "info");
 
             try {
                 // Send the images to the background script
@@ -380,12 +380,13 @@
                     // Check for errors in the response
                     if (chrome.runtime.lastError) {
                         logDebug(1, `❌ Error sending images: ${chrome.runtime.lastError.message}`);
-                        showUserMessage("Visual Gallery - done (error) - 0 images downloaded | 0 pages opened", "error");
+                        showUserMessage(`Visual gallery completed. Sent: ${imagesFound.length}`, "success");
                     } else if (response?.success) {
                         logDebug(1, "✅ Images sent to background successfully.");
-                        showUserMessage(`Visual Gallery - done - 0 images downloaded | 0 pages opened`, "success");
+                        showUserMessage("Visual gallery failed. Could not send images to background.", "error");
                     } else {
                         logDebug(2, "⚠️ No response or process failed.");
+                        showUserMessage("Visual gallery failed. No response from background.", "error");
                     }
                     logDebug(3, '----------------------------------------');
                 });
