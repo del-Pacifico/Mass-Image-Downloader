@@ -380,10 +380,10 @@
                     // Check for errors in the response
                     if (chrome.runtime.lastError) {
                         logDebug(1, `❌ Error sending images: ${chrome.runtime.lastError.message}`);
-                        showUserMessage(`Visual gallery completed. Sent: ${imagesFound.length}`, "success");
+                        showUserMessage("Visual gallery failed. Could not send images to background.", "error");
                     } else if (response?.success) {
                         logDebug(1, "✅ Images sent to background successfully.");
-                        showUserMessage("Visual gallery failed. Could not send images to background.", "error");
+                        showUserMessage(`Visual gallery completed. Sent: ${imagesFound.length}`, "success");
                     } else {
                         logDebug(2, "⚠️ No response or process failed.");
                         showUserMessage("Visual gallery failed. No response from background.", "error");
