@@ -1562,11 +1562,10 @@ async function handleBulkDownload(message, sendResponse) {
         // 🚦 Show initial toast with count of valid images found (or error if none)
         if (message && typeof message.toastTabId === "number") {
             if (validTabs.length === 0) {
-                sendUserToastToTab(message.toastTabId, "Bulk download: no valid images found.", "error");
+                sendUserToastToTab(message.toastTabId, "MID: Bulk download: no valid images found.", "error");
             } else {
-                sendUserToastToTab(
-                    message.toastTabId,
-                    `Bulk download: found ${validTabs.length} image(s). Downloading...`,
+                sendUserToastToTab(message.toastTabId, 
+                    `MID: Bulk download: found ${validatedUrls.length} image(s). Downloading...`, 
                     "info"
                 );
             }
@@ -1609,9 +1608,8 @@ async function handleBulkDownload(message, sendResponse) {
                 // 🕒 End timing metric
                 if (message && typeof message.toastTabId === "number") {
                     // 🧠 Show final toast with total count
-                    sendUserToastToTab(
-                        message.toastTabId,
-                        `Bulk download completed. Downloaded: ${totalProcessed}`,
+                    sendUserToastToTab(message.toastTabId, 
+                        `MID: Bulk download completed. Downloaded: ${downloadedTotal}`, 
                         "success"
                     );
                 }
@@ -1671,9 +1669,8 @@ async function handleBulkDownload(message, sendResponse) {
 
                     // 🔔 UX: completion toast (only for hotkey flow that provides toastTabId)
                     if (message && typeof message.toastTabId === "number") {
-                        sendUserToastToTab(
-                            message.toastTabId,
-                            `Bulk download completed. Downloaded: ${totalProcessed}`,
+                        sendUserToastToTab(message.toastTabId, 
+                            `MID: Bulk download completed. Downloaded: ${downloadedTotal}`, 
                             "success"
                         );
                     }
