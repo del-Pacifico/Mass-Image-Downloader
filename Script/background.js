@@ -1439,15 +1439,14 @@ async function handleBulkDownloadHotkey() {
     logDebug(1, "⌨️ Hotkey triggered: Bulk Image Download.");
 
     // 🔔 UX: immediate feedback so it doesn't look "stuck"
-    sendUserToastToTab(tab.id, "Bulk download started. Scanning tabs...", "info");
-
+    sendUserToastToTab(tab.id, "MID: Bulk download started. Scanning tabs...", "info");
     // Reuse the existing handler. It expects message.activeTabIndex.
     try {
         await handleBulkDownload({ activeTabIndex: tab.index, toastTabId: tab.id }, () => {});
     } catch (err) {
         logDebug(1, `❌ Bulk hotkey failed: ${err.message}`);
         logDebug(3, `🐛 Stacktrace: ${err.stack}`);
-        sendUserToastToTab(tab.id, `Bulk download failed: ${err.message}`, "error");
+        sendUserToastToTab(tab.id, `MID: Bulk download failed: ${err.message}`, "error");
     }
 }
 
