@@ -840,7 +840,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
             // ✅ UX: Start toast (web-linked)
             if (isTabOrigin) {
-                sendUserToastToTab(tabId, "MID: Web-linked Gallery - start", "info");
+                sendUserToastToTab(tabId, "MID: Web-linked gallery started. Scanning page...", "info");
             }
 
             try {
@@ -857,7 +857,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
                 // ✅ UX: b) MID: Web-linked Gallery - analyzing / send to download
                 if (isTabOrigin) {
-                    sendUserToastToTab(tabId, `MID: Web-linked Gallery - analyzing / send to download (${total} pages)`, "info");
+                    sendUserToastToTab(tabId, `MID: Web-linked gallery: found ${total} page(s). Opening...`, "info");
                 }
 
                 const concurrencyLimit = Math.max(1, Math.min(10, maxOpenTabs));
@@ -909,7 +909,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                                             if (isTabOrigin) {
                                                 sendUserToastToTab(
                                                     tabId,
-                                                    `MID: Web-linked Gallery - done | ${tabsOpened} pages opened`,
+                                                    `MID: Web-linked gallery completed. Opened: ${tabsOpened} tab(s).`,
                                                     "success"
                                                 );
                                             }
@@ -997,7 +997,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
                         // ✅ UX: Failed toast (web-linked)
                         if (isTabOrigin) {
-                            sendUserToastToTab(tabId, `MID: Gallery (web-linked): failed. ${errMsg}`, "error");
+                            sendUserToastToTab(tabId, `MID: Web-linked gallery failed: ${errMsg}`, "error");
                         }
 
                         respondSafe(sendResponse, { success: false, error: errMsg });
