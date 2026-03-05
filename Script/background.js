@@ -704,7 +704,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                         const errMsg = (err && err.message) ? err.message : String(err);
                         logDebug(1, `❌ Linked Gallery async failure: ${errMsg}`);
                         logDebug(2, `🐛 Stacktrace: ${(err && err.stack) ? err.stack : "n/a"}`);
-                        sendUserToastToTab(tabId, `❌ Gallery processing failed: ${errMsg}`, "error");
+                        sendUserToastToTab(tabId, `MID: Gallery (linked / direct) failed: ${errMsg}`, "error");
                     });
 
                 // ✅ We already ACKed synchronously
@@ -2142,9 +2142,10 @@ async function handleExtractLinkedGallery(message, sendResponse) {
                 
                 // 🔔 UX: user must know the flow stopped
                 if (message && message.toastTabId) {
+                    
                     sendUserToastToTab(
                         message.toastTabId,
-                        `❌ Stopped: dominant group too small (${dominantGroup.length} < ${galleryMinGroupSize}) and fallback is disabled.`,
+                        `MID: Gallery (linked / direct) stopped. Dominant group too small (${dominantGroup.length} < ${galleryMinGroupSize}).`,
                         "error"
                     );
                 }
@@ -2159,7 +2160,11 @@ async function handleExtractLinkedGallery(message, sendResponse) {
             
             // 🔔 UX: inform user we are applying fallback grouping
             if (message && message.toastTabId) {
-                sendUserToastToTab(message.toastTabId, `🛟 Grouping fallback applied (${fallbackThreshold}%). Continuing...`, "info");
+                sendUserToastToTab(
+                    message.toastTabId,
+                    `MID: Gallery (linked / direct): fallback grouping applied (${fallbackThreshold}%). Continuing...`,
+                    "info"
+                );
             }
 
             dominantGroup = [];
