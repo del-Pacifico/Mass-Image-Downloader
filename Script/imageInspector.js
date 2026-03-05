@@ -39,6 +39,8 @@ let parentPointerEnterHandler = null;
 let overlayRemovalTimer = null;
 let debugLogLevelCache = 1;
 
+let toastMinVisibleMsCache = 2000; // Range: 0..10000. Default: 2000.
+
 // Config & storage sync 
 async function initConfig() {
   return new Promise((resolve) => {
@@ -48,6 +50,7 @@ async function initConfig() {
         "imageInspectorDevMode",
         "imageInspectorCloseOnSave",
         "showUserFeedbackMessages",
+        "toastMinVisibleMs",
 		    "debugLogLevel"
       ], (data) => {
         iiEnabledFromOptions = data.imageInspectorEnabled === true;
@@ -56,6 +59,10 @@ async function initConfig() {
         
         const level = parseInt(data.debugLogLevel ?? 0);
 		    showUserFeedbackMessagesCache = data.showUserFeedbackMessages ?? true;
+        const rawToastMinVisibleMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
+        toastMinVisibleMsCache = (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
+          ? rawToastMinVisibleMs
+          : 2000;
 
         if (!isNaN(level)) debugLogLevelCache = level;
 
@@ -71,7 +78,23 @@ async function initConfig() {
   });
 }
 
-// Debug logging (with cached level) 
+/**
+ * Robust logging function with support for log levels and legacy calls.
+ * @param {number|string} levelOfLog - Log level (1-3) or message string for legacy calls.
+ * @param  {...any} args - Message arguments (if level is provided) or message parts (if legacy).
+ * @description
+ * This function supports both structured logging with explicit levels and legacy calls where the first argument is the message.
+ * If the first argument is a number between 1 and 3, it's treated as the log level. Otherwise, it's treated as part of the message with a default level of 1.
+ * The function checks against a cached debug log level before logging to avoid unnecessary overhead.
+ * All logging is wrapped in try-catch blocks to prevent any logging errors from affecting the main functionality. 
+ * @returns {void}
+ * 
+ * Log levels:
+ * 1: Critical issues and important state changes (e.g., activation, errors).
+ * 2: Informational messages about user interactions and config changes.
+ * 3: Detailed debug information, including data values and stack traces.
+ * Legacy calls (without a numeric level) will be treated as level 1 for compatibility.
+ **/
 function logDebug(levelOfLog, ...args) {
     try {
         let level = 1;
@@ -104,56 +127,149 @@ function logDebug(levelOfLog, ...args) {
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "sync") return;
 
+  // Image Inspector enable/disable toggle
   if ("imageInspectorEnabled" in changes) {
     iiEnabledFromOptions = changes.imageInspectorEnabled.newValue === true;
     logDebug(1, "🕵️ imageInspectorEnabled →", iiEnabledFromOptions);
     if (!iiEnabledFromOptions && iiActiveInPage) {
       teardownImageInspector("disabled-in-options");
-      showUserMsgSafe("🕵️ Image Inspector disabled in Options.", "info");
+      showUserMsgSafe("Image Inspector disabled in Options.", "info");
     }
   }
+
+  // Developer mode toggle (shows extra metadata fields in the panel)
   if ("imageInspectorDevMode" in changes) {
     iiDevMode = changes.imageInspectorDevMode.newValue === true;
     logDebug(2, "👨🏻‍💻 imageInspectorDevMode →", iiDevMode);
     try { refreshDevBlockIfOpen(); } catch (_) {}
   }
+
+  // Close on save toggle
   if ("imageInspectorCloseOnSave" in changes) {
     iiCloseOnSave = changes.imageInspectorCloseOnSave.newValue === true;
     logDebug(2, "🔄 imageInspectorCloseOnSave →", iiCloseOnSave);
   }
+
+  // User feedback messages toggle
   if ("showUserFeedbackMessages" in changes) {
     showUserFeedbackMessagesCache = changes.showUserFeedbackMessages.newValue !== false;
     logDebug(2, "🔄 showUserFeedbackMessages →", showUserFeedbackMessagesCache);
   }
+
+  // Handle toastMinVisibleMs changes
+  if ("showUserFeedbackMessages" in changes) {
+    showUserFeedbackMessagesCache = changes.showUserFeedbackMessages.newValue !== false;
+    logDebug(2, "🔄 showUserFeedbackMessages →", showUserFeedbackMessagesCache);
+  }
+
 });
 
-// Display toast-style user message (non-blocking, auto-dismiss)
-// type: "info" | "error". Default: "info", blue background.
-// "error" shows red background and longer duration.
+/**
+ * Displays a non-blocking toast message to the user with safety checks and queuing.
+ * @param {string} text - The message text to display in the toast.
+ * @param {string} [type="info"] - The type of message, which affects styling. Can be "info" or "error".
+ * @description
+ * This function creates a toast message that appears in the top-right corner of the page. It includes several safety checks:
+ * - It verifies that showing user feedback messages is enabled in the cache before proceeding.
+ * - It sanitizes and trims the input text, ensuring it's a non-empty string.
+ * - It formats the message to include a "MID:" prefix for consistency.
+ * - It calculates the display duration based on the message type and a cached minimum visible time, ensuring important messages stay visible longer.
+ * - It manages a single toast instance, replacing the existing one if a new message arrives while the previous one is still visible. If a message is replaced during its minimum visible window, it defers showing the new message until the window expires, ensuring that users have time to read important messages.
+ * - All DOM manipulations and timer handling are wrapped in try-catch blocks to prevent any errors from affecting the main functionality of the extension.
+ * Log levels:
+ * - "info": Standard informational messages with a blue background.
+ * - "error": Critical messages with a red background that stay visible longer.
+ * The function ensures that user feedback is delivered in a clear, consistent, and non-intrusive manner while maintaining robustness against potential errors.
+ * @return {void}
+ **/
 function showUserMsgSafe(text, type = "info") {
   try {
     if (!showUserFeedbackMessagesCache) return;
+
+    const safeText = (typeof text === "string") ? text.trim() : String(text || "").trim();
+    if (!safeText) return;
+
+    const finalText = safeText.startsWith("MID:") ? safeText : `MID: ${safeText}`;
+
+    const baseDuration = (type === "error") ? 10000 : 5000;
+    const minVisibleMs = Math.max(0, parseInt(toastMinVisibleMsCache ?? 2000, 10) || 2000);
+    const effectiveDuration = Math.max(baseDuration, minVisibleMs);
+    const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
+
+    const TOAST_ID = "mdi-user-toast";
+    const TIMER_KEY = "__mdiUserToastTimer";
+    const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+    const DEFER_KEY = "__mdiUserToastDeferTimer";
+    const PENDING_KEY = "__mdiUserToastPending";
+
+    // Defer replacement inside minimum visible window (last pending wins)
+    try {
+      const now = Date.now();
+      const minUntil = window[MINUNTIL_KEY] || 0;
+
+      if (minVisibleMs > 0 && now < minUntil) {
+        window[PENDING_KEY] = { text: finalText, type };
+
+        if (window[DEFER_KEY]) {
+          clearTimeout(window[DEFER_KEY]);
+          window[DEFER_KEY] = null;
+        }
+
+        window[DEFER_KEY] = setTimeout(() => {
+          const pending = window[PENDING_KEY];
+          window[PENDING_KEY] = null;
+          window[DEFER_KEY] = null;
+
+          if (pending && pending.text) {
+            showUserMsgSafe(pending.text, pending.type || "info");
+          }
+        }, Math.max(0, minUntil - now));
+
+        return;
+      }
+    } catch (_) {}
+
+    // Last toast wins: remove previous + cancel timer
+    try {
+      const existing = document.getElementById(TOAST_ID);
+      if (existing) existing.remove();
+
+      if (window[TIMER_KEY]) {
+        clearTimeout(window[TIMER_KEY]);
+        window[TIMER_KEY] = null;
+      }
+    } catch (_) {}
+
+    // Mark minimum visible window
+    try { window[MINUNTIL_KEY] = Date.now() + minVisibleMs; } catch (_) {}
+
+    if (!document?.body) return;
+
     const msg = document.createElement("div");
-    const duration = type === "error" ? 10000 : 3000;
-    const backgroundColor = type === "error" ? "#d9534f" : "#007EE3";
-    msg.textContent = "Mass image downloader: " + text;
+    msg.id = TOAST_ID;
+    msg.textContent = finalText;
+
     msg.style.position = "fixed";
     msg.style.top = "20px";
     msg.style.right = "20px";
     msg.style.backgroundColor = backgroundColor;
     msg.style.color = "#FFFFFF";
-    msg.style.padding = "10px";
-    msg.style.borderRadius = "5px";
-    msg.style.fontSize = "13px";
-    msg.style.boxShadow = "2px 2px 8px rgba(0,0,0,0.3)";
+    msg.style.padding = "12px";
+    msg.style.borderRadius = "6px";
+    msg.style.fontSize = "14px";
+    msg.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
     msg.style.opacity = "1";
     msg.style.transition = "opacity 0.5s ease-in-out";
     msg.style.zIndex = "2147483647";
+
     document.body.appendChild(msg);
-    setTimeout(() => {
+
+    window[TIMER_KEY] = setTimeout(() => {
       msg.style.opacity = "0";
       setTimeout(() => { try { msg.remove(); } catch (_) {} }, 500);
-    }, duration);
+      window[TIMER_KEY] = null;
+    }, effectiveDuration);
+
   } catch (err) {
     logDebug(1, "❌ Failed to show user message:", err?.message || err);
   }
@@ -242,16 +358,16 @@ function onKeyDown(evt) {
 function toggleInspectorViaHotkey() {
   if (!iiEnabledFromOptions) {
     logDebug(1, "🔔 INFO 🕵️ Image Inspector is disabled in Options.");
-    showUserMsgSafe("🕵️ Image Inspector is disabled in Options.", "info");
+    showUserMsgSafe("Image Inspector is disabled in Options.", "info");
     return;
   }
   // Toggle activation
   if (!iiActiveInPage) {
     activateImageInspector();
-    showUserMsgSafe("🟢 Image Inspector enabled.", "info");
+    showUserMsgSafe("Image Inspector enabled.", "info");
   } else {
     teardownImageInspector("user-toggle-off");
-    showUserMsgSafe("🔴 Image Inspector disabled.", "info");
+    showUserMsgSafe("Image Inspector disabled.", "info");
   }
 }
 
@@ -661,7 +777,7 @@ function openInspectorPanelForImage(img) {
     closeBtn.addEventListener("click", (e) => {
       e.preventDefault(); e.stopPropagation();
       removeInspectorPanel();
-      showUserMsgSafe("🔚 Inspector panel closed.", "info");
+      showUserMsgSafe("Inspector panel closed.", "info");
     });
 
     // Scroller
@@ -875,7 +991,7 @@ function openInspectorPanelForImage(img) {
     // Navigation button handlers
     function navigateBy(delta) {
       if (!navigationList || navigationList.length === 0) {
-        showUserMsgSafe("ℹ️ No other images found to navigate.", "info");
+        showUserMsgSafe("No other images found to navigate.", "info");
         logDebug(2, "ℹ️ Image Inspector: empty navigationList.");
         return;
       }
@@ -916,7 +1032,7 @@ function openInspectorPanelForImage(img) {
       }
 
       // If we reached here, no valid image was found
-      showUserMsgSafe("⚠️ Could not navigate to another valid image.", "error");
+      showUserMsgSafe("Could not navigate to another valid image.", "error");
       logDebug(1, "⚠ Image Inspector: no valid images found during navigation.");
     }
 
@@ -943,7 +1059,7 @@ function openInspectorPanelForImage(img) {
     document.body.appendChild(host);
     inspectorPanelRoot = host;
 
-    showUserMsgSafe("🕵️ Inspector panel opened.", "info");
+    showUserMsgSafe("Inspector panel opened.", "info");
 
     // Actions: open/save
     openBtn.addEventListener("click", (e) => {
@@ -998,13 +1114,13 @@ function refreshDevBlockIfOpen() {
 function tryOpenImageInNewTab(url) {
   try {
     if (!/^https?:\/\//i.test(url)) {
-      showUserMsgSafe("❌ Unable to open image (invalid URL scheme).", "error");
+      showUserMsgSafe("Unable to open image (invalid URL scheme).", "error");
       return;
     }
     window.open(url, "_blank", "noopener,noreferrer");
-    showUserMsgSafe("🔗 Image opened in new tab.", "info");
+    showUserMsgSafe("Image opened in new tab.", "info");
   } catch (err) {
-    showUserMsgSafe("❌ Unable to open image.", "error");
+    showUserMsgSafe("Unable to open image.", "error");
     logDebug(1, "❌ tryOpenImageInNewTab:", err?.message || err);
     logDebug(3, `🐛 Stacktrace: ${err.stack}`);
   }
@@ -1031,7 +1147,7 @@ function trySaveImage(url) {
           }
 
           // For other errors, keep a clear user-facing error.
-          showUserMsgSafe("❌ Could not start download.", "error");
+          showUserMsgSafe("Could not start download.", "error");
           return;
         }
 
@@ -1044,7 +1160,7 @@ function trySaveImage(url) {
         // 3) Explicit success:false
         if (resp && resp.success === false) {
           const errMsg = resp.errorMessage ? String(resp.errorMessage) : "Could not start download.";
-          showUserMsgSafe("❌ " + errMsg, "error");
+          showUserMsgSafe(" " + errMsg, "error");
           logDebug(1, "⚠ trySaveImage explicit failure:", resp);
           return;
         }
@@ -1058,7 +1174,7 @@ function trySaveImage(url) {
     );
   } catch (err) {
     // Only catch truly unexpected exceptions in the content script.
-    showUserMsgSafe("❌ Could not start download.", "error");
+    showUserMsgSafe("Could not start download.", "error");
     logDebug(1, "❌ trySaveImage error:", err?.message || err);
     logDebug(3, `🐛 Stacktrace: ${err.stack}`);
   }
@@ -1085,7 +1201,7 @@ function fallbackSave(url) {
             return;
           }
 
-          showUserMsgSafe("❌ Could not start download.", "error");
+          showUserMsgSafe("Could not start download.", "error");
           return;
         }
 
@@ -1098,7 +1214,7 @@ function fallbackSave(url) {
         // 3) Explicit response with success:false -> display the error message from background
         if (resp2 && resp2.success === false) {
           const errMsg = resp2.errorMessage ? String(resp2.errorMessage) : "Could not start download.";
-          showUserMsgSafe("❌ " + errMsg, "error");
+          showUserMsgSafe(" " + errMsg, "error");
           logDebug(1, "⚠ fallback download explicit failure:", resp2);
           return;
         }
@@ -1111,7 +1227,7 @@ function fallbackSave(url) {
       }
     );
   } catch (err) {
-    showUserMsgSafe("❌ Could not start download.", "error");
+    showUserMsgSafe("Could not start download.", "error");
     logDebug(1, "❌ fallbackSave error:", err?.message || err);
     logDebug(3, `🐛 Stacktrace: ${err.stack}`);
   }
@@ -1121,7 +1237,7 @@ function fallbackSave(url) {
 // Tab closing is handled exclusively in background.js based on imageInspectorCloseOnSave.
 function handleSaveSuccess() {
   try {
-    showUserMsgSafe("✅ Image saved successfully.", "info");
+    showUserMsgSafe("Image saved successfully.", "info");
     logDebug(2, "✅ Image Inspector: save success reported to user (tab closing handled in background).");
   } catch (err) {
     logDebug(1, "❌ handleSaveSuccess error:", err?.message || err);
