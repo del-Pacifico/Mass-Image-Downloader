@@ -113,7 +113,9 @@ if (typeof configCache === 'undefined') {
 // 🔧 Initialize local config for this script only
 function initConfigForInjectSaveIcon(callback) {
     chrome.storage.sync.get(
-        ["debugLogLevel", "minWidth", "minHeight", "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", "enableOneClickIcon", "showUserFeedbackMessages", "toastMinVisibleMs", "allowExtendedImageUrls"],
+        ["debugLogLevel", "minWidth", "minHeight", "allowJPG", "allowJPEG", 
+            "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", "enableOneClickIcon", 
+            "showUserFeedbackMessages", "toastMinVisibleMs", "allowExtendedImageUrls"],
         (data) => {
             debugLogLevelCache = parseInt(data.debugLogLevel ?? 1);
 
@@ -303,7 +305,7 @@ function createAndShowSaveIcon(targetUrl, normalizedUrl, position = "fixed", pos
                         if (isEphemeral) {
                             // Non-fatal timing issue: background likely received the message anyway
                             logDebug(2, `ℹ️ Ignoring MV3 ephemeral error: ${err.message}`);
-                            showUserMessage("Downloading image!", "success");
+                            showUserMessage("Downloading image!", "info");
                             return;
                         }
 
@@ -443,7 +445,38 @@ function showUserMessage(text, type = "info") {
         // ✅ Last toast wins: remove previous toast + cancel previous timer
         const TOAST_ID = "mdi-user-toast";
         const TIMER_KEY = "__mdiUserToastTimer";
+        const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+        const DEFER_KEY = "__mdiUserToastDeferTimer";
+        const PENDING_KEY = "__mdiUserToastPending";
 
+        // Defer replacement inside minimum visible window (last pending wins)
+        try {
+            const now = Date.now();
+            const minUntil = window[MINUNTIL_KEY] || 0;
+
+            if (minVisibleMs > 0 && now < minUntil) {
+                window[PENDING_KEY] = { text, type };
+
+                if (window[DEFER_KEY]) {
+                    clearTimeout(window[DEFER_KEY]);
+                    window[DEFER_KEY] = null;
+                }
+
+                window[DEFER_KEY] = setTimeout(() => {
+                    const pending = window[PENDING_KEY];
+                    window[PENDING_KEY] = null;
+                    window[DEFER_KEY] = null;
+
+                    if (pending && pending.text) {
+                        showUserMessage(pending.text, pending.type || "info");
+                    }
+                }, Math.max(0, minUntil - now));
+
+                return;
+            }
+        } catch (_) {}
+
+        // Last toast wins
         try {
             const existing = document.getElementById(TOAST_ID);
             if (existing) existing.remove();
@@ -453,6 +486,8 @@ function showUserMessage(text, type = "info") {
                 window[TIMER_KEY] = null;
             }
         } catch (_) {}
+
+        try { window[MINUNTIL_KEY] = Date.now() + minVisibleMs; } catch (_) {}
 
         const messageElement = document.createElement("div");
         messageElement.id = TOAST_ID;
