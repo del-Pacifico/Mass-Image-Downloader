@@ -1565,7 +1565,7 @@ async function handleBulkDownload(message, sendResponse) {
                 sendUserToastToTab(message.toastTabId, "MID: Bulk download: no valid images found.", "error");
             } else {
                 sendUserToastToTab(message.toastTabId, 
-                    `MID: Bulk download: found ${validatedUrls.length} image(s). Downloading...`, 
+                    `MID: Bulk download: found ${validTabs.length} image(s). Downloading...`, 
                     "info"
                 );
             }
