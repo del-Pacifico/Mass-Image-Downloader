@@ -279,22 +279,22 @@
                 const json = JSON.stringify(configCache, null, 2);
 
                 if (!navigator.clipboard) {
-                    showMessage("❌ Clipboard API not supported", "error");
+                    showMessage("Clipboard API not supported", "error");
                     return;
                 }
 
                 navigator.clipboard.writeText(json)
                     .then(() => {
-                        showMessage("✅ Settings copied to clipboard");
+                        showMessage("Settings copied to clipboard");
                         logDebug(1, "📋 Configuration copied.");
                     })
                     .catch(err => {
-                        showMessage("❌ Copy failed: " + err.message, "error");
+                        showMessage("Copy failed: " + err.message, "error");
                         logDebug(1, "❌ Clipboard copy error:", err.message);
                     });
 
             } catch (err) {
-                showMessage("❌ Unexpected error during copy", "error");
+                showMessage("Unexpected error during copy", "error");
                 logDebug(1, "❌ Exception during JSON copy:", err.message);
                 logDebug(2, "🐛 Stacktrace: ", err.stack);
             }
