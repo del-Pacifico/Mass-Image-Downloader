@@ -1609,7 +1609,7 @@ async function handleBulkDownload(message, sendResponse) {
                 if (message && typeof message.toastTabId === "number") {
                     // 🧠 Show final toast with total count
                     sendUserToastToTab(message.toastTabId, 
-                        `MID: Bulk download completed. Downloaded: ${downloadedTotal}`, 
+                        `MID: Bulk download completed. Downloaded: ${totalProcessed}`, 
                         "success"
                     );
                 }
@@ -1670,7 +1670,7 @@ async function handleBulkDownload(message, sendResponse) {
                     // 🔔 UX: completion toast (only for hotkey flow that provides toastTabId)
                     if (message && typeof message.toastTabId === "number") {
                         sendUserToastToTab(message.toastTabId, 
-                            `MID: Bulk download completed. Downloaded: ${downloadedTotal}`, 
+                            `MID: Bulk download completed. Downloaded: ${totalProcessed}`, 
                             "success"
                         );
                     }
