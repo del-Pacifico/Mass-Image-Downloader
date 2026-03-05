@@ -160,28 +160,71 @@
 				return;
 			}
 
-			const baseDuration = (type === "error") ? 10000 : 5000;
-            const minVisibleMs = Math.max(0, parseInt(toastMinVisibleMsCache ?? 2000, 10) || 2000);
-            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
-            const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
+			// ✅ Toast engine: last toast wins + optional minimum visible time (prevents fast overlap)
+            const TOAST_ID = "mdi-user-toast";
+            const TIMER_KEY = "__mdiUserToastTimer";
+            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+            const DEFER_KEY = "__mdiUserToastDeferTimer";
+            const PENDING_KEY = "__mdiUserToastPending";
 
-			// ✅ Last toast wins: remove previous toast + cancel previous timer
-			const TOAST_ID = "mdi-user-toast";
-			const TIMER_KEY = "__mdiUserToastTimer";
+            const safeText = (typeof text === "string") ? text.trim() : String(text || "").trim();
+            if (!safeText) return;
 
-			try {
-				const existing = document.getElementById(TOAST_ID);
-				if (existing) existing.remove();
+            // ✅ Normalize to MID standard
+            const finalText = safeText.startsWith("MID:") ? safeText : `MID: ${safeText}`;
 
-				if (window[TIMER_KEY]) {
-					clearTimeout(window[TIMER_KEY]);
-					window[TIMER_KEY] = null;
-				}
-			} catch (_) {}
+            // ✅ Defer replacement if current toast must remain visible for the minimum time
+            try {
+                const now = Date.now();
+                const minUntil = window[MINUNTIL_KEY] || 0;
+
+                if (minVisibleMs > 0 && now < minUntil) {
+                    window[PENDING_KEY] = { text: finalText, type };
+
+                    if (window[DEFER_KEY]) {
+                        clearTimeout(window[DEFER_KEY]);
+                        window[DEFER_KEY] = null;
+                    }
+
+                    window[DEFER_KEY] = setTimeout(() => {
+                        const pending = window[PENDING_KEY];
+                        window[PENDING_KEY] = null;
+                        window[DEFER_KEY] = null;
+
+                        if (pending && pending.text) {
+                            showUserMessage(pending.text, pending.type || "info");
+                        }
+                    }, Math.max(0, minUntil - now));
+
+                    return;
+                }
+            } catch (_) {}
+
+            // ✅ Last toast wins: remove previous toast + cancel previous timer
+            try {
+                const existing = document.getElementById(TOAST_ID);
+                if (existing) existing.remove();
+
+                if (window[TIMER_KEY]) {
+                    clearTimeout(window[TIMER_KEY]);
+                    window[TIMER_KEY] = null;
+                }
+            } catch (_) {}
+
+            // ✅ Mark the minimum visible window for the newly shown toast
+            try {
+                window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
+            } catch (_) {}
+
+            // 🧱 Defensive: DOM may not be ready
+            if (!document?.body) {
+                logDebug(2, "⚠ document.body not available. Toast skipped.");
+                return;
+            }
 
 			const messageElement = document.createElement("div");
 			messageElement.id = TOAST_ID;
-			const finalText = (typeof text === "string" && text.trim().startsWith("MID:")) ? text.trim() : `MID: ${text}`;
+			// const finalText = (typeof text === "string" && text.trim().startsWith("MID:")) ? text.trim() : `MID: ${text}`;
             messageElement.textContent = finalText;
 			messageElement.style.position = "fixed";
 			messageElement.style.top = "20px";
@@ -373,7 +416,6 @@
         try {
 
             logDebug(1, "🔗 Script injected: Extract Web-Linked Gallery");
-            showUserMessage("Web-linked Gallery - start", "info");
 
             const results = [];
 
@@ -570,7 +612,7 @@
             if (results.length === 0) {
                 try {
                     logDebug(1, "⛔ No <a><img> gallery links detected. Falling back to Visual Gallery mode.");
-                    showUserMessage("No web-linked gallery found. Falling back to 'Extract galleries (without links)'.", "error");
+                    showUserMessage('Web-linked gallery found no valid candidates. Falling back to "Visual gallery (no links)".', "error");
 
                     // 🔁 Ask background to trigger Visual Gallery flow
                     try {
@@ -690,7 +732,7 @@
                 // 🚦 Validate minimum group size
                 if (dominantGroup.length < minGroupSizeCache) {
                     logDebug(1, `⛔ Not enough candidates in dominant group. Minimum required: ${minGroupSizeCache}, found ${dominantGroup.length}`);
-                    showUserMessage("Not enough similar links found to form a gallery. Try another mode or tweak the settings.", "error");
+                    showUserMessage("Web-linked gallery rejected. Not enough similar links to form a gallery.", "error");
                     return;
                 }
 
@@ -698,8 +740,7 @@
             
                 // Send the URLs to the background script
                 logDebug(1, "📤 BEGIN: Sending gallery URLs to background...");
-                showUserMessage(`Web-linked Gallery - analyzing / send to download (${urlsToSend.length} links)`, "info");
-
+                
                 // Use chrome.runtime.sendMessage to communicate with the background script
                 chrome.runtime.sendMessage(
                 {
