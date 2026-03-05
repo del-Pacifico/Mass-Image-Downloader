@@ -359,7 +359,7 @@
             const sanitized = sanitizeFilenameComponent(rawText, maxLen);
 
             if (sanitized.length < 4) {
-                showUserMessage(`❌ ${type.charAt(0).toUpperCase() + type.slice(1)} too short. Minimum 4 characters.`, 'error');
+                showUserMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} too short. Minimum 4 characters.`, 'error');
                 return;
             }
 
@@ -372,7 +372,7 @@
 
             if (!(isPrefixAllowed || isSuffixAllowed)) {
                 logDebug(1, `⚠️ Attempted to set ${type} while filenameMode is '${mode}'. Operation ignored.`);
-                showUserMessage(`⚠️ Enable ${type} mode in settings first.`, 'info');
+                showUserMessage(`Enable ${type} mode in settings first.`, 'info');
                 return;
             }
 
@@ -392,17 +392,17 @@
                             }
 
                             logDebug(1, `✅ ${type} saved:`, sanitized);
-                            showUserMessage(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} set to: ${sanitized}`, 'success');
+                            showUserMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} set to: ${sanitized}`, 'success');
                         } catch (callbackErr) {
                             logDebug(1, `❌ Failed to save ${type}:`, callbackErr.message);
-                            showUserMessage(`❌ Failed to save ${type}.`, 'error');
+                            showUserMessage(`Failed to save ${type}.`, 'error');
                         }
                     });
                 });
             } catch (outerErr) {
                 logDebug(1, `❌ Exception saving ${type}:`, outerErr.message);
                 logDebug(2, `❌ Stacktrace saving ${type}: `, outerErr.stack);
-                showUserMessage(`❌ Error saving ${type}. Context may be invalid.`, 'error');
+                showUserMessage(`Error saving ${type}. Context may be invalid.`, 'error');
             }
         } catch (err) {
             logDebug(1, `❌ Exception saving ${type}:`, err.message);
@@ -437,7 +437,7 @@
                     ? 'Clipboard API not supported in this context.'
                     : 'Clipboard not accessible. Site may restrict clipboard API.';
             
-                showUserMessage(`❌ Clipboard read failed: ${reason}`, 'error');
+                showUserMessage(`Clipboard read failed: ${reason}`, 'error');
                 return;
             }
             
@@ -455,7 +455,7 @@
                 // If the permission is prompt, we show a message to the user to grant permission.
                 if (permissionStatus.state === 'denied') {
                     logDebug(1, '⛔ Clipboard access denied by browser or site permissions.');
-                    showUserMessage('❌ Clipboard access is denied by the site.', 'error');
+                    showUserMessage('Clipboard access is denied by the site.', 'error');
                     return;
                 }
             } catch (permError) {
@@ -469,11 +469,11 @@
             } catch (readError) {
                 logDebug(1, `❌ Clipboard read failed: ${readError.message}`);
                 logDebug(2, `❌ Stacktrace: ${readError.stack}`)
-                showUserMessage('❌ Clipboard access failed or was interrupted.', 'error');
+                showUserMessage('Clipboard access failed or was interrupted.', 'error');
                 return;
             }
             if (!text || typeof text !== 'string') {
-                showUserMessage('❌ Clipboard is empty or inaccessible.', 'error');
+                showUserMessage('Clipboard is empty or inaccessible.', 'error');
                 return;
             }
     
@@ -481,7 +481,7 @@
         } catch (err) {
             logDebug(1, `❌ Clipboard read failed: ${err.message}`);
             logDebug(2, '❌ Stacktrace: ', err.stack)
-            showUserMessage('❌ Could not access clipboard.', 'error');
+            showUserMessage('Could not access clipboard.', 'error');
         }
     }
     
