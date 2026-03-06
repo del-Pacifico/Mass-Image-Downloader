@@ -13,8 +13,8 @@ The following hotkeys are currently implemented and supported as of the latest s
 
 The following shortcuts are reserved and must not change:
 
-- Ctrl + Shift + P — Set filename prefix (only if prefix is available)
-- Ctrl + Shift + S — Set filename suffix (only if suffix is available)
+- Ctrl + Alt + P — Set filename prefix (only if prefix is available)
+- Ctrl + Alt + S — Set filename suffix (only if suffix is available)
 - Ctrl + Shift + M — Image Inspector panel (toggle)
 - Alt + Shift + I — One-click Download Icon (manual image overlay)
 
@@ -25,8 +25,22 @@ The following hotkeys are currently implemented and supported:
 - Alt + Shift + D — Bulk Image Download
 - Alt + Shift + G — Extract images from galleries (direct links)
 - Alt + Shift + V — Extract images from galleries (visual / no direct links)
-- Alt + Shift + W - Extract images from galleries (web-linked)
+- Alt + Shift + W — Extract images from galleries (web-linked)
 - Alt + Shift + S — View Settings (Peek panel toggle)
+
+## 🪄 Existing shortcut table
+
+| Shortcut | Action | Notes |
+|---|---|---|
+| **Alt + Shift + D** | Bulk Image Download | Scans open tabs and downloads valid image targets |
+| **Alt + Shift + G** | Extract galleries (direct links) | Best for galleries where thumbnails point directly to image files |
+| **Alt + Shift + V** | Extract galleries (visual / no direct links) | Best for inline image galleries without dedicated anchors |
+| **Alt + Shift + W** | Extract galleries (web-linked) | Opens linked detail pages and processes them as gallery candidates |
+| **Alt + Shift + I** | Toggle the one-click download icon | Manual curation flow for quick image saving |
+| **Alt + Shift + S** | Toggle Settings Peek | Opens the read-only configuration overlay |
+| **Ctrl + Shift + M** | Toggle Image Inspector Mode | Opens the inspector workflow for image review, metadata, zoom, and save |
+| **Ctrl + Alt + P** | Set filename prefix from clipboard | Requires clipboard hotkeys enabled |
+| **Ctrl + Alt + S** | Set filename suffix from clipboard | Requires clipboard hotkeys enabled |
 
 ### 📝 Note on Bulk Download Hotkey
 
@@ -62,8 +76,8 @@ Due to Manifest V3 limitations:
 
 If a shortcut appears as **Not set**, users can assign it manually via:
 
-- `chrome://extensions/shortcuts`
-- `brave://extensions/shortcuts`
+- **`chrome://extensions/shortcuts`**
+- **`brave://extensions/shortcuts`**
 
 ## 🧰 Fallback Behavior
 
