@@ -1,6 +1,6 @@
-# 🏔️ Mass Image Downloader – Documentation Hub v2.08.149
+# 🏔️ Mass Image Downloader – Documentation Hub v2.08.179
 
-**Version:** `v2.08.149`  
+**Version:** `v2.08.179`  
 **Branch:** `main`  
 **Status**: `Documentation entry point and navigation guide`
 
@@ -17,18 +17,24 @@ This file acts as the **entry point and launcher**, allowing direct navigation t
 
 ## 📑 Table of Contents
 
-- [📘 Welcome to the Documentation](#-welcome-to-the-documentation)
-- [🧭 How the Documentation Is Organized](#-how-the-documentation-is-organized)
-- [📚 Available Documents](#-available-documents)
-  - [👤 User Manual (Basic)](#-user-manual-basic)
-  - [⚙️ Configuration Guides](#-configuration-guides)
-  - [🧠 Technical User Manual](#-technical-user-manual)
-  - [⌨️ Hotkeys & Keyboard Shortcuts Policy](#-hotkeys--keyboard-shortcuts-policy)
-  - [🏔️ Advanced Manual](#-advanced-manual)
-- [🧭 Which Document Should I Read First?](#-which-document-should-i-read-first)
-- [🗂️ Backlog & Development Flow](#-backlog--development-flow)
-- [🧾 Version Scope and Consistency](#-version-scope-and-consistency)
-- [🧭 Final Guidance](#-final-guidance)
+- [🏔️ Mass Image Downloader – Documentation Hub v2.08.179](#️-mass-image-downloader--documentation-hub-v208179)
+  - [📘 Welcome to the Documentation](#-welcome-to-the-documentation)
+  - [📑 Table of Contents](#-table-of-contents)
+  - [🧭 How the Documentation Is Organized](#-how-the-documentation-is-organized)
+  - [📚 Available Documents](#-available-documents)
+    - [👤 User Manual (Basic)](#-user-manual-basic)
+    - [⚙️ Configuration Guides](#️-configuration-guides)
+    - [🧑‍🔧 Technical User Manual](#-technical-user-manual)
+  - [⌨️ Hotkeys \& Keyboard Shortcuts Policy](#️-hotkeys--keyboard-shortcuts-policy)
+    - [👨🏻‍💻 Advanced Manual](#-advanced-manual)
+  - [🧭 Which Document Should I Read First?](#-which-document-should-i-read-first)
+  - [🧭 Backlog \& Development Flow](#-backlog--development-flow)
+    - [💡 Ideas \& Early Proposals](#-ideas--early-proposals)
+    - [🗂️ Development Backlog](#️-development-backlog)
+    - [🚧 Work in Progress](#-work-in-progress)
+    - [📦 Delivered Work](#-delivered-work)
+  - [🧾 Version Scope and Consistency](#-version-scope-and-consistency)
+  - [🧭 Final Guidance](#-final-guidance)
 
 ---
 
@@ -53,6 +59,7 @@ Each document is self-contained and avoids overlap.
 Learn how to use the extension from a user perspective.
 
 **Read this if:**
+
 - You are new to Mass Image Downloader
 - You want to understand available features
 - You need basic usage instructions
@@ -68,6 +75,7 @@ Learn how to use the extension from a user perspective.
 Configure the extension to achieve **specific, real-world results** using step-by-step instructions.
 
 **Read this if:**
+
 - You want recommended settings for a specific scenario
 - You need predictable, reproducible behavior
 - You are tuning performance or stability
@@ -84,6 +92,7 @@ Configure the extension to achieve **specific, real-world results** using step-b
 Explain **how the extension works internally**, including execution flow, state handling, and feature interaction.
 
 **Read this if:**
+
 - You want to understand internal behavior
 - You are debugging unexpected outcomes
 - You are reviewing technical design choices
@@ -99,12 +108,14 @@ Explain **how the extension works internally**, including execution flow, state 
 This section defines the **official keyboard shortcut policy** for Mass Image Downloader.
 
 It documents:
+
 - Reserved hotkeys that must remain unchanged
 - Rules and constraints for introducing new shortcuts
 - Conflict avoidance strategies across Chromium browsers
 - Fallback behavior when hotkeys are unavailable
 
 👉 **Source of truth:**  
+
 - **[Hotkey Policy](hotkeys/hotkeys.md)**
 
 ---
@@ -115,6 +126,7 @@ It documents:
 Explain **why the system behaves the way it does**, covering design rationale, trade-offs, boundaries, and edge cases.
 
 **Read this if:**
+
 - You want to understand non-obvious behavior
 - You are evaluating design decisions
 - You are assessing feasibility of changes or feature requests
@@ -141,6 +153,7 @@ Use this quick guide:
 This repository follows a clear separation between **ideas**, **planned work**, and **execution**.
 
 ### 💡 Ideas & Early Proposals
+
 - **Location:** GitHub Discussions
 - Used for:
   - Early ideas and brainstorming
@@ -153,6 +166,7 @@ This repository follows a clear separation between **ideas**, **planned work**, 
 ---
 
 ### 🗂️ Development Backlog
+
 - **Location:** GitHub Issues
 - The backlog consists of Issues labeled with:
   - `type:*` (classification)
@@ -164,6 +178,7 @@ This repository follows a clear separation between **ideas**, **planned work**, 
 ---
 
 ### 🚧 Work in Progress
+
 - **Location:** GitHub Issues + Pull Requests
 - An Issue enters active development when:
   - It is assigned or explicitly picked up
@@ -174,6 +189,7 @@ This repository follows a clear separation between **ideas**, **planned work**, 
 ---
 
 ### 📦 Delivered Work
+
 - **Location:** Merged Pull Requests + `CHANGELOG.md`
 - A change is considered delivered when:
   - The Pull Request is merged
@@ -191,10 +207,11 @@ This repository follows a clear separation between **ideas**, **planned work**, 
 
 All documents in this directory apply strictly to:
 
-- **Extension version:** `v2.08.149`
+- **Extension version:** `v2.08.179`
 - **Branch:** `main`
 
 If observed behavior differs from the documentation:
+
 - Verify the extension version
 - Confirm you are on the correct branch
 - Check whether experimental or deprecated settings are enabled
@@ -204,6 +221,7 @@ If observed behavior differs from the documentation:
 ## 🧭 Final Guidance
 
 Mass Image Downloader is designed to be:
+
 - Predictable
 - Explicit
 - User-controlled
