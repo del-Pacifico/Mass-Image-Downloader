@@ -25,6 +25,7 @@ The following hotkeys are currently implemented and supported:
 - Alt + Shift + D — Bulk Image Download
 - Alt + Shift + G — Extract images from galleries (direct links)
 - Alt + Shift + V — Extract images from galleries (visual / no direct links)
+- Alt + Shift + W - Extract images from galleries (web-linked)
 - Alt + Shift + S — View Settings (Peek panel toggle)
 
 ### 📝 Note on Bulk Download Hotkey
