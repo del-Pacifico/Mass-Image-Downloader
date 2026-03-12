@@ -940,25 +940,49 @@
                 logDebug(2, "🧠 END: Gallery grouping.");
                 logDebug(1, `📤 Sending ${urlsToSend.length} grouped web-linked gallery URLs to background.`);
 
+                // 🚀 Send the grouped gallery URLs to the background script for processing
                 chrome.runtime.sendMessage({
                     action: "processWebLinkedGallery",
                     images: urlsToSend,
                     source: triggerSource
                 }, (response) => {
-                    if (chrome.runtime.lastError) {
-                        logDebug(1, `❌ Failed to send grouped gallery URLs: ${chrome.runtime.lastError.message}`);
+                    logDebug(2, "📤 Processing response from background script.");
+
+                    const err = chrome.runtime.lastError;
+                    // Handle potential MV3 ephemeral messaging errors gracefully
+                    if (err) {
+                        const messageText = String(err.message || "").toLowerCase();
+
+                        // Common MV3 ephemeral error patterns indicating the service worker context was lost
+                        const isEphemeralMv3Error =
+                            messageText.includes("message port closed before a response was received") ||
+                            messageText.includes("context invalidated") ||
+                            messageText.includes("extension context invalidated") ||
+                            messageText.includes("service worker") ||
+                            messageText.includes("receiving end does not exist");
+
+                        // Log and ignore MV3 ephemeral errors to avoid blocking the user with issues outside their control
+                        if (isEphemeralMv3Error) {
+                            logDebug(2, `ℹ️ Ignoring MV3 ephemeral messaging error: ${err.message}`);
+                            logDebug(1, "📤 END: Background handoff completed with non-blocking MV3 callback closure.");
+                            return;
+                        }
+
+                        logDebug(1, `❌ Failed to send grouped gallery URLs: ${err.message}`);
                         showUserMessage("Failed to hand off the web-linked gallery to the background process.", "error");
                         return;
                     }
 
-                    if (!response || response.success !== true) {
-                        logDebug(1, `⚠️ Background process returned an unexpected response: ${JSON.stringify(response)}`);
-                        showUserMessage("The web-linked gallery process could not continue in the background.", "error");
+                    if (response && response.success === true) {
+                        logDebug(1, `✅ Web-linked gallery sent successfully. Total URLs: ${urlsToSend.length}`);
+                        logDebug(1, "📤 END: Background handoff completed successfully.");
                         return;
                     }
 
-                    logDebug(1, `✅ Web-linked gallery sent successfully. Total URLs: ${urlsToSend.length}`);
-                    showUserMessage(`Web-linked gallery detected: ${urlsToSend.length} candidate pages queued.`, "success");
+                    // Handle unexpected response formats or error indications from the background script
+                    const responseError = response?.error || "Unknown response from background process.";
+                    logDebug(1, `⚠️ Background process returned an unexpected response: ${responseError}`);
+                    showUserMessage("The web-linked gallery process could not continue in the background.", "error");
                 });
             } catch (groupSendError) {
                 logDebug(1, `❌ Failed to process dominant group: ${groupSendError.message}`);
