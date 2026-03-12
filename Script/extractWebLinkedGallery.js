@@ -153,25 +153,30 @@
      * If a new message is shown while another is still visible, the previous one is removed immediately to ensure that only one message is displayed at a time.
      * This function is useful for providing feedback to the user about actions taken, such as successfully setting a prefix/suffix or encountering an error.
      */
-	function showUserMessage(text, type = "info") {
-		try {
-			if (!showUserFeedbackMessagesCache) {
-				logDebug(2, `🚫 User feedback messages disabled. Skipping display.`);
-				return;
-			}
-
-			// ✅ Toast engine: last toast wins + optional minimum visible time (prevents fast overlap)
-            const TOAST_ID = "mdi-user-toast";
-            const TIMER_KEY = "__mdiUserToastTimer";
-            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
-            const DEFER_KEY = "__mdiUserToastDeferTimer";
-            const PENDING_KEY = "__mdiUserToastPending";
+    function showUserMessage(text, type = "info") {
+        try {
+            if (!showUserFeedbackMessagesCache) {
+                logDebug(2, "🚫 User feedback messages disabled. Skipping display.");
+                return;
+            }
 
             const safeText = (typeof text === "string") ? text.trim() : String(text || "").trim();
             if (!safeText) return;
 
             // ✅ Normalize to MID standard
             const finalText = safeText.startsWith("MID:") ? safeText : `MID: ${safeText}`;
+
+            const baseDuration = (type === "error") ? 10000 : 5000;
+            const minVisibleMs = Math.max(0, parseInt(toastMinVisibleMsCache ?? 2000, 10) || 2000);
+            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
+            const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
+
+            // ✅ Toast engine: last toast wins + optional minimum visible time (prevents fast overlap)
+            const TOAST_ID = "mdi-user-toast";
+            const TIMER_KEY = "__mdiUserToastTimer";
+            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+            const DEFER_KEY = "__mdiUserToastDeferTimer";
+            const PENDING_KEY = "__mdiUserToastPending";
 
             // ✅ Defer replacement if current toast must remain visible for the minimum time
             try {
@@ -218,47 +223,46 @@
 
             // 🧱 Defensive: DOM may not be ready
             if (!document?.body) {
-                logDebug(2, "⚠ document.body not available. Toast skipped.");
+                logDebug(2, "⚠️ document.body not available. Toast skipped.");
                 return;
             }
 
-			const messageElement = document.createElement("div");
-			messageElement.id = TOAST_ID;
-			// const finalText = (typeof text === "string" && text.trim().startsWith("MID:")) ? text.trim() : `MID: ${text}`;
+            const messageElement = document.createElement("div");
+            messageElement.id = TOAST_ID;
             messageElement.textContent = finalText;
-			messageElement.style.position = "fixed";
-			messageElement.style.top = "20px";
-			messageElement.style.right = "20px";
-			messageElement.style.backgroundColor = backgroundColor;
-			messageElement.style.color = "#FFFFFF";
-			messageElement.style.padding = "12px";
-			messageElement.style.borderRadius = "6px";
-			messageElement.style.fontSize = "14px";
-			messageElement.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
-			messageElement.style.opacity = "1";
-			messageElement.style.transition = "opacity 0.5s ease-in-out";
-			messageElement.style.zIndex = "9999";
-			document.body.appendChild(messageElement);
+            messageElement.style.position = "fixed";
+            messageElement.style.top = "20px";
+            messageElement.style.right = "20px";
+            messageElement.style.backgroundColor = backgroundColor;
+            messageElement.style.color = "#FFFFFF";
+            messageElement.style.padding = "12px";
+            messageElement.style.borderRadius = "6px";
+            messageElement.style.fontSize = "14px";
+            messageElement.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
+            messageElement.style.opacity = "1";
+            messageElement.style.transition = "opacity 0.5s ease-in-out";
+            messageElement.style.zIndex = "9999";
+            document.body.appendChild(messageElement);
 
-			logDebug(2, `📢 Showing user message: "${text}" (${type})`);
+            logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
 
-			// ✅ Store timer id so the next toast can cancel it
-			window[TIMER_KEY] = setTimeout(() => {
-				messageElement.style.opacity = "0";
-				setTimeout(() => {
-					try {
-						messageElement.remove();
-					} catch (removeError) {
-						logDebug(1, `⚠️ Error removing message element: ${removeError.message}`);
-					}
-				}, 500);
-				window[TIMER_KEY] = null;
-			}, effectiveDuration);
-		} catch (error) {
-			logDebug(1, `❌ Error displaying user message: ${error.message}`);
+            // ✅ Store timer id so the next toast can cancel it
+            window[TIMER_KEY] = setTimeout(() => {
+                messageElement.style.opacity = "0";
+                setTimeout(() => {
+                    try {
+                        messageElement.remove();
+                    } catch (removeError) {
+                        logDebug(1, `⚠️ Error removing message element: ${removeError.message}`);
+                    }
+                }, 500);
+                window[TIMER_KEY] = null;
+            }, effectiveDuration);
+        } catch (error) {
+            logDebug(1, `❌ Error displaying user message: ${error.message}`);
             logDebug(2, `🐛 Stack trace: ${error.stack}`);
-		}
-	}
+        }
+    }
 
     /**
     * Waits for an image to fully decode if needed.
@@ -352,48 +356,182 @@
         }
     }
 
+    /**
+     * Extracts the last meaningful path segment from a URL pathname.
+     * @param {string} pathname - The pathname portion of a URL.
+     * @returns {string} The last non-empty path segment.
+     */
+    function getLastPathSegment(pathname) {
+        try {
+            const segments = String(pathname || "").split("/").filter(Boolean);
+            return segments.length ? segments[segments.length - 1] : "";
+        } catch (err) {
+            logDebug(2, `⚠️ Failed to extract last path segment: ${err.message}`);
+            return "";
+        }
+    }
 
     /**
-     * Calculates the similarity between two URL paths.
+     * Normalizes a gallery slug to compare sequence-based detail pages safely.
+     * Examples:
+     * - "patritcy-00.html" -> "patritcy"
+     * - "gallery_01.php"   -> "gallery"
+     * - "set123-004.asp"   -> "set123"
+     * @param {string} segment - Raw last path segment.
+     * @returns {string} A normalized slug base used for structural comparison.
+     */
+    function normalizeGallerySlug(segment) {
+        try {
+            const safeSegment = String(segment || "").toLowerCase().trim();
+
+            if (!safeSegment) return "";
+
+            // Remove query/hash fragments if any leaked in
+            const cleanSegment = safeSegment.split("#")[0].split("?")[0];
+
+            // Remove common HTML-like extensions
+            const noExt = cleanSegment.replace(/\.(html?|php|asp|aspx)$/i, "");
+
+            // Remove trailing sequence tokens such as -01, _02, 003
+            const noSequence = noExt
+                .replace(/([_-]?\d{1,4})$/i, "")
+                .replace(/([_-]?(page|img|image|pic|photo|set)[_-]?\d{1,4})$/i, "");
+
+            // Normalize separators and trim leftovers
+            const normalized = noSequence
+                .replace(/[_-]+/g, "-")
+                .replace(/^-+|-+$/g, "")
+                .trim();
+
+            return normalized || noExt || cleanSegment;
+        } catch (err) {
+            logDebug(2, `⚠️ Failed to normalize gallery slug: ${err.message}`);
+            return "";
+        }
+    }
+
+    /**
+     * Calculates a simple token overlap score between two normalized strings.
+     * @param {string} a - First normalized value.
+     * @param {string} b - Second normalized value.
+     * @returns {number} Similarity score from 0 to 100.
+     */
+    function calculateTokenSimilarity(a, b) {
+        try {
+            const left = String(a || "").toLowerCase().split(/[-_]+/).filter(Boolean);
+            const right = String(b || "").toLowerCase().split(/[-_]+/).filter(Boolean);
+
+            if (!left.length || !right.length) return 0;
+
+            const leftSet = new Set(left);
+            const rightSet = new Set(right);
+
+            let matches = 0;
+            for (const token of leftSet) {
+                if (rightSet.has(token)) matches++;
+            }
+
+            const maxSize = Math.max(leftSet.size, rightSet.size);
+            return maxSize > 0 ? (matches / maxSize) * 100 : 0;
+        } catch (err) {
+            logDebug(2, `⚠️ Failed to calculate token similarity: ${err.message}`);
+            return 0;
+        }
+    }
+
+    /**
+     * Checks whether two URLs follow the same structural gallery pattern.
+     * @param {string} url1 - First candidate URL.
+     * @param {string} url2 - Second candidate URL.
+     * @returns {boolean} True when both URLs look like part of the same gallery sequence.
+     */
+    function isSameGalleryStructure(url1, url2) {
+        try {
+            const parsed1 = new URL(url1);
+            const parsed2 = new URL(url2);
+
+            if (parsed1.hostname !== parsed2.hostname) return false;
+
+            const segments1 = parsed1.pathname.split("/").filter(Boolean);
+            const segments2 = parsed2.pathname.split("/").filter(Boolean);
+
+            if (!segments1.length || !segments2.length) return false;
+
+            const dir1 = segments1.slice(0, -1).join("/");
+            const dir2 = segments2.slice(0, -1).join("/");
+
+            if (dir1 !== dir2) return false;
+
+            const last1 = getLastPathSegment(parsed1.pathname);
+            const last2 = getLastPathSegment(parsed2.pathname);
+
+            const base1 = normalizeGallerySlug(last1);
+            const base2 = normalizeGallerySlug(last2);
+
+            if (!base1 || !base2) return false;
+
+            return base1 === base2;
+        } catch (err) {
+            logDebug(2, `⚠️ Failed to compare gallery structure: ${err.message}`);
+            return false;
+        }
+    }
+
+    /**
+     * Calculates similarity between two candidate URLs.
+     * This version is sequence-aware and avoids false negatives on gallery detail pages.
      * @param {string} url1 - The first URL.
      * @param {string} url2 - The second URL.
      * @param {number} threshold - Similarity threshold (30–100).
      * @returns {number} Similarity percentage (0-100).
-     * @description This function calculates the similarity between two URL paths.
-     * It compares the characters in the paths of both URLs and returns a percentage
-     * based on the number of matching characters.
-     * The function uses the URL constructor to parse the URLs and extract their paths.
-     * It handles errors gracefully and returns 0 if the URLs are invalid or cannot be parsed.
-     * The similarity is calculated as the number of matching characters divided by the maximum length of the two paths.
-     * It stops comparing at the first difference and returns the similarity as a percentage.
      */
     function calculatePathSimilarity(url1, url2, threshold) {
         try {
-            const path1 = new URL(url1).pathname;
-            const path2 = new URL(url2).pathname;
-    
-            const minLen = Math.min(path1.length, path2.length);
-            let commonChars = 0;
+            const parsed1 = new URL(url1);
+            const parsed2 = new URL(url2);
 
-            for (let i = 0; i < minLen; i++) {
-                if (path1[i] === path2[i]) {
-                    commonChars++;
-                } else {
-                    break;
-                }
+            if (parsed1.hostname !== parsed2.hostname) {
+                return 0;
             }
 
-            const maxLen = Math.max(path1.length, path2.length);
-            const similarity = (commonChars / maxLen) * 100;
+            const segments1 = parsed1.pathname.split("/").filter(Boolean);
+            const segments2 = parsed2.pathname.split("/").filter(Boolean);
 
-            // Extra filter: if similarity < threshold but commonChars < 3 segments → force reject
-            if (similarity >= threshold && commonChars >= 3) {
-                return similarity;
+            if (!segments1.length || !segments2.length) {
+                return 0;
             }
 
-            return 0;  // Force reject weak matches
+            const dir1 = segments1.slice(0, -1).join("/");
+            const dir2 = segments2.slice(0, -1).join("/");
 
+            const sameDirectory = dir1 === dir2;
 
+            const last1 = getLastPathSegment(parsed1.pathname);
+            const last2 = getLastPathSegment(parsed2.pathname);
+
+            const normalized1 = normalizeGallerySlug(last1);
+            const normalized2 = normalizeGallerySlug(last2);
+
+            const exactNormalizedMatch = normalized1 && normalized2 && normalized1 === normalized2;
+            const tokenSimilarity = calculateTokenSimilarity(normalized1, normalized2);
+
+            let score = 0;
+
+            if (sameDirectory) score += 35;
+            if (segments1.length === segments2.length) score += 10;
+            if (exactNormalizedMatch) score += 55;
+            else score += Math.min(55, tokenSimilarity * 0.55);
+
+            // Clamp to 0..100
+            score = Math.max(0, Math.min(100, score));
+
+            logDebug(
+                3,
+                `🧪 Similarity diagnostics → dirMatch=${sameDirectory}, exactBase=${exactNormalizedMatch}, tokenSimilarity=${tokenSimilarity.toFixed(1)}%, final=${score.toFixed(1)}%`
+            );
+
+            // Return the real score. Do not force 0 here.
+            return score;
         } catch (err) {
             logDebug(1, `❌ Error calculating similarity: ${err.message}`);
             logDebug(3, `🐛 Stack trace: ${err.stack}`);
@@ -635,84 +773,147 @@
             // ✅ Grouping candidates by path similarity using exhaustive pair comparison
             logDebug(2, "🧠 BEGIN: Gallery grouping based on path similarity...");
 
-            const groups = [];
+            /**
+             * Builds similarity groups from candidate results.
+             * @param {Array<{url:string, thumb:string}>} candidates - Accepted gallery candidates.
+             * @param {number} similarityThreshold - Current threshold used for grouping.
+             * @returns {Array<Array<{url:string, thumb:string}>>} Candidate groups.
+             */
+            function buildGroups(candidates, similarityThreshold) {
+                const builtGroups = [];
 
-            // 🔧 Determine dinamic commonPrefix
-            const paths = results.map(r => new URL(r.url).pathname);
-            let commonPrefix = "";
+                for (let i = 0; i < candidates.length; i++) {
+                    const base = candidates[i];
 
-            if (paths.length > 0) {
-                const refSegments = paths[0].split("/").filter(Boolean);
-                for (let i = 0; i < refSegments.length; i++) {
-                    const candidate = refSegments.slice(0, i+1).join("/");
-                    if (paths.every(p => p.includes(candidate))) {
-                        commonPrefix = `/${candidate}`;
-                    } else {
-                        break;
-                    }
-                }
-            }
-
-            // 🚦 Filter results by common prefix
-            // ⬆️ Skipping commonPrefix filtering. Proceeding with full similarity analysis.
-            logDebug(2, `🧠 Skipping commonPrefix filtering. Proceeding with full similarity analysis.`);
-
-            // 🚦 Validate threshold
-            for (let i = 0; i < results.length; i++) {
-                const base = results[i];
-                if (!base || typeof base.url !== "string" || base.url.length === 0) {
-                    logDebug(2, `⚠️ Skipped base at index ${i} due to invalid url`);
-                    continue;
-                }
-
-                const group = [base];
-
-                for (let j = 0; j < results.length; j++) {
-                    if (i === j) continue;
-
-                    const compare = results[j];
-                    if (!compare || typeof compare.url !== "string" || compare.url.length === 0) {
-                        logDebug(2, `⚠️ Skipped compare at index ${j} due to invalid url`);
+                    if (!base || typeof base.url !== "string" || base.url.length === 0) {
+                        logDebug(2, `⚠️ Skipped base at index ${i} due to invalid url.`);
                         continue;
                     }
 
-                    const sim = calculatePathSimilarity(base.url, compare.url, threshold);
+                    const group = [base];
+                    const seenUrls = new Set([base.url]);
 
-                    logDebug(3, `🔍 Similarity between:\n   Base: ${base.url}\n   Compare: ${compare.url}\n   → ${sim.toFixed(1)}%`);
+                    for (let j = 0; j < candidates.length; j++) {
+                        if (i === j) continue;
 
-                    const seg1 = new URL(base.url).pathname.split("/").filter(Boolean);
-                    const seg2 = new URL(compare.url).pathname.split("/").filter(Boolean);
-                    const sameStructure = seg1.length === seg2.length &&
-                        seg1[0] === seg2[0] &&
-                        /^[a-zA-Z]*\d+$/.test(seg1[1] || "") &&
-                        /^[a-zA-Z]*\d+$/.test(seg2[1] || "");
+                        const compare = candidates[j];
+                        if (!compare || typeof compare.url !== "string" || compare.url.length === 0) {
+                            logDebug(2, `⚠️ Skipped compare at index ${j} due to invalid url.`);
+                            continue;
+                        }
 
-                    // Accept if similarity meets the threshold,
-                    // or (edge-case) if structure matches AND similarity is still reasonably high
-                    const allowByStructure = sameStructure && sim >= Math.max(50, threshold - 10);
-                    if (sim >= threshold || allowByStructure) {
-                        group.push(compare);
+                        const similarity = calculatePathSimilarity(base.url, compare.url, similarityThreshold);
+                        const sameStructure = isSameGalleryStructure(base.url, compare.url);
+                        const allowByStructure = sameStructure && similarity >= Math.max(45, similarityThreshold - 15);
+
+                        logDebug(
+                            3,
+                            `🔍 Similarity between:\n   Base: ${base.url}\n   Compare: ${compare.url}\n   → ${similarity.toFixed(1)}% | sameStructure=${sameStructure} | allowByStructure=${allowByStructure}`
+                        );
+
+                        if ((similarity >= similarityThreshold || allowByStructure) && !seenUrls.has(compare.url)) {
+                            group.push(compare);
+                            seenUrls.add(compare.url);
+                        }
+                    }
+
+                    if (group.length > 1) {
+                        builtGroups.push(group);
                     }
                 }
 
-                if (group.length > 1) {
-                    groups.push(group);
-                }
+                return builtGroups;
             }
 
+            /**
+             * Builds structural groups as a defensive fallback when similarity grouping is too strict.
+             * @param {Array<{url:string, thumb:string}>} candidates - Accepted gallery candidates.
+             * @returns {Array<Array<{url:string, thumb:string}>>} Candidate groups.
+             */
+            function buildStructuralFallbackGroups(candidates) {
+                const bucketMap = new Map();
+
+                for (const candidate of candidates) {
+                    try {
+                        if (!candidate || !candidate.url) continue;
+
+                        const parsed = new URL(candidate.url);
+                        const segments = parsed.pathname.split("/").filter(Boolean);
+                        const directory = segments.slice(0, -1).join("/");
+                        const slugBase = normalizeGallerySlug(getLastPathSegment(parsed.pathname));
+
+                        if (!slugBase) {
+                            logDebug(2, `⚠️ Structural fallback skipped candidate without slug base: ${candidate.url}`);
+                            continue;
+                        }
+
+                        const bucketKey = `${parsed.hostname}|${directory}|${slugBase}`;
+
+                        if (!bucketMap.has(bucketKey)) {
+                            bucketMap.set(bucketKey, []);
+                        }
+
+                        const bucket = bucketMap.get(bucketKey);
+                        if (!bucket.some(item => item.url === candidate.url)) {
+                            bucket.push(candidate);
+                        }
+                    } catch (err) {
+                        logDebug(2, `⚠️ Structural fallback failed for candidate: ${err.message}`);
+                    }
+                }
+
+                return Array.from(bucketMap.values()).filter(group => group.length > 1);
+            }
+
+            let groups = buildGroups(results, threshold);
 
             // ✅ Select group with highest cardinality
             let dominantGroup = [];
-            groups.forEach(g => {
-                if (g.length > dominantGroup.length) dominantGroup = g;
+            groups.forEach(group => {
+                if (group.length > dominantGroup.length) {
+                    dominantGroup = group;
+                }
             });
 
             logDebug(1, `🎯 Dominant group size: ${dominantGroup.length}`);
-            dominantGroup.forEach((item, i) => logDebug(2, `🔗 Group [${i+1}]: ${item.url}`));
+            dominantGroup.forEach((item, index) => logDebug(2, `🔗 Group [${index + 1}]: ${item.url}`));
+
+            // 🛟 Fallback 1: Lower the threshold slightly if the first pass is too strict
+            if (dominantGroup.length < minGroupSizeCache) {
+                const fallbackThreshold = Math.max(45, threshold - 15);
+                logDebug(1, `🛟 Primary grouping too small. Retrying with fallback threshold: ${fallbackThreshold}%`);
+
+                groups = buildGroups(results, fallbackThreshold);
+                dominantGroup = [];
+                groups.forEach(group => {
+                    if (group.length > dominantGroup.length) {
+                        dominantGroup = group;
+                    }
+                });
+
+                logDebug(1, `🧪 Fallback threshold dominant group size: ${dominantGroup.length}`);
+                dominantGroup.forEach((item, index) => logDebug(2, `🔗 Fallback group [${index + 1}]: ${item.url}`));
+            }
+
+            // 🛟 Fallback 2: Structural bucket grouping when similarity is still not enough
+            if (dominantGroup.length < minGroupSizeCache) {
+                logDebug(1, "🛟 Similarity grouping still too small. Trying structural fallback grouping.");
+
+                const structuralGroups = buildStructuralFallbackGroups(results);
+                dominantGroup = [];
+                structuralGroups.forEach(group => {
+                    if (group.length > dominantGroup.length) {
+                        dominantGroup = group;
+                    }
+                });
+
+                logDebug(1, `🧪 Structural fallback dominant group size: ${dominantGroup.length}`);
+                dominantGroup.forEach((item, index) => logDebug(2, `🔗 Structural group [${index + 1}]: ${item.url}`));
+            }
 
             if (dominantGroup.length === 0) {
-                logDebug(1, "⚠️ No dominant group found. Aborting.");
-                showUserMessage("No dominant image group found. Try adjusting similarity or using fallback mode.", "error");
+                logDebug(1, "⚠️ No dominant group found after all grouping attempts. Aborting.");
+                showUserMessage("No dominant image group found. Try adjusting similarity or using another gallery mode.", "error");
                 return;
             }
 
@@ -721,89 +922,50 @@
                     logDebug(1, "⛔ Dominant group is empty. Aborting message send.");
                     return;
                 }
-            
-                const urlsToSend = dominantGroup.map(item => item.url).filter(Boolean);
-            
+
+                const urlsToSend = [...new Set(dominantGroup.map(item => item.url).filter(Boolean))];
+
                 if (urlsToSend.length === 0) {
                     logDebug(1, "⛔ No valid URLs to send. Aborting.");
                     return;
                 }
 
                 // 🚦 Validate minimum group size
-                if (dominantGroup.length < minGroupSizeCache) {
-                    logDebug(1, `⛔ Not enough candidates in dominant group. Minimum required: ${minGroupSizeCache}, found ${dominantGroup.length}`);
+                if (urlsToSend.length < minGroupSizeCache) {
+                    logDebug(1, `⛔ Not enough candidates in dominant group. Minimum required: ${minGroupSizeCache}, found ${urlsToSend.length}`);
                     showUserMessage("Web-linked gallery rejected. Not enough similar links to form a gallery.", "error");
                     return;
                 }
 
-                logDebug(2, `🧠 END: Gallery grouping. Dominant group size: ${dominantGroup.length}`);
-            
-                // Send the URLs to the background script
-                logDebug(1, "📤 BEGIN: Sending gallery URLs to background...");
-                
-                // Use chrome.runtime.sendMessage to communicate with the background script
-                chrome.runtime.sendMessage(
-                {
+                logDebug(2, "🧠 END: Gallery grouping.");
+                logDebug(1, `📤 Sending ${urlsToSend.length} grouped web-linked gallery URLs to background.`);
+
+                chrome.runtime.sendMessage({
                     action: "processWebLinkedGallery",
                     images: urlsToSend,
                     source: triggerSource
-                },
-                (response) => {
-                    // Handle response from background script
-                    logDebug(2, "📤 Processing response from background script.");
-
-                    // ✅ MV3-safe: classify ephemeral lastError and avoid alarming the user
-                    const err = chrome.runtime.lastError;
-                    if (err) {
-                        // Identify ephemeral MV3 timing errors where the background likely processed the message
-                        const msg = (err.message || "").toLowerCase();
-                        const isEphemeral =
-                            msg.includes("message port closed before a response was received") ||
-                            msg.includes("context invalidated") ||
-                            msg.includes("extension context invalidated") ||
-                            msg.includes("service worker") ||
-                            msg.includes("receiving end does not exist");
-
-                        if (isEphemeral) {
-                            // Soft-log only; do not show error balloon to the user
-                            logDebug(2, `ℹ️ Ignoring MV3 ephemeral error: ${err.message}`);
-                            // Provide positive UX because the background most likely received the message
-                            // Do not show a legacy success toast here; background will drive standardized toasts.
-                        } else {
-                            // Real error: surface it to the user
-                            logDebug(1, `❌ Background communication error: ${err.message}`);
-                            showUserMessage("MID: Gallery (web-linked): failed. Failed to communicate with background script.", "error");
-                        }
-
-                        logDebug(1, "📤 END: Message exchange with background completed.");
-                        return; // Exit after handling lastError
+                }, (response) => {
+                    if (chrome.runtime.lastError) {
+                        logDebug(1, `❌ Failed to send grouped gallery URLs: ${chrome.runtime.lastError.message}`);
+                        showUserMessage("Failed to hand off the web-linked gallery to the background process.", "error");
+                        return;
                     }
 
-                    // No lastError: trust the structured response when present
-                    if (response?.success) {
-                        logDebug(2, "✅ Background script confirmed gallery processing.");
-                        // Do not show a legacy success toast here; background will drive standardized toasts.
-                    } else {
-                        const errorMsg = response?.error || "Unknown response from background.";
-                        logDebug(2, `⚠️ Background rejected gallery request: ${errorMsg}`);
-                        showUserMessage(`MID: Gallery (web-linked): Gallery not processed: ${errorMsg}`, "error");
+                    if (!response || response.success !== true) {
+                        logDebug(1, `⚠️ Background process returned an unexpected response: ${JSON.stringify(response)}`);
+                        showUserMessage("The web-linked gallery process could not continue in the background.", "error");
+                        return;
                     }
 
-                    logDebug(1, "📤 END: Message exchange with background completed.");
-                }
-            );
-
-
-                logDebug(1, "📤 END: Background script notified.");
-
-                // Show user feedback message
-                logDebug(1, "✅ Web-linked gallery extraction process completed.");
-
-            } catch (err) {
-                logDebug(1, `❌ Exception while sending gallery candidates: ${err.message}`);
-                logDebug(2, `🐛 Stacktrace: ${err.stack}`);
-            }
-
+                    logDebug(1, `✅ Web-linked gallery sent successfully. Total URLs: ${urlsToSend.length}`);
+                    showUserMessage(`Web-linked gallery detected: ${urlsToSend.length} candidate pages queued.`, "success");
+                });
+            } catch (groupSendError) {
+                logDebug(1, `❌ Failed to process dominant group: ${groupSendError.message}`);
+                logDebug(2, `🐛 Stack trace: ${groupSendError.stack}`);
+                showUserMessage("The grouped web-linked gallery could not be processed.", "error");
+                return;
+            }            
         } catch (err) {
             logDebug(1, `💥 Unhandled error in gallery detection: ${err.message}`);
             logDebug(2, `🐛 Stack trace: ${err.stack}`);
