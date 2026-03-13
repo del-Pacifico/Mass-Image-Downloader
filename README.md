@@ -24,7 +24,7 @@
     - [Who it’s for](#who-its-for)
     - [Environment](#environment)
   - [📚 Documentation](#-documentation)
-  - [🔥 Highlights in this release (v2.08.179)](#-highlights-in-this-release-v208179)
+  - [🔥 Highlights in this release (v2.08.181)](#-highlights-in-this-release-v208181)
   - [✨ Features](#-features)
   - [🔔 User Notifications](#-user-notifications)
     - [Standard Message Pattern](#standard-message-pattern)
@@ -180,7 +180,7 @@ From there, you can access:
 
 ---
 
-## 🔥 Highlights in this release (v2.08.179)
+## 🔥 Highlights in this release (v2.08.181)
 
 - Added and validated **core hotkeys** for the main workflows:
   - **Alt + Shift + D** — Bulk Image Download
@@ -207,7 +207,19 @@ From there, you can access:
   - Image Inspector
   - Settings Peek
 
-- Fixed QA-discovered runtime and messaging issues in Bulk and gallery flows.
+- Improved **Web-linked Gallery** reliability for the `Alt + Shift + W` workflow:
+  - stronger grouping for sequential gallery pages
+  - structural fallback when similarity is too strict
+  - more reliable handoff to the background process
+
+- Fixed false user-facing error reporting caused by **ephemeral MV3 callback errors** during Web-linked Gallery handoff.
+
+- Improved background configuration traceability:
+  - **Toast Minimum Visible Time (ms)** is now loaded and logged by the background service worker
+
+- Cleaned internal default settings initialization by removing a duplicated `enableClipboardHotkeys` entry.
+
+- Fixed additional QA-discovered runtime, messaging, and configuration consistency issues across Bulk and gallery flows.
 
 ---
 
