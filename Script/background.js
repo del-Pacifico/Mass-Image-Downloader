@@ -95,6 +95,7 @@
     let allowBMP = false;
     let allowExtendedImageUrls = false; // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
     let showUserFeedbackMessages = false;
+    let toastMinVisibleMs = 2000; // ⏱️ Minimum visible time for user toasts (ms)
     let enableClipboardHotkeys = false;
     let maxOpenTabs = 5; // 🔗 Max concurrent tabs for Web-Linked Gallery
     let webLinkedGalleryDelay = 500;
@@ -220,6 +221,7 @@
                 galleryMinGroupSize: 3,
                 customFolderPath: "",
                 showUserFeedbackMessages: false,
+                toastMinVisibleMs: 2000,
                 enableClipboardHotkeys: false,
                 maxOpenTabs: 5, // 🔗 Max concurrent tabs for Web-Linked Gallery
                 webLinkedGalleryDelay: 500, // 🕒 Delay between opening tabs for Web-Linked Gallery
@@ -279,6 +281,7 @@
                 logDebug(3, '      📐 Minimum Image Height: 600');
                 // 📢 Global Settings: Notifications
                 logDebug(3, '   📢 User feedback messages: false');
+                logDebug(3, '   ⏱️ Minimum visible time for user toasts: 2000 ms');
                 logDebug(3, '   📃 Peek panel transparency: 0.8');
 
                 // 🐛 Debugging
@@ -318,6 +321,7 @@
             "galleryEnableSmartGrouping",
             "galleryEnableFallback",
             "showUserFeedbackMessages",
+            "toastMinVisibleMs",
             "enableClipboardHotkeys",
             "maxOpenTabs", "webLinkedGalleryDelay",
             "peekTransparencyLevel", "enableOneClickIcon",
@@ -370,7 +374,10 @@
             allowBMP = data.allowBMP !== false;
             allowExtendedImageUrls = data.allowExtendedImageUrls !== false; // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
 
-            showUserFeedbackMessages = data.showUserFeedbackMessages || false;
+            showUserFeedbackMessages = data.showUserFeedbackMessages ?? false;
+            toastMinVisibleMs = (typeof data.toastMinVisibleMs === "number" && data.toastMinVisibleMs >= 0 && data.toastMinVisibleMs <= 10000)
+                ? data.toastMinVisibleMs
+                : 2000;
             enableClipboardHotkeys = data.enableClipboardHotkeys || false;
             enableOneClickIcon = data.enableOneClickIcon || false;
 
@@ -439,6 +446,7 @@
             // 📢 Global Settings: Notifications
             logDebug(2, '   📢 User feedback messages.');
             logDebug(3, `       📢 User feedback messages: ${showUserFeedbackMessages}`);
+            logDebug(3, `       ⏱️ Minimum visible time for user toasts: ${toastMinVisibleMs} ms`);
             logDebug(3, `       📃 Peek panel transparency: ${peekTransparencyLevel}`);
 
             // 🐛 Debugging
@@ -510,6 +518,13 @@ chrome.storage.onChanged.addListener((changes) => {
             case "galleryEnableSmartGrouping": galleryEnableSmartGrouping = newValue; break;
             case "galleryEnableFallback": galleryEnableFallback = newValue; break;
             case "showUserFeedbackMessages": showUserFeedbackMessages = newValue; break;
+            // 📢 User feedback messages
+            case "toastMinVisibleMs":
+                toastMinVisibleMs = (typeof newValue === "number" && newValue >= 0 && newValue <= 10000)
+                    ? newValue
+                    : 2000;
+                break;
+            case "enableClipboardHotkeys": enableClipboardHotkeys = newValue; break;
             case "enableClipboardHotkeys": enableClipboardHotkeys = newValue; break;
             case "maxOpenTabs": maxOpenTabs = newValue; break;
             case "webLinkedGalleryDelay": webLinkedGalleryDelay = newValue; break;
