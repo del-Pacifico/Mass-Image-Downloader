@@ -214,7 +214,6 @@
                 continueFromLastBulkBatch: false,
                 prefix: "",
                 suffix: "",
-                enableClipboardHotkeys,
                 gallerySimilarityLevel: 70,
                 galleryEnableSmartGrouping: false,
                 galleryEnableFallback: false,
