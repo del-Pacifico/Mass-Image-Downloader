@@ -12,8 +12,9 @@ This Technical User Manual provides a technical-operational view of **Mass Image
 
 It is intended for users who already understand how to use the extension and want to understand **how it works internally**, how features interact, and how configuration options influence behavior — without modifying source code.
 
-This document is strictly aligned with **version v2.08.149**.  
-Any previous versions, behaviors, or references are considered deprecated and intentionally excluded.
+This document is aligned with the latest stable release from the `main` branch.
+
+Previous implementations, deprecated behavior, and unreleased changes are intentionally excluded unless explicitly stated.
 
 ---
 
@@ -44,13 +45,13 @@ This manual is intended for:
 
 ## 🧾 1.3 Version Scope and Source of Truth
 
-This manual documents **only** the following scope:
+This manual documents only the following scope:
 
-- Extension version: **v2.08.149**
-- Released and tested code from the `main` branch
-- Features, settings, and behaviors present in this release
+- the latest stable release from the `main` branch
+- released and tested code only
+- features, settings, and behaviors present in the current stable release
 
-> Any behavior not present in this version is considered out of scope.
+> For the exact release number, check the root `VERSION` file and `manifest.json`.
 
 ---
 
@@ -127,6 +128,7 @@ This manual documents **only** the following scope:
     - [📋 5.12 Clipboard Hotkeys Option](#-512-clipboard-hotkeys-option)
     - [🔎 5.13 Peek Panel Option](#-513-peek-panel-option)
     - [📢 5.14 User Feedback Messages](#-514-user-feedback-messages)
+      - [Toast minimum visible time (ms)](#toast-minimum-visible-time-ms)
     - [🐛 5.15 Console Log Level](#-515-console-log-level)
   - [⌨️ 6. Hotkeys and Commands Reference](#️-6-hotkeys-and-commands-reference)
     - [🖱️ 6.1 Alt+Shift+I — One-click Download Icon](#️-61-altshifti--one-click-download-icon)
@@ -1216,13 +1218,29 @@ Behavior:
 
 ### 📢 5.14 User Feedback Messages
 
-Controls whether on-screen messages are displayed.
+This option controls whether the extension displays in-page visual feedback messages during execution.
 
-When enabled:
-- Success, error, and info messages are shown
-- Messages auto-dismiss after a short time
+When enabled, the user may see notifications for:
+- process start
+- process completion
+- validation failures
+- runtime errors
 
-> Disabling messages reduces UI noise but may obscure errors.
+These messages are intended to provide lightweight feedback without requiring the browser console.
+
+#### Toast minimum visible time (ms)
+
+This setting defines the minimum time a toast notification must remain visible before another toast can replace it.
+
+Technical implications:
+- prevents rapid toast replacement during fast workflows
+- improves readability when multiple events happen in sequence
+- reduces visual overlap in bursty operations
+
+This setting affects user-facing toast flows and should be interpreted together with:
+- `Show user feedback messages`
+- the runtime flow producing the notification
+- the effective timing behavior of the active feature
 
 ---
 
@@ -1662,16 +1680,18 @@ This document is best used when you need to:
 
 ### 🧠 Version Awareness
 
-This manual is strictly aligned with:
+This manual is aligned with the latest stable release from the `main` branch.
 
-- **Extension version:** `v2.08.149`
-- **Branch:** `main`
+For exact version verification, use:
+- the root `VERSION` file
+- `manifest.json`
+- `CHANGELOG.md`
 
-Any future changes to behavior, features, or settings require:
-- A version bump
-- An explicit documentation update
+Any future change to behavior, features, or settings still requires:
+- a released implementation
+- a corresponding documentation update when the documented behavior changes
 
-> If behavior differs from what is described here, the documentation must be considered outdated and reviewed.
+> If observed behavior differs from what is described here, verify the current release version first, then review whether the documentation requires an update.
 
 ---
 

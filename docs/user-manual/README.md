@@ -86,6 +86,7 @@ This manual is intended for end users and explains how to install, configure, an
       - [Keyboard shortcuts](#keyboard-shortcuts)
     - [📢 9.12 Notifications](#-912-notifications)
       - [Show user feedback messages](#show-user-feedback-messages)
+      - [Toast minimum visible time (ms)](#toast-minimum-visible-time-ms)
     - [🐛 9.13 Debugging (Optional)](#-913-debugging-optional)
       - [Console log level (0–3)](#console-log-level-03)
   - [🏷️ 10. Badge and Visual Feedback](#️-10-badge-and-visual-feedback)
@@ -945,14 +946,27 @@ Notes:
 ### 📢 9.12 Notifications
 
 #### Show user feedback messages
-When enabled, the extension shows visual messages for:
-- Success
-- Progress
-- Errors
 
-Recommendation:
-- Keep this enabled while learning the tool
-- Disable it only if you want a quieter UI
+Enable or disable visual feedback messages shown directly on the page during extension operations.
+
+When enabled, the extension may display messages such as:
+- process started
+- process completed
+- validation or runtime errors
+
+This is useful when you want visible confirmation without opening developer tools.
+
+#### Toast minimum visible time (ms)
+
+Defines the minimum amount of time a toast message remains visible before it can be replaced by a newer one.
+
+This setting helps prevent:
+- overlapping notifications
+- messages disappearing too quickly
+- unreadable feedback during fast workflows
+
+Use a higher value if you prefer slower, easier-to-read notifications.  
+Use a lower value if you want faster visual turnover during rapid operations.
 
 ---
 
