@@ -1,7 +1,7 @@
-# 🏔️ Mass Image Downloader – Documentation Hub v2.08.179
+# 🏔️ Mass Image Downloader – Documentation Hub
 
-**Version:** `v2.08.179`  
-**Branch:** `main`  
+**Version:** latest stable release from the `main` branch
+*Version source:** root `VERSION` file and `manifest.json`
 **Status**: `Documentation entry point and navigation guide`
 
 ---
@@ -17,7 +17,7 @@ This file acts as the **entry point and launcher**, allowing direct navigation t
 
 ## 📑 Table of Contents
 
-- [🏔️ Mass Image Downloader – Documentation Hub v2.08.179](#️-mass-image-downloader--documentation-hub-v208179)
+- [🏔️ Mass Image Downloader – Documentation Hub](#️-mass-image-downloader--documentation-hub)
   - [📘 Welcome to the Documentation](#-welcome-to-the-documentation)
   - [📑 Table of Contents](#-table-of-contents)
   - [🧭 How the Documentation Is Organized](#-how-the-documentation-is-organized)
@@ -205,14 +205,17 @@ This repository follows a clear separation between **ideas**, **planned work**, 
 
 ## 🧾 Version Scope and Consistency
 
-All documents in this directory apply strictly to:
+All documents in this directory apply to the latest stable release from the `main` branch.
 
-- **Extension version:** `v2.08.179`
-- **Branch:** `main`
+To verify the exact released version:
+
+- Check the root `VERSION` file
+- Confirm the extension `manifest.json`
+- Review `CHANGELOG.md` for release notes
 
 If observed behavior differs from the documentation:
 
-- Verify the extension version
+- Verify the installed extension version
 - Confirm you are on the correct branch
 - Check whether experimental or deprecated settings are enabled
 

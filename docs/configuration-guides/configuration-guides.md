@@ -1,10 +1,9 @@
-# 🏔️ Mass Image Downloader – Configuration Guides  
+# 🏔️ Mass Image Downloader – Configuration Guides
 
-**Version:** `v2.08.149`  
-**Branch:** `main`  
+**Applies to:** latest stable release from the `main` branch  
+**Version source:** root `VERSION` file and `manifest.json`  
 **Status**: Step-by-step configuration, outcome-driven usage
 
----
 ## 📑 Table of Contents
 
 - [🧭 1. Introduction](#-1-introduction)
