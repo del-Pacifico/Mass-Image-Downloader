@@ -4,7 +4,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [2.08.179] - 2026-03-05
+## [2.08.181] - 2026-03-12
 
 ### 🚀 Overview
 
@@ -74,6 +74,32 @@ In addition, several runtime issues were corrected during QA validation of the n
 
 - **Overlapping toast notifications**
   - Fixed race condition causing multiple notifications to stack.
+
+- Fixed reliability issues in the **Web-linked Gallery extraction workflow (Alt+Shift+W)**:
+  - improved grouping logic for sequential gallery pages
+  - added fallback when similarity detection is too strict
+  - ensured consistent handoff to the background extraction process
+
+- Fixed false user-facing error message:
+  - `MID: Failed to hand off the web-linked gallery to the background process`
+  - caused by ephemeral **MV3 callback errors** during successful handoff
+
+- Fixed duplicated default initialization of `enableClipboardHotkeys` in the background settings
+
+### Improved
+
+- Background service worker now **loads and logs the setting**:
+  
+  `Toast Minimum Visible Time (ms)`
+
+  improving traceability of toast configuration during startup.
+
+- Improved internal consistency of gallery messaging and runtime validation during QA testing.
+
+### Internal
+
+- Cleanup of configuration initialization logic.
+- Minor stability improvements discovered during QA validation of **v2.08.180**.
 
 ---
 
