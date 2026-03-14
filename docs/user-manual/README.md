@@ -197,7 +197,7 @@ To download it:
 
 1. Open the project repository on GitHub.
 2. Go to the **Releases** section.
-3. Locate the release that matches the version indicated at the top of this manual.
+3. Locate the latest stable release, or verify the exact version using the root `VERSION` file and `manifest.json`.
 4. Download the source code package (ZIP file).
 5. Extract the ZIP file to a folder on your computer.
 
@@ -890,8 +890,9 @@ Peek allows you to quickly review your current configuration without opening the
 Higher values improve readability. Lower values allow more background visibility.
 
 Note:
-- In the current version, Peek is accessed from the extension interface.
-- There is no dedicated keyboard shortcut for Peek in this release.
+- Peek can be accessed from the extension interface.
+- A dedicated keyboard shortcut is also available in this release:
+> **Alt + Shift + S** — Toggle Settings Peek
 
 ---
 
