@@ -1076,7 +1076,7 @@ Open the **Options** page and apply the following values:
 - Minimum height: `800`
 
 **Web-Linked Gallery Settings**
-- Max concurrent pages: `3`
+- Max open tabs per gallery: `3`
 
 **Gallery Finder Settings**
 - Path similarity level: `80%`
