@@ -1,6 +1,6 @@
 # 🏔️ Mass Image Downloader – Documentation Hub
 
-**Version:** latest stable release from the `main` branch
+**Applies to:** latest stable release from the `main` branch  
 **Version source:** root `VERSION` file and `manifest.json`
 **Status**: `Documentation entry point and navigation guide`
 
@@ -25,7 +25,7 @@ This file acts as the **entry point and launcher**, allowing direct navigation t
     - [👤 User Manual (Basic)](#-user-manual-basic)
     - [⚙️ Configuration Guides](#️-configuration-guides)
     - [🧑‍🔧 Technical User Manual](#-technical-user-manual)
-  - [⌨️ Hotkeys \& Keyboard Shortcuts Policy](#️-hotkeys--keyboard-shortcuts-policy)
+    - [⌨️ Hotkeys \& Keyboard Shortcuts Policy](#️-hotkeys--keyboard-shortcuts-policy)
     - [👨🏻‍💻 Advanced Manual](#-advanced-manual)
   - [🧭 Which Document Should I Read First?](#-which-document-should-i-read-first)
   - [🧭 Backlog \& Development Flow](#-backlog--development-flow)
@@ -103,7 +103,7 @@ Explain **how the extension works internally**, including execution flow, state 
 
 ---
 
-## ⌨️ Hotkeys & Keyboard Shortcuts Policy
+### ⌨️ Hotkeys & Keyboard Shortcuts Policy
 
 This section defines the **official keyboard shortcut policy** for Mass Image Downloader.
 
