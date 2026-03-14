@@ -90,7 +90,6 @@ This manual is intended for end users and explains how to install, configure, an
     - [🐛 9.13 Debugging (Optional)](#-913-debugging-optional)
       - [Console log level (0–3)](#console-log-level-03)
   - [🏷️ 10. Badge and Visual Feedback](#️-10-badge-and-visual-feedback)
-  - [🏷️ 10. Badge and Visual Feedback](#️-10-badge-and-visual-feedback-1)
     - [🔢 10.1 Badge Counter Meaning](#-101-badge-counter-meaning)
     - [🎨 10.2 Badge Colors Explained](#-102-badge-colors-explained)
       - [🟢 Green — Active / In Progress](#-green--active--in-progress)
@@ -987,17 +986,10 @@ For troubleshooting:
 
 ## 🏷️ 10. Badge and Visual Feedback
 
-Mass Image Downloader provides **visual feedback** to help you understand the current state of a download process.
-
-This feedback is designed to be simple, non-intrusive, and easy to recognize at a glance.
-
----
-
-## 🏷️ 10. Badge and Visual Feedback
-
 Mass Image Downloader uses the extension badge to provide **quick visual feedback** about what the extension is doing.
 
 The badge helps you understand the current state of a process without opening logs or settings.
+This feedback is designed to be simple, non-intrusive, and easy to recognize at a glance.
 
 ---
 
