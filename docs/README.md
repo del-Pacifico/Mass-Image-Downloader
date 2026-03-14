@@ -1,7 +1,7 @@
 # 🏔️ Mass Image Downloader – Documentation Hub
 
 **Version:** latest stable release from the `main` branch
-*Version source:** root `VERSION` file and `manifest.json`
+**Version source:** root `VERSION` file and `manifest.json`
 **Status**: `Documentation entry point and navigation guide`
 
 ---

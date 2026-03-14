@@ -1892,14 +1892,16 @@ Consult this document when you need to:
 
 ### 🧠 Version Awareness
 
-This document applies strictly to:
-- **Extension version:** `v2.08.149`
-- **Branch:** `main`
+These guides apply to the latest stable release from the `main` branch.
 
-If behavior differs from what is described here:
-- Verify the extension version and branch
-- Confirm option values match the guides
-- Ensure no experimental or deprecated settings are enabled
+For exact version verification, use:
+- the root `VERSION` file
+- `manifest.json`
+- `CHANGELOG.md`
+
+If option names, defaults, or documented outcomes change in a future stable release, the affected guides must be reviewed and updated.
+
+> If your results differ from what is described here, verify the current release version and active settings before assuming the guide is outdated.
 
 ---
 

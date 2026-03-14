@@ -109,14 +109,7 @@ Assumptions:
 - Deprecated logic and previous implementations are intentionally ignored
 
 > For the exact release number, check the root `VERSION` file and `manifest.json`.
-
-Assumptions:
-
-- All referenced behavior matches the released version
-- No experimental or unreleased features are considered
-- Deprecated logic and previous implementations are intentionally ignored
-
-> If future versions diverge, this document must be reviewed and updated accordingly.
+> If future stable releases diverge from these assumptions, this document must be reviewed and updated accordingly.
 
 ---
 
@@ -754,17 +747,16 @@ This manual is best consulted when:
 
 ### 🧠 Version Awareness
 
-This manual is strictly aligned with:
+This manual is aligned with the latest stable release from the `main` branch.
 
-- **Extension version:** `v2.08.149`
-- **Branch:** `main`
+For exact version verification, use:
+- the root `VERSION` file
+- `manifest.json`
+- `CHANGELOG.md`
 
-Any future changes to behavior, features, or settings require:
+If behavior, assumptions, or boundaries change in a future stable release, this manual must be reviewed and updated accordingly.
 
-- A version bump
-- An explicit documentation update
-
-> If behavior differs from what is described here, the documentation must be considered outdated and reviewed.
+> If observed behavior differs from what is described here, first verify the current release version before treating the document as outdated.
 
 ---
 
