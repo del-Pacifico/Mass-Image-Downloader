@@ -762,14 +762,14 @@ If behavior, assumptions, or boundaries change in a future stable release, this 
 
 ### 🚀 What Comes Next
 
-With the Advanced Manual completed, the next documentation step is:
+With the Advanced Manual completed, the documentation set now includes:
 
 - **Configuration Guides**
   - Step-by-step optimal setups
   - Practical tuning scenarios
   - Real-world usage recipes
 
-> These guides will translate design intent into actionable configurations.
+> These guides translate design intent into actionable configurations.
 
 ---
 

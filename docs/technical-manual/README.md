@@ -1674,7 +1674,7 @@ This document is best used when you need to:
 - Prepare accurate bug reports or feature discussions
 - Review the extension from a technical or QA perspective
 
-> For practical, guided configuration scenarios, refer to the upcoming **Configuration Guides** document.
+> For practical, guided configuration scenarios, refer to the **Configuration Guides** document.
 
 ---
 
