@@ -442,6 +442,13 @@ function showUserMessage(text, type = "info") {
         const minVisibleMs = Math.max(0, parseInt(configCache.toastMinVisibleMs ?? 2000, 10) || 2000);
         const effectiveDuration = Math.max(baseDuration, minVisibleMs);
 
+        // Define toast color explicitly for this flow.
+        // Error uses red, success uses green, info/default uses blue.
+        const backgroundColor =
+            type === "error"
+                ? "#d9534f"
+                : (type === "success" ? "#28a745" : "#007EE3");
+
         // ✅ Last toast wins: remove previous toast + cancel previous timer
         const TOAST_ID = "mdi-user-toast";
         const TIMER_KEY = "__mdiUserToastTimer";
