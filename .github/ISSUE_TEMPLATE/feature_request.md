@@ -20,6 +20,7 @@ Provide a concise, high-level description of the proposed feature or enhancement
 Describe the problem or limitation this feature aims to solve.
 
 Consider addressing:
+
 - What is currently difficult, impossible, or inefficient?
 - Who is affected?
 - In which scenarios does this problem appear?
@@ -31,6 +32,7 @@ Consider addressing:
 Describe your proposed solution at a **conceptual level**.
 
 Guidelines:
+
 - Avoid implementation details or code.
 - Focus on behavior, user experience, and expected outcome.
 - It’s acceptable to propose alternatives or multiple approaches.
@@ -60,6 +62,7 @@ Help us understand the expected scope of this feature.
 Explain how this request aligns with the project’s philosophy.
 
 Consider aspects such as:
+
 - Explicit user-triggered execution
 - Performance and stability
 - Predictable behavior
@@ -93,6 +96,7 @@ Links are preferred over large inline images.
 If this feature were implemented, how would we know it works?
 
 Examples:
+
 - Observable behavior
 - User-visible outcomes
 - Constraints or limits that must hold
@@ -102,6 +106,7 @@ Examples:
 ## 🧾 Additional Notes
 
 Include any extra context that might help during evaluation:
+
 - Related issues or discussions
 - Known constraints
 - Compatibility considerations

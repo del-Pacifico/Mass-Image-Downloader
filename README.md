@@ -1,4 +1,6 @@
 
+# Mass Image Downloader
+
 ![Chromium 93+](https://img.shields.io/badge/Chromium-93%2B-4285F4?logo=google-chrome&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-FF9800)
 ![GitHub Release](https://img.shields.io/github/v/release/del-Pacifico/Mass-Image-Downloader?display_name=tag)
@@ -19,6 +21,7 @@
 ## 📚 Table of Contents
 
 - [Mass Image Downloader](#mass-image-downloader)
+  - [📚 Table of Contents](#-table-of-contents)
   - [🌐 Overview](#-overview)
     - [Core goals](#core-goals)
     - [Who it’s for](#who-its-for)
@@ -121,8 +124,6 @@
     - [Good citizen tips](#good-citizen-tips)
 
 ---
-
-# Mass Image Downloader
 
 ## 🌐 Overview
 
@@ -743,14 +744,15 @@ Unless changed in the Options page, these defaults apply globally:
 This shows only messages emitted by the extension.
 Optional: enable the **regex** toggle and use:
 
-       ```text
-       ^\[Mass image downloader\]
-       ```
+  ```text
+  ^\[Mass image downloader\]
+  ```
 
 To match logs that **start** with the prefix.
 
   1) You can also press **Ctrl/Cmd + F** to find occurrences in the visible output.
   2) Tip: enable **Preserve log** to keep messages across page reloads.
+
 - If results look small, inspect `naturalWidth/Height` in DevTools (CSS can upscale visuals).
 - If a platform uses `:large` / `:orig`, enable **Allow extended image URLs**.
 - For login-gated pages, keep the session authenticated; try **Web-linked galleries** if direct modes miss items.
@@ -1082,9 +1084,9 @@ To view inspector-specific activity:
 
 3) Filter logs by typing:
 
-    ```text
-     [Mass image downloader]
-     ```
+  ```text
+  [Mass image downloader]
+  ```
 
 4) Look for messages related to inspector lifecycle:
 

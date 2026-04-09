@@ -331,19 +331,23 @@
                 const now = Date.now();
                 const minUntil = window[MINUNTIL_KEY] || 0;
 
+                // ⏳ If we're within the minimum visible window, defer showing the new message until it expires
                 if (minVisibleMs > 0 && now < minUntil) {
                     window[PENDING_KEY] = { text, type };
 
+                    // 
                     if (window[DEFER_KEY]) {
                         clearTimeout(window[DEFER_KEY]);
                         window[DEFER_KEY] = null;
                     }
 
+                    // 
                     window[DEFER_KEY] = setTimeout(() => {
                         const pending = window[PENDING_KEY];
                         window[PENDING_KEY] = null;
                         window[DEFER_KEY] = null;
 
+                        // 
                         if (pending && pending.text) {
                             showMessage(pending.text, pending.type || "info");
                         }
@@ -357,6 +361,7 @@
                 const existing = document.getElementById(TOAST_ID);
                 if (existing) existing.remove();
 
+                // Cancel any pending deferred message since we're replacing it now
                 if (window[TIMER_KEY]) {
                     clearTimeout(window[TIMER_KEY]);
                     window[TIMER_KEY] = null;
