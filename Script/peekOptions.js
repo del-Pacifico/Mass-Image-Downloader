@@ -20,6 +20,15 @@
             
             // 🕵️ Virtual value for Image Inspector hotkey (read-only in Peek)
             configCache.imageInspectorHotkey = "Ctrl+Shift+M";
+
+            // ⌨️ Virtual values for known hotkeys (read-only in Peek)
+            configCache.peekHotkey = "Alt+Shift+S";
+            configCache.bulkHotkey = "Alt+Shift+D";
+            configCache.galleryDirectHotkey = "Alt+Shift+G";
+            configCache.galleryVisualHotkey = "Alt+Shift+V";
+            configCache.oneClickIconHotkey = "Alt+Shift+I";
+            configCache.prefixHotkey = "Ctrl+Shift+P";
+            configCache.suffixHotkey = "Ctrl+Shift+S";
             
             applyTransparency();
             renderSettings();
@@ -112,6 +121,14 @@
             title.textContent = sectionTitle;
             wrapper.appendChild(title);
 
+            // Special note for Hotkeys section
+            if (sectionTitle === "⌨️ Hotkeys") {
+                const note = document.createElement("p");
+                note.className = "description";
+                note.textContent = "If a shortcut appears as 'Not set' in your browser, assign it in chrome://extensions/shortcuts.";
+                wrapper.appendChild(note);
+            }
+
             for (const [key, label] of Object.entries(keys)) {
                 const group = document.createElement("div");
                 group.className = "option-group";
@@ -182,6 +199,15 @@
                 enableClipboardHotkeys: "Enable Clipboard Hotkeys",
                 enableOneClickIcon: "One-click Download Icon"
             },
+            "⌨️ Hotkeys": {
+                peekHotkey: "View Settings (Peek)",
+                bulkHotkey: "Bulk Image Download",
+                galleryDirectHotkey: "Extract Gallery (direct links)",
+                galleryVisualHotkey: "Extract Gallery (visual / no links)",
+                oneClickIconHotkey: "One-click Download Icon",
+                prefixHotkey: "Set Prefix (Clipboard)",
+                suffixHotkey: "Set Suffix (Clipboard)"
+            },
             "🕵️ Image Inspector Mode": {
                 imageInspectorEnabled: "Enable Image Inspector",
                 imageInspectorHotkey: "Toggle Hotkey",
@@ -202,6 +228,7 @@
             },
             "📢 Notifications": {
                 showUserFeedbackMessages: "Show User Feedback Messages",
+                toastMinVisibleMs: "Toast minimum visible time (ms)",
                 peekTransparencyLevel: "Peek Transparency Level"
             },
             "🐛 Debugging": {
@@ -252,22 +279,22 @@
                 const json = JSON.stringify(configCache, null, 2);
 
                 if (!navigator.clipboard) {
-                    showMessage("❌ Clipboard API not supported", "error");
+                    showMessage("Clipboard API not supported", "error");
                     return;
                 }
 
                 navigator.clipboard.writeText(json)
                     .then(() => {
-                        showMessage("✅ Settings copied to clipboard");
+                        showMessage("Settings copied to clipboard");
                         logDebug(1, "📋 Configuration copied.");
                     })
                     .catch(err => {
-                        showMessage("❌ Copy failed: " + err.message, "error");
+                        showMessage("Copy failed: " + err.message, "error");
                         logDebug(1, "❌ Clipboard copy error:", err.message);
                     });
 
             } catch (err) {
-                showMessage("❌ Unexpected error during copy", "error");
+                showMessage("Unexpected error during copy", "error");
                 logDebug(1, "❌ Exception during JSON copy:", err.message);
                 logDebug(2, "🐛 Stacktrace: ", err.stack);
             }
@@ -275,15 +302,77 @@
     }
 
     /**
-     * Shows user feedback messages visually.
+     * Displays a temporary message to the user.
+     * @param {string} text - The message text to display.
+     * @param {'info'|'error'} type - The type of message, which determines styling and duration.
+     * @description This function creates a temporary message element on the page to provide feedback to the user.
+     * It checks if the user has enabled feedback messages before displaying anything.
+     * The message is styled based on the type (info or error) and automatically disappears after a certain duration.
+     * If a new message is shown while another is still visible, the previous one is removed immediately to ensure that only one message is displayed at a time.
+     * This function is useful for providing feedback to the user about actions taken, such as successfully copying settings to clipboard or encountering an error.
      */
     function showMessage(text, type = "info") {
         try {
-            const msg = document.createElement("div");
-            const duration = type === "error" ? 10000 : 5000;
+            const baseDuration = type === "error" ? 10000 : 5000;
+            const minVisibleMs = Math.max(0, parseInt(configCache.toastMinVisibleMs ?? 2000, 10) || 2000);
+            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
             const backgroundColor = type === "error" ? "#d9534f" : "#007EE3";
 
-            msg.textContent = "Mass image downloader: " + text;
+            // ✅ Last toast wins: remove previous toast + cancel previous timer
+            const TOAST_ID = "mdi-user-toast";
+            const TIMER_KEY = "__mdiUserToastTimer";
+
+            // ⏱️ Minimum visible time: defer replacement inside the min window (last pending wins)
+            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+            const DEFER_KEY = "__mdiUserToastDeferTimer";
+            const PENDING_KEY = "__mdiUserToastPending";
+
+            try {
+                const now = Date.now();
+                const minUntil = window[MINUNTIL_KEY] || 0;
+
+                // ⏳ If we're within the minimum visible window, defer showing the new message until it expires
+                if (minVisibleMs > 0 && now < minUntil) {
+                    window[PENDING_KEY] = { text, type };
+
+                    // 
+                    if (window[DEFER_KEY]) {
+                        clearTimeout(window[DEFER_KEY]);
+                        window[DEFER_KEY] = null;
+                    }
+
+                    // 
+                    window[DEFER_KEY] = setTimeout(() => {
+                        const pending = window[PENDING_KEY];
+                        window[PENDING_KEY] = null;
+                        window[DEFER_KEY] = null;
+
+                        // 
+                        if (pending && pending.text) {
+                            showMessage(pending.text, pending.type || "info");
+                        }
+                    }, Math.max(0, minUntil - now));
+
+                    return;
+                }
+            } catch (_) {}
+
+            try {
+                const existing = document.getElementById(TOAST_ID);
+                if (existing) existing.remove();
+
+                // Cancel any pending deferred message since we're replacing it now
+                if (window[TIMER_KEY]) {
+                    clearTimeout(window[TIMER_KEY]);
+                    window[TIMER_KEY] = null;
+                }
+            } catch (_) {}
+
+            const msg = document.createElement("div");
+            msg.id = TOAST_ID;
+
+            const finalText = (typeof text === "string" && text.trim().startsWith("MID:")) ? text.trim() : `MID: ${text}`;
+            msg.textContent = finalText;
             msg.style.position = "fixed";
             msg.style.top = "20px";
             msg.style.right = "20px";
@@ -299,12 +388,19 @@
 
             document.body.appendChild(msg);
 
-            setTimeout(() => {
+            // ⏱️ Mark minimum visible window start
+            try {
+                window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
+            } catch (_) {}
+
+            // ✅ Store timer id so the next toast can cancel it
+            window[TIMER_KEY] = setTimeout(() => {
                 msg.style.opacity = "0";
                 setTimeout(() => {
-                    try { msg.remove(); } catch {}
+                    try { msg.remove(); } catch (_) {}
                 }, 500);
-            }, duration);
+                window[TIMER_KEY] = null;
+            }, effectiveDuration);
         } catch (err) {
             logDebug(1, "❌ Failed to show message:", err.message);
             logDebug(2, "🐛 Stacktrace: ", err.stack);

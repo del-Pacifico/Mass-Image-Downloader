@@ -1,0 +1,203 @@
+name: Hotfix (Production)
+description: Critical fix that must be released ASAP to mitigate a production issue.
+title: "[Hotfix] "
+labels:
+  - type: hotfix
+  - priority: critical
+  - status: urgent
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🚑 Hotfix (Production)
+
+        Use this template **only** for critical issues that require an immediate fix
+        and a fast production release.
+
+        ✅ Use this for:
+        - Production blockers
+        - Data loss risks
+        - Security-sensitive regressions (non-disclosure details only)
+        - Critical functionality broken for many users
+
+        ❌ Do NOT use this for:
+        - Normal bugs or regressions → use **Bug Report**
+        - Edge cases or visual quirks → use **Edge Case Report**
+        - Feature requests or improvements
+
+        Notes:
+        - Hotfixes prioritize speed, safety, and minimal blast radius.
+        - Keep scope as small as possible.
+        - Documentation and refactors are intentionally out of scope.
+
+  - type: dropdown
+    id: feature
+    attributes:
+      label: Affected Feature / Module
+      description: Select the primary area impacted by this hotfix.
+      options:
+        - Image Inspector Mode
+        - Bulk Image Download
+        - Gallery Finder
+        - Extract Gallery Images
+        - Extract images from web-linked galleries
+        - Background / Service Worker
+        - Storage / Settings Persistence
+        - Popup UI
+        - Options / Settings UI
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: summary
+    attributes:
+      label: Short Summary
+      description: >
+        One concise sentence describing the critical issue and why it requires
+        an immediate production fix.
+        Example: "Bulk downloads stop after service worker restart on Chromium 143."
+      placeholder: "Describe the critical production issue."
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact Assessment
+      description: >
+        Describe the severity and scope of the issue.
+        Explain who is affected and what is blocked or at risk.
+      placeholder: |
+        - User impact (who / how many):
+        - Core functionality affected:
+        - Data loss or corruption risk (Yes/No):
+        - Workarounds available (if any):
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: >
+        Provide minimal steps to reproduce the issue in production.
+        If reproducibility is limited, describe the observed pattern.
+      placeholder: |
+        1) Open the page / scenario
+        2) Trigger the affected feature
+        3) Observe the failure
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: Describe the correct behavior before the regression or failure.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      placeholder: Describe the observed incorrect or failing behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: Proposed Mitigation / Fix Strategy
+      description: >
+        Describe the minimal and safest change to mitigate the issue.
+        Avoid refactors or unrelated improvements.
+      placeholder: |
+        - Minimal change required:
+        - Guard, fallback, or temporary bypass:
+        - Affected code area(s):
+    validations:
+      required: true
+
+  - type: textarea
+    id: risk
+    attributes:
+      label: Risk & Blast Radius
+      description: >
+        Assess the risk introduced by the hotfix and the expected blast radius.
+      placeholder: |
+        - Areas potentially impacted:
+        - Risk level (Low / Medium / High):
+        - Why this risk is acceptable for a hotfix:
+    validations:
+      required: true
+
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Rollback Plan
+      description: >
+        Describe how to revert or mitigate the hotfix if it causes issues in production.
+      placeholder: |
+        - How to rollback:
+        - Safe fallback behavior:
+        - Signals to watch after release:
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs / Evidence
+      description: >
+        Paste relevant logs filtered by `[Mass image downloader]`.
+        Include timestamps and error messages if available.
+      placeholder: |
+        [Mass image downloader]: ...
+        [Mass image downloader]: ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options:
+        - Edge
+        - Chrome
+        - Brave
+        - Other Chromium-based
+    validations:
+      required: true
+
+  - type: input
+    id: chromium
+    attributes:
+      label: Chromium Version
+      placeholder: "e.g. 143.0.xxxx.xxx"
+    validations:
+      required: true
+
+  - type: input
+    id: extension
+    attributes:
+      label: Extension Version
+      placeholder: "e.g. 2.08.149"
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical_notes
+    attributes:
+      label: Technical Notes (optional)
+      description: >
+        Optional. Record observations or constraints relevant to the hotfix.
+        Avoid future refactors or non-essential cleanup.
+      placeholder: |
+        - Related recent changes / commits:
+        - MV3 lifecycle considerations:
+        - Any temporary technical debt introduced:
+    validations:
+      required: false

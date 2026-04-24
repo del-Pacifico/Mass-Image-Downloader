@@ -4,12 +4,161 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased] - 2015-12-12
+## [2.08.181] - 2026-03-12
 
-### Added
+### 🚀 Overview
 
-- **Docs/Templates:** Added `.github/ISSUE_TEMPLATE/edge_case.yml` to standardize non-blocking, context-dependent edge case reporting (layout/responsive/DOM-driven behaviors).
-- **Docs/Templates:** Added `.github/ISSUE_TEMPLATE/investigation.md` to standardize technical investigations (repro steps, hypotheses, instrumentation, findings, and decision logs).
+This release focuses on **stability, consistency, and user feedback normalization** across all extension workflows.  
+The internal toast engine has been standardized to ensure consistent messaging, minimum visibility timing, and predictable behavior across Bulk downloads, gallery extractors, Image Inspector, and manual download flows.
+
+In addition, several runtime issues were corrected during QA validation of the new notification system.
+
+---
+
+### ✨ Added
+
+- **Configurable Toast Minimum Visible Time**
+  - New option allowing users to define how long toast notifications remain visible before replacement.
+
+- **Deferred Toast Queue**
+  - Implemented logic to prevent overlapping notifications when multiple events occur rapidly.
+
+- **Canonical MID Toast Format**
+  - Introduced standardized user feedback message format:
+  
+  ```html
+  MID: <Functionality> started
+  MID: <Functionality>: found N image(s)
+  MID: <Functionality> completed
+  ```
+
+- **Settings Peek Integration**
+  - Toast configuration values are now visible in the Settings Peek overlay.
+
+---
+
+### 🔁 Changed
+
+- **Unified User Notification System**
+  - All extension workflows now use the same toast engine implemented in `utils.js`.
+
+- **Standardized Feedback Messages**
+  - All user-facing messages follow the `MID:` prefix format.
+
+- **Consistent Naming Across Flows**
+  - Bulk download
+  - Gallery (direct links)
+  - Gallery (visual / no links)
+  - Gallery (web-linked)
+  - One-click download icon
+  - Settings peek
+
+- **Removed emoji usage in user notifications**
+  - Emojis remain only in developer logs.
+
+---
+
+### 🐛 Fixed
+
+- **Bulk Image Download crash**
+  - Fixed `downloadedTotal is not defined` runtime error in `background.js`.
+
+- **Incorrect Bulk image count**
+  - Fixed use of `validatedUrls.length` on a `Set`, replaced with `validTabs.length`.
+
+- **Visual Gallery incorrect success message**
+  - Fixed condition where success toast appeared even when `chrome.runtime.lastError` occurred.
+
+- **Toast timing inconsistency**
+  - Fixed flows that ignored the configured minimum visible time.
+
+- **Overlapping toast notifications**
+  - Fixed race condition causing multiple notifications to stack.
+
+- Fixed reliability issues in the **Web-linked Gallery extraction workflow (Alt+Shift+W)**:
+  - improved grouping logic for sequential gallery pages
+  - added fallback when similarity detection is too strict
+  - ensured consistent handoff to the background extraction process
+
+- Fixed false user-facing error message:
+  - `MID: Failed to hand off the web-linked gallery to the background process`
+  - caused by ephemeral **MV3 callback errors** during successful handoff
+
+- Fixed duplicated default initialization of `enableClipboardHotkeys` in the background settings
+
+### Improved
+
+- Background service worker now **loads and logs the setting**:
+  
+  `Toast Minimum Visible Time (ms)`
+
+  improving traceability of toast configuration during startup.
+
+- Improved internal consistency of gallery messaging and runtime validation during QA testing.
+
+### Internal
+
+- Cleanup of configuration initialization logic.
+- Minor stability improvements discovered during QA validation of **v2.08.180**.
+
+---
+
+### 🧹 Maintenance
+
+- Version bump to **v2.08.178** during toast normalization stage.
+- Version bump to **v2.08.179** after successful QA validation.
+- Code cleanup across:
+  - `imageInspector.js`
+  - `injectSaveIcon.js`
+  - `extractLinkedGallery.js`
+  - `extractVisualGallery.js`
+  - `extractWebLinkedGallery.js`
+  - `clipboardHotkeys.js`
+
+---
+
+### 📄 Documentation
+
+- Updated internal changelog to include the **toast engine normalization cycle**.
+- Improved developer logs and traceability for notification events.
+
+---
+
+## [Unreleased] - 2025-12-12
+
+### 🧩 Governance & Tooling
+
+#### Added
+
+- Introduced a fully standardized issue reporting system using GitHub Issue Forms (YAML) for:
+  - Bug reports
+  - Hotfixes (production-critical issues)
+  - Investigations (pre-triage analysis)
+  - Edge cases (non-blocking, context-dependent behavior)
+  - Performance & stability reports
+  - Documentation issues
+- Added dedicated Issue Forms for:
+  - Performance / Stability reporting
+  - Documentation-related issues
+- Added a centralized README for issue templates describing when to use each report type.
+
+#### Changed
+
+- Migrated legacy Markdown-based issue templates to structured Issue Forms where appropriate.
+- Refined the Feature Request template to improve clarity, scope definition, and alignment with project principles.
+- Normalized `.github/ISSUE_TEMPLATE/config.yml` contact links and security reporting entry.
+
+#### Removed
+
+- Removed deprecated Markdown issue templates after successful migration:
+  - `bug_report.md`
+  - `hotfix.md`
+  - `investigation.md`
+
+#### Notes
+
+- Feature requests intentionally remain Markdown-based to preserve flexibility and exploratory discussion.
+- Security vulnerabilities continue to be handled exclusively via the Security Policy and not through public issues.
 
 ---
 

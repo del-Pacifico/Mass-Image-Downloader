@@ -18,8 +18,8 @@
 (function () {
 
     let currentLogLevel = 1; // Default log level
-    let showUserFeedbackMessagesCache = true;
- 
+    const allowedExtensions = [];
+
     logDebug(1, "⚓ Extract Linked Gallery script injected.");
 
     // 🔒 Prevent multiple simultaneous executions
@@ -34,28 +34,101 @@
     let minWidth = 300;
     let minHeight = 300;
 
+    // ⏱️ Toast minimum visible time (ms). Range: 0..10000. Default: 2000.
+    let toastMinVisibleMsCache = 2000;
+
+    // 📢 User feedback toggle (cached after load).
+    let showUserFeedbackMessagesCache = true;
+
     /**
-     * Show user feedback messages on the screen.
-     * @param {string} text - The message to display.
-     * @param {string} [type="info"] - The type of message (info, error).
+     * Displays a user message as a toast notification on the page.
+     * @param {string} text - The message text to display. If it starts with "MID:", it will be displayed as is; otherwise, "MID: " will be prefixed.
+     * @param {string} [type="info"] - The type of message: "info", "success", or "error". This affects the background color and duration.
      * @description
-     * This function creates a message element and displays it on the screen for a specified duration.
-     * It uses a fixed position and styles to make the message visually distinct.
-     * The message fades out after the duration and is removed from the DOM.
+     * This function retrieves user settings for showing feedback messages and minimum visible duration from Chrome's storage.
+     * It then creates a styled toast notification element and displays it on the page. The toast will automatically fade out after the effective duration.
+     * If a new message is triggered while another toast is still visible, it will defer the new message until the current one has been visible for at least the minimum duration.
+     * The function also handles errors gracefully and logs them to the console.
      */
     function showUserMessage(text, type = "info") {
         try {
-            // 🔒 Check if user feedback messages are enabled
             if (!showUserFeedbackMessagesCache) {
-                logDebug(1, `🚫 User feedback messages disabled. Skipping display.`);
+                logDebug(2, "🚫 User feedback messages disabled. Skipping display.");
                 return;
             }
 
-            const duration = (type === "error") ? 10000 : 5000;
+            // 🧠 Determine base duration and enforce minimum visible time
+            const baseDuration = (type === "error") ? 10000 : 5000;
+            const minVisibleMs = Math.max(0, parseInt(toastMinVisibleMsCache ?? 2000, 10) || 2000);
+            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
             const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
 
+            // ✅ Toast engine: last toast wins + optional minimum visible time (prevents fast overlap)
+            const TOAST_ID = "mdi-user-toast";
+            const TIMER_KEY = "__mdiUserToastTimer";
+            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+            const DEFER_KEY = "__mdiUserToastDeferTimer";
+            const PENDING_KEY = "__mdiUserToastPending";
+
+            const safeText = (typeof text === "string") ? text.trim() : String(text || "").trim();
+            if (!safeText) return;
+
+            // ✅ Normalize text to MID standard
+            const finalText = safeText.startsWith("MID:") ? safeText : `MID: ${safeText}`;
+
+            // ✅ Defer replacement if current toast must remain visible for the minimum time
+            try {
+                const now = Date.now();
+                const minUntil = window[MINUNTIL_KEY] || 0;
+
+                if (minVisibleMs > 0 && now < minUntil) {
+                    window[PENDING_KEY] = { text: finalText, type };
+
+                    if (window[DEFER_KEY]) {
+                        clearTimeout(window[DEFER_KEY]);
+                        window[DEFER_KEY] = null;
+                    }
+
+                    window[DEFER_KEY] = setTimeout(() => {
+                        const pending = window[PENDING_KEY];
+                        window[PENDING_KEY] = null;
+                        window[DEFER_KEY] = null;
+
+                        if (pending && pending.text) {
+                            showUserMessage(pending.text, pending.type || "info");
+                        }
+                    }, Math.max(0, minUntil - now));
+
+                    return;
+                }
+            } catch (_) {}
+
+            // ✅ Last toast wins: remove previous toast + cancel previous timer
+            try {
+                const existing = document.getElementById(TOAST_ID);
+                if (existing) existing.remove();
+
+                if (window[TIMER_KEY]) {
+                    clearTimeout(window[TIMER_KEY]);
+                    window[TIMER_KEY] = null;
+                }
+            } catch (_) {}
+
+            // ✅ Mark the minimum visible window for the newly shown toast
+            try {
+                window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
+            } catch (_) {}
+
+            // 🧱 Defensive: DOM may not be ready yet
+            if (!document?.body) {
+                logDebug(2, "⚠️ document.body not available. Toast skipped.");
+                return;
+            }
+
             const messageElement = document.createElement("div");
-            messageElement.textContent = text;
+            messageElement.id = TOAST_ID;
+            messageElement.textContent = finalText;
+
             messageElement.style.position = "fixed";
             messageElement.style.top = "20px";
             messageElement.style.right = "20px";
@@ -68,25 +141,26 @@
             messageElement.style.opacity = "1";
             messageElement.style.transition = "opacity 0.5s ease-in-out";
             messageElement.style.zIndex = "9999";
+
             document.body.appendChild(messageElement);
 
-            logDebug(2, `📢 Showing user message: "${text}" (${type})`);
+            logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
 
-            setTimeout(() => {
+            window[TIMER_KEY] = setTimeout(() => {
                 messageElement.style.opacity = "0";
                 setTimeout(() => {
-                    try {
-                        messageElement.remove();
-                    } catch (removeError) {
-                        logDebug(1, `⚠️ Error removing message element: ${removeError.message}`);
+                    try { messageElement.remove(); } catch (e) {
+                        logDebug(1, `⚠️ Error removing toast: ${e.message}`);
                     }
                 }, 500);
-            }, duration);
+                window[TIMER_KEY] = null;
+            }, effectiveDuration);
 
         } catch (error) {
             logDebug(1, `❌ Error displaying user message: ${error.message}`);
+            logDebug(2, `🐛 Stacktrace: ${error.stack}`);
         }
-    }    
+    }  
 
     /**
      * Logs debug messages to the console based on the current log level.
@@ -206,11 +280,14 @@
         logDebug(3, '----------------------------------------------------');
         logDebug(1, '🌄 Begin: Extract Linked Gallery process');
         logDebug(3, '----------------------------------------------------');
+        // 📨 Show initial user message
+        showUserMessage("Extract linked gallery started. Scanning page...", "info");
         
 		// 📌 Step 1: Find anchor <a> with internal <img>
 		const anchors = Array.from(document.querySelectorAll('a[href]'));
 		const webGalleryCandidates = [];
 
+        // 🔍 Process each anchor and validate
 		for (const anchor of anchors) {
 			const href = anchor.getAttribute("href");
 			const img = anchor.querySelector("img");
@@ -298,9 +375,11 @@
                 return;
             }
             
-            // ✅ Ensure we deduplicate gallery URLs properly
-			// 🔁 Previous version expected {url: "..."} objects. We're now working with direct string URLs.
-			const uniqueGalleryUrls = [...new Set(gallery)];
+            // ✅ Remove duplicates while preserving order
+            const uniqueGalleryUrls = [...new Set(gallery)];
+
+            // Sending the count of unique images for user feedback
+            showUserMessage(`Extract linked gallery: found ${uniqueGalleryUrls.length} image(s). Sending...`, "info");
 
             // 🔒 Step 3.1: Check for duplicates and limit the number of images sent
             chrome.runtime.sendMessage({
@@ -314,12 +393,17 @@
                     }
                 }
             }, (response) => {
+                // ✅ Handle response and errors from background
                 if (chrome.runtime.lastError) {
                     logDebug(2, `❌ Failed to send images: ${chrome.runtime.lastError.message}`);
                 } else if (response?.success) {
                     logDebug(2, '✅ Images sent to background successfully.');
+                    // 📨 Show completion message with count of unique images sent
+                    showUserMessage(`Extract linked gallery completed. Sent: ${uniqueGalleryUrls.length}`, "success");
                 } else {
                     logDebug(1, '⚠️ No response or process failed.');
+                    // 📨 Show completion message indicating no images sent
+                    showUserMessage("No gallery links found. Try the 'Visual gallery (no links)' mode instead.", "error");
                 }
             
                 logDebug(2, '✅ End: Extract Linked Gallery Process');
@@ -349,13 +433,13 @@
         chrome.storage.sync.get([
             "minWidth", "minHeight", "galleryMaxImages",
             "debugLogLevel", "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP",
-            "showUserFeedbackMessages"
+            "showUserFeedbackMessages", "toastMinVisibleMs"
         ], (data) => {
         
             // 🔒 Error handling for storage access
             if (chrome.runtime.lastError) {
                 logDebug(2, `⚠ Failed to read config: ${chrome.runtime.lastError.message}`);
-                showUserMessage("⚠ Could not load gallery settings.", "error");
+                showUserMessage("Could not load gallery settings.", "error");
                 extractLinkedGalley({}); // fallback
                 return;
             }
@@ -368,8 +452,15 @@
                     ? data.galleryMaxImages
                     : galleryRateLimit;
 
-                showUserFeedbackMessagesCache = data.showUserFeedbackMessages ?? true;    
-        
+                showUserFeedbackMessagesCache = data.showUserFeedbackMessages ?? true;
+
+                const rawToastMinVisibleMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
+                toastMinVisibleMsCache = (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
+                    ? rawToastMinVisibleMs
+                    : 2000;
+
+                logDebug(2, `⏱️ Toast minimum visible time (ms): ${toastMinVisibleMsCache}`);
+
                 logDebug(2, `📐 Using resolution threshold: ${minWidth}x${minHeight}`);
                 logDebug(2, `⚡ Using gallery rate limit (images/sec): ${galleryRateLimit}`);
                 try {
@@ -390,11 +481,11 @@
                 } catch (e) {
                     logDebug(1, '❌ Unhandled exception in extractLinkedGalley:', e.message);
                     logDebug(2, `❌ Stacktrace: ${e.stack}`);
-                    showUserMessage("⚠ Unexpected error during image extraction.", "error");
+                    showUserMessage("Unexpected error during image extraction.", "error");
                 }                
             } catch (error) {
                 logDebug(1, `❌ Error applying gallery settings: ${error.message}`);
-                showUserMessage("⚠ Invalid gallery settings.", "error");
+                showUserMessage("Invalid gallery settings.", "error");
                 extractLinkedGalley({});
             }
         });

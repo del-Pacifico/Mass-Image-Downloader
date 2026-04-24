@@ -1,0 +1,207 @@
+name: Performance / Stability Report
+description: Report performance degradation, excessive resource usage, freezes, or stability issues.
+title: "[Performance] "
+labels:
+  - type: performance
+  - needs: triage
+  - priority: normal
+  - status: backlog
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚙️ Performance / Stability Report
+
+        Use this template to report issues related to:
+        - High CPU or memory usage
+        - Slowdowns, freezes, or UI lag
+        - Long-running sessions causing degradation
+        - MV3 service worker lifecycle or stability problems
+
+        ❌ Do NOT use this for:
+        - Functional bugs → use **Bug Report**
+        - Non-blocking layout quirks → use **Edge Case Report**
+        - Feature ideas → use **Feature Request**
+
+        Tips:
+        - Prefer measurements over impressions.
+        - Include duration (how long the session ran).
+        - Attach logs filtered by `[Mass image downloader]`.
+
+  - type: dropdown
+    id: feature
+    attributes:
+      label: Affected Feature / Module
+      description: Select the primary area related to the performance or stability issue.
+      options:
+        - Image Inspector Mode
+        - Bulk Image Download
+        - Gallery Finder
+        - Extract Gallery Images
+        - Extract images from web-linked galleries
+        - Popup UI
+        - Options / Settings UI
+        - Background / Service Worker
+        - Storage / Settings Persistence
+        - Multiple / Cross-feature
+        - Unknown
+    validations:
+      required: true
+
+  - type: input
+    id: summary
+    attributes:
+      label: Short Summary
+      description: >
+        One concise sentence describing the performance or stability problem and context.
+        Example: "Memory usage grows steadily after processing multiple galleries in one session."
+      placeholder: "Describe the observed performance or stability issue."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: symptom
+    attributes:
+      label: Primary Symptom
+      description: Select the most visible symptom.
+      options:
+        - High memory usage
+        - High CPU usage
+        - UI lag / slow response
+        - Browser freeze / tab unresponsive
+        - Service worker restart / termination
+        - Gradual degradation over time
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: observations
+    attributes:
+      label: Observed Behavior
+      description: Describe what you observed, including duration and progression over time.
+      placeholder: |
+        - What happens:
+        - After how long (minutes / actions / number of tabs):
+        - Does it get worse over time:
+        - Any visible browser warnings:
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce (if known)
+      description: >
+        Provide minimal steps if reproducible. If not deterministic, describe the pattern observed.
+      placeholder: |
+        1) Open the page(s) / prepare tabs
+        2) Configure relevant options
+        3) Trigger the feature repeatedly or for an extended period
+        4) Observe resource usage or stability changes
+    validations:
+      required: false
+
+  - type: textarea
+    id: measurements
+    attributes:
+      label: Measurements / Evidence
+      description: >
+        Provide concrete data if available (Task Manager, DevTools, OS metrics).
+        Screenshots or recordings are highly recommended.
+      placeholder: |
+        - Memory usage (MB) before / after:
+        - CPU usage (%):
+        - Number of tabs processed:
+        - Duration of session:
+        - Screenshot / recording link:
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope / Impact
+      description: >
+        Describe how severe the issue is and who is affected.
+      placeholder: |
+        - Blocks normal usage? (Yes/No)
+        - Affects long sessions only?
+        - Site-specific or general?
+    validations:
+      required: true
+
+  - type: textarea
+    id: settings_snapshot
+    attributes:
+      label: Settings Snapshot (recommended)
+      description: >
+        Paste the output of "View settings (Peek)" if available.
+        Otherwise, list the relevant performance-related settings.
+      placeholder: |
+        Option A: Paste "Peek" output here.
+
+        Option B: List key settings:
+        - Batch size / rate limit:
+        - Max concurrent tabs:
+        - Gallery limits:
+        - Inspector options:
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: >
+        Paste relevant logs filtered by `[Mass image downloader]`.
+        Include timestamps around the degradation period.
+      placeholder: |
+        [Mass image downloader]: ...
+        [Mass image downloader]: ...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options:
+        - Edge
+        - Chrome
+        - Brave
+        - Other Chromium-based
+    validations:
+      required: true
+
+  - type: input
+    id: chromium
+    attributes:
+      label: Chromium Version
+      placeholder: "e.g. 143.0.xxxx.xxx"
+    validations:
+      required: true
+
+  - type: input
+    id: extension
+    attributes:
+      label: Extension Version
+      placeholder: "e.g. 2.08.149"
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical_notes
+    attributes:
+      label: Technical Notes (optional)
+      description: >
+        Optional. Add technical context or hypotheses (memory leaks, unclosed listeners,
+        MV3 lifecycle constraints, async queues not draining, etc.).
+        Avoid full solutions.
+      placeholder: |
+        - Suspected leak or accumulation:
+        - MV3 service worker behavior:
+        - Related recent changes:
+    validations:
+      required: false

@@ -1,0 +1,205 @@
+name: Bug Report
+description: Report a reproducible problem with Mass Image Downloader.
+title: "[Bug] "
+labels:
+  - type: bug
+  - needs: triage
+  - priority: normal
+  - status: backlog
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🐞 Bug Report
+
+        Use this template to report **reproducible problems** in Mass Image Downloader.
+
+        ✅ Use this for:
+        - Broken or incorrect behavior
+        - Download failures, crashes, or blocked flows
+        - Regressions (something that used to work)
+
+        ❌ Do NOT use this for:
+        - Feature ideas or enhancements → use **Feature Request**
+        - Non-blocking, context-dependent quirks → use **Edge Case Report**
+        - Security issues → use the **Security Policy** (do not open public issues)
+
+        Tips:
+        - Keep it objective and reproducible.
+        - Include logs filtered by the prefix: `[Mass image downloader]`
+        - If you can reproduce it on a fresh browser profile, the report is perfect.
+
+  - type: dropdown
+    id: feature
+    attributes:
+      label: Related Feature / Module
+      description: Select the feature or module where the bug occurs.
+      options:
+        - Image Inspector Mode
+        - Bulk Image Download
+        - Gallery Finder
+        - Extract Gallery Images
+        - Extract images from web-linked galleries
+        - Popup UI
+        - Options / Settings UI
+        - Background / Service Worker
+        - Storage / Settings Persistence
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: summary
+    attributes:
+      label: Short Summary
+      description: >
+        One concise sentence describing WHAT breaks and UNDER WHICH CONDITION.
+        Avoid causes or solutions here.
+        Example: "Bulk Image Download stops after batch 2 when max images per batch is 25."
+      placeholder: "Describe the problem and the triggering condition."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducibility
+    attributes:
+      label: Reproducibility
+      description: How often does it happen?
+      options:
+        - Always
+        - Sometimes
+        - Once
+        - Unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: >
+        Provide minimal, deterministic steps. A reviewer should be able to reproduce
+        this on a fresh browser profile. Include zoom level, scrolling, and exact clicks/hotkeys if relevant.
+      placeholder: |
+        1) Open the page(s) / prepare the tabs
+        2) Set relevant options (if any)
+        3) Trigger the feature (button/hotkey)
+        4) Observe what happens
+        5) Repeat to confirm reproducibility
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: Describe what should happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      placeholder: Describe what actually happens (include any visible error messages).
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope / Impact
+      description: >
+        Describe the user impact. Does it block downloads? Affect only one site? Break a core flow?
+      placeholder: |
+        - Does it block downloads? (Yes/No)
+        - Affects one site or multiple sites?
+        - Core flow impacted? Which one?
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs / Evidence
+      description: >
+        Paste relevant logs filtered by `[Mass image downloader]`. Include timestamps if possible.
+        Add screenshots or a short recording link if helpful.
+      placeholder: |
+        Paste logs here (keep only the relevant section):
+        [Mass image downloader]: ...
+        [Mass image downloader]: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: settings_snapshot
+    attributes:
+      label: Settings Snapshot (recommended)
+      description: >
+        Paste the output of "View settings (Peek)" if available.
+        Otherwise, list the relevant settings (min width/height, formats, batch size, concurrency, etc.).
+      placeholder: |
+        Option A: Paste "Peek" output here.
+
+        Option B: List key settings:
+        - Min width:
+        - Min height:
+        - Allowed formats:
+        - Batch size / rate limit:
+        - Any feature-specific options:
+    validations:
+      required: false
+
+  - type: input
+    id: example
+    attributes:
+      label: Example URL or Pattern (optional)
+      description: Provide a sample URL or a generic pattern where the bug appears.
+      placeholder: "https://example.com/gallery/*"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options:
+        - Edge
+        - Chrome
+        - Brave
+        - Other Chromium-based
+    validations:
+      required: true
+
+  - type: input
+    id: chromium
+    attributes:
+      label: Chromium Version
+      description: Copy from browser About page (e.g., Edge/Chrome version).
+      placeholder: "e.g. 143.0.xxxx.xxx"
+    validations:
+      required: true
+
+  - type: input
+    id: extension
+    attributes:
+      label: Extension Version
+      placeholder: "e.g. 2.08.149"
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical_notes
+    attributes:
+      label: Technical Notes (optional)
+      description: >
+        Optional. Record observations or short hypotheses. Avoid full solutions.
+        Include any useful signals (MV3 lifecycle timing, service worker restarts, storage reads, etc.).
+      placeholder: |
+        - Observed after service worker restart / after long session:
+        - Suspected area: background.js / content script / storage:
+        - Any related console errors:
+    validations:
+      required: false

@@ -384,12 +384,17 @@
         <input type="checkbox" id="showUserFeedbackMessages">
         <p class="info-text">Toggle on to receive visual feedback during operations (success, progress, and errors).</p>
     </div>
+    <div class="option-group">
+        <label for="toastMinVisibleMs">Toast minimum visible time (ms):</label>
+        <input type="number" id="toastMinVisibleMs" min="0" max="10000" step="500" value="2000">
+        <p class="info-text">Minimum time a toast stays visible before it can be replaced by a new one. Default: 0. Suggested for QA: 2000.</p>
+    </div>
     
     <!-- 📃 Peek Panel Transparency (new) -->
     <div class="option-group">
         <label for="peekTransparencyLevel">Peek panel transparency (0.2 - 1.0):</label>
         <input type="number" id="peekTransparencyLevel" min="0.2" max="1.0" step="0.1" value="0.8">
-        <p class="info-text">This setting adjusts the transparency of the Settings Peek panel displayed when pressing Ctrl+Alt+T.</p>
+        <p class="info-text">This setting adjusts the transparency of the Settings Peek panel displayed when pressing Alt+Shift+S.</p>
         <p class="info-text">Valid range: 0.2 (very transparent) to 1.0 (fully opaque).<br>
             Default: 0.8.</p>
     </div>

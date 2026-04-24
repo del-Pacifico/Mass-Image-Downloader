@@ -11,12 +11,17 @@
     const configCache = {
         debugLogLevel: 1,
         showUserFeedbackMessages: true,
+        // ⏱️ Minimum time a toast stays visible before it can be replaced.
+        // Range: 0..10000, Default: 2000
+        toastMinVisibleMs: 2000,
         allowJPG: true,
         allowJPEG: true,
         allowPNG: true,
         allowWEBP: true,
         allowAVIF: false, // Default to false for compatibility
         allowBMP: false, // Default to false for compatibility
+        minWidth: 800,
+        minHeight: 600,
         filenameMode: "none",
         prefix: "",
         suffix: ""
@@ -25,13 +30,18 @@
     async function initConfigCache() {
         return new Promise((resolve) => {
             chrome.storage.sync.get([
-                "debugLogLevel", "showUserFeedbackMessages",
+                "debugLogLevel", "showUserFeedbackMessages", "toastMinVisibleMs",
+                "minWidth", "minHeight",
                 "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", 
                 "filenameMode", "prefix", "suffix", "downloadFolder", "customFolderPath",
                 "allowExtendedImageUrls" // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
             ], (data) => {
                 configCache.debugLogLevel = parseInt(data.debugLogLevel ?? 1);
                 configCache.showUserFeedbackMessages = data.showUserFeedbackMessages ?? true;
+                const rawToastMinVisibleMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
+                configCache.toastMinVisibleMs = (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
+                    ? rawToastMinVisibleMs
+                    : 2000;
                 configCache.allowJPG = data.allowJPG !== false;
                 configCache.allowJPEG = data.allowJPEG !== false;
                 configCache.allowPNG = data.allowPNG !== false;
@@ -44,6 +54,8 @@
                 configCache.suffix = data.suffix ?? "";
                 configCache.downloadFolder = data.downloadFolder ?? "default";
                 configCache.customFolderPath = data.customFolderPath ?? "";
+                configCache.minWidth = parseInt(data.minWidth ?? 800);
+                configCache.minHeight = parseInt(data.minHeight ?? 600);
                 resolve();
             });
         });
@@ -57,26 +69,63 @@
     // 🧠 Listen to live updates to keep configCache in sync with changes from clipboardHotkeys.js
     if (chrome?.storage?.onChanged) {
         chrome.storage.onChanged.addListener((changes) => {
+            
+            // if prefix changed, update cache and log
             if (changes.prefix) {
                 configCache.prefix = changes.prefix.newValue ?? '';
                 logDebug(2, `🔄 Prefix updated in cache: "${configCache.prefix}"`);
             }
+
+            // if suffix changed, update cache and log
             if (changes.suffix) {
                 configCache.suffix = changes.suffix.newValue ?? '';
                 logDebug(2, `🔄 Suffix updated in cache: "${configCache.suffix}"`);
             }
 
+            // if filenameMode changed, update cache and log
             if (changes.filenameMode) {
                 // 🛠️ Patch: sync filenameMode so generateFilename sees new mode immediately
                 configCache.filenameMode = changes.filenameMode.newValue ?? 'none';
                 logDebug(2, `🔄 Filename mode updated in cache: "${configCache.filenameMode}"`);
             }
 
+            // if allowExtendedImageUrls changed, update cache and log
             if (changes.debugLogLevel) {
                 const oldLevel = configCache.debugLogLevel;
                 configCache.debugLogLevel = parseInt(changes.debugLogLevel.newValue ?? 1);
                 logDebug(1, `🪵 Debug level changed: ${oldLevel} → ${configCache.debugLogLevel}`);
             }
+
+            // if allowExtendedImageUrls changed, update cache and log
+            if (changes.minWidth) {
+                const oldValue = configCache.minWidth;
+                configCache.minWidth = parseInt(changes.minWidth.newValue ?? 800);
+                logDebug(2, `🔄 Min width updated in cache: ${oldValue} → ${configCache.minWidth}`);
+            }
+
+            // if allowExtendedImageUrls changed, update cache and log
+            if (changes.minHeight) {
+                const oldValue = configCache.minHeight;
+                configCache.minHeight = parseInt(changes.minHeight.newValue ?? 600);
+                logDebug(2, `🔄 Min height updated in cache: ${oldValue} → ${configCache.minHeight}`);
+            }
+
+            // if showUserFeedbackMessages changed, update cache and log
+            if (changes.showUserFeedbackMessages) {
+                const oldValue = configCache.showUserFeedbackMessages;
+                configCache.showUserFeedbackMessages = changes.showUserFeedbackMessages.newValue ?? true;
+                logDebug(2, `🔄 showUserFeedbackMessages updated in cache: ${oldValue} → ${configCache.showUserFeedbackMessages}`);
+            }
+
+            // if toastMinVisibleMs changed, update cache and log
+            if (changes.toastMinVisibleMs) {
+                const oldValue = configCache.toastMinVisibleMs;
+                const raw = parseInt(changes.toastMinVisibleMs.newValue ?? 2000, 10);
+                const safe = (!isNaN(raw) && raw >= 0 && raw <= 10000) ? raw : 2000;
+                configCache.toastMinVisibleMs = safe;
+                logDebug(2, `🔄 toastMinVisibleMs updated in cache: ${oldValue} → ${configCache.toastMinVisibleMs}`);
+            }
+
         });
     }
 
@@ -480,6 +529,7 @@
             const { filenameMode, prefix, suffix } = configCache;
             let name = baseName;
 
+            logDebug(3, '');
             logDebug(3, `🧪 File name mode: ${filenameMode}`);
             logDebug(3, `📄 Original Name: ${baseName}`);
 
@@ -552,15 +602,15 @@
     }
 
     /**
-     * Displays a styled feedback message to the user if enabled in settings.
-     * - 5 seconds for success/progress messages.
-     * - 10 seconds for error messages.
-     * - Only visible if "showUserFeedbackMessages" setting is enabled.
-     * @param {string} text - The message text to display.
-     * @param {string} type - Type of message ("info", "success", "error").
+     * Displays a temporary toast message to the user.
+     * @param {string} text - The message to display.
+     * @param {string} type - The type of message ('info' or 'error') which determines styling and duration.
      * @returns {void}
-     * @description This function creates a styled message element and appends it to the document body.
-     */
+     * @description This function creates a toast message element and appends it to the document body.
+     * The message will automatically fade out and be removed after a certain duration (5 seconds for info, 10 seconds for error).
+     * If multiple messages are triggered in quick succession, the previous message will be removed and its timer cleared to ensure only one message is visible at a time.
+     * The function also checks user settings to determine if feedback messages should be shown and logs the display of messages for debugging purposes.
+     */ 
     function showUserMessage(text, type = "info") {
         try {
             if (!configCache.showUserFeedbackMessages) {
@@ -568,11 +618,82 @@
                 return;
             }
 
-            const duration = (type === "error") ? 10000 : 5000;
+            // 🧠 Determine duration and styling based on message type
+            const baseDuration = (type === "error") ? 10000 : 5000;
             const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
 
+            // ✅ Toast engine: last toast wins + optional minimum visible time (prevents fast overlap)
+            const TOAST_ID = "mdi-user-toast";
+            const TIMER_KEY = "__mdiUserToastTimer";
+            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+            const DEFER_KEY = "__mdiUserToastDeferTimer";
+            const PENDING_KEY = "__mdiUserToastPending";
+
+            // 🧠 Ensure minimum visible time is respected: if a toast is already visible and the new toast arrives, defer it until the current one has been visible for at least the minimum time. This prevents toasts from being replaced too quickly and ensures users have enough time to read messages.
+            const minVisibleMs = Math.max(0, parseInt(configCache.toastMinVisibleMs ?? 2000, 10) || 2000);
+            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
+
+            // ✅ If a toast is already visible and we must keep it for a minimum time,
+            // defer the replacement and keep only the latest pending toast.
+            try {
+                const now = Date.now();
+                const minUntil = window[MINUNTIL_KEY] || 0;
+
+                // If we're within the minimum visible window, defer the new toast and
+                // store it as pending (overwriting any previous pending toast)
+                // If the minimum visible time has already passed, we can proceed to show the new toast immediately
+                // 🧠 This ensures that toasts are visible for at least the minimum time, while still allowing new messages to replace old ones without queuing up multiple timers.
+                if (minVisibleMs > 0 && now < minUntil) {
+                    window[PENDING_KEY] = { text, type };
+
+                    // Clear any existing defer timer to ensure only the latest pending toast will be shown after the current one expires
+                    if (window[DEFER_KEY]) {
+                        clearTimeout(window[DEFER_KEY]);
+                        window[DEFER_KEY] = null;
+                    }
+
+                    // Set a new defer timer to show the pending toast as soon as the current minimum visible window expires
+                    window[DEFER_KEY] = setTimeout(() => {
+                        const pending = window[PENDING_KEY];
+                        window[PENDING_KEY] = null;
+                        window[DEFER_KEY] = null;
+
+                        // If there's a pending toast, show it immediately (it will also reset the minimum visible window)
+                        if (pending && pending.text) {
+                            showUserMessage(pending.text, pending.type || "info");
+                        }
+                    }, Math.max(0, minUntil - now));
+
+                    return;
+                }
+            } catch (_) {}
+
+            // ✅ Last toast wins: remove previous toast + cancel previous timer
+            try {
+                const existing = document.getElementById(TOAST_ID);
+                if (existing) existing.remove();
+
+                if (window[TIMER_KEY]) {
+                    clearTimeout(window[TIMER_KEY]);
+                    window[TIMER_KEY] = null;
+                }
+            } catch (_) {}
+
+            // ✅ Mark the minimum visible window for the newly shown toast
+            try {
+                window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
+            } catch (_) {}
+
             const messageElement = document.createElement("div");
-            messageElement.textContent = "Mass image downloader: " + text;
+            messageElement.id = TOAST_ID;
+            
+            // ✅ Normalize text: if it already starts with "MID:", keep as is (allows for custom formatting), 
+            // otherwise prepend "MID: " for consistency
+            const normalizedText = (typeof text === "string" && text.trim().startsWith("MID:"))
+                ? text.trim()
+                : `MID: ${String(text || "").trim()}`;
+            messageElement.textContent = normalizedText;
+
             messageElement.style.position = "fixed";
             messageElement.style.top = "20px";
             messageElement.style.right = "20px";
@@ -589,7 +710,8 @@
 
             logDebug(3, `📢 Showing user message: "${text}" (${type})`);
 
-            setTimeout(() => {
+            // ✅ Store timer id so the next toast can cancel it
+            window[TIMER_KEY] = setTimeout(() => {
                 messageElement.style.opacity = "0";
                 setTimeout(() => {
                     try {
@@ -597,8 +719,9 @@
                     } catch (removeError) {
                         logDebug(1, `⚠️ Error removing message element: ${removeError.message}`);
                     }
-                }, 500);
-            }, duration);
+                }, 500); // Match CSS transition: opacity 0.5s
+                window[TIMER_KEY] = null;
+            }, effectiveDuration);
 
         } catch (error) {
             logDebug(1, `❌ Error displaying user message: ${error.message}`);

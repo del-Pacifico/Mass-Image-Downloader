@@ -1,7 +1,9 @@
 
+# Mass Image Downloader
+
 ![Chromium 93+](https://img.shields.io/badge/Chromium-93%2B-4285F4?logo=google-chrome&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-FF9800)
-![Version 2.08.149](https://img.shields.io/badge/Version-2.08.149-1976d2)
+![GitHub Release](https://img.shields.io/github/v/release/del-Pacifico/Mass-Image-Downloader?display_name=tag)
 ![Chrome](https://img.shields.io/badge/Chrome-Not%20Fully%20Tested-9E9E9E?logo=google-chrome&logoColor=white)
 ![Edge](https://img.shields.io/badge/Edge-Not%20Fully%20Tested-9E9E9E?logo=microsoft-edge&logoColor=white)
 ![Brave](https://img.shields.io/badge/Brave-Tested-FB542B?logo=brave&logoColor=white)
@@ -19,9 +21,18 @@
 ## 📚 Table of Contents
 
 - [Mass Image Downloader](#mass-image-downloader)
+  - [📚 Table of Contents](#-table-of-contents)
   - [🌐 Overview](#-overview)
-  - [🔥 Highlights in this release (v2.08.149)](#-highlights-in-this-release-v208149)
+    - [Core goals](#core-goals)
+    - [Who it’s for](#who-its-for)
+    - [Environment](#environment)
+  - [📚 Documentation](#-documentation)
+  - [🔥 Highlights in this release (v2.08.181)](#-highlights-in-this-release-v208181)
   - [✨ Features](#-features)
+  - [🔔 User Notifications](#-user-notifications)
+    - [Standard Message Pattern](#standard-message-pattern)
+    - [Toast Minimum Visible Time](#toast-minimum-visible-time)
+      - [**Notification Behavior**](#notification-behavior)
   - [🧩 Installation (Developer Mode / Unpacked)](#-installation-developer-mode--unpacked)
     - [Steps (Chrome / Edge / Brave)](#steps-chrome--edge--brave)
     - [Notes](#notes)
@@ -61,7 +72,7 @@
     - [6) Throughput \& stability](#6-throughput--stability)
     - [7) Quick troubleshooting](#7-quick-troubleshooting)
   - [✅ Requirements](#-requirements)
-    - [Browser testing status (v2.08.149)](#browser-testing-status-v208149)
+    - [Browser testing status (v2.08.181)](#browser-testing-status-v208181)
   - [🧠 Technical design](#-technical-design)
     - [Architecture overview](#architecture-overview)
     - [File-by-file map](#file-by-file-map)
@@ -86,6 +97,7 @@
     - [Naming \& labeling](#naming--labeling)
     - [Feedback \& diagnostics](#feedback--diagnostics)
   - [🔧 Recommended setup](#-recommended-setup)
+    - [Notes](#notes-1)
   - [🧪 Advanced / Developer tips](#-advanced--developer-tips)
     - [View live flow details](#view-live-flow-details)
       - [Logging for Image Inspector Mode (🕵️)](#logging-for-image-inspector-mode-️)
@@ -95,6 +107,7 @@
     - [Stable Service Worker (MV3) habits](#stable-service-worker-mv3-habits)
     - [Logging levels (0–3)](#logging-levels-03)
   - [⌨️ Extension Shortcuts \& Commands](#️-extension-shortcuts--commands)
+    - [Tips](#tips)
   - [👁️ Peek Settings Mode](#️-peek-settings-mode)
   - [🧰 Use cases](#-use-cases)
   - [⚠️ Edge cases \& warnings](#️-edge-cases--warnings)
@@ -106,28 +119,28 @@
     - [Quick path to a solid PR](#quick-path-to-a-solid-pr)
   - [📝 Changelog](#-changelog)
   - [🔒 Privacy](#-privacy)
+    - [Notes](#notes-2)
   - [📜 Usage Policy](#-usage-policy)
+    - [Good citizen tips](#good-citizen-tips)
 
 ---
-
-# Mass Image Downloader
 
 ## 🌐 Overview
 
 Mass Image Downloader is a Chromium (MV3) extension that helps you **collect and download images at scale**—from single pages, multi-page galleries, or across open tabs—while keeping results high-quality and reproducible.
 
-**Core goals**
+### Core goals
 
 - ⚡ **Speed** with control: bulk/tab scanning, gallery extractors (direct/visual/web-linked), and manual one-click saving.
 - 👌 **Quality** by design: filters for minimum size, allowed formats (PNG, JPG/JPEG, WEBP, AVIF, BMP), and path-similarity grouping to reduce duplicates.
 - 👨‍🔬 **Reproducibility**: deterministic file naming (prefix/suffix/timestamp) and optional clipboard hotkeys for dataset labeling.
 - 💪 **Stability**: pacing (max images per second), per-gallery caps, batching under MV3, and clear visual feedback (badge: green/yellow/blue).
 
-**Who it’s for**
+### Who it’s for
 
 - Power users, researchers, curators, QA teams, and dataset builders who need **reliable bulk image workflows** with fine-grained controls.
 
-**Environment**
+### Environment
 
 - Chromium-based browsers: Google Chrome, Microsoft Edge, Brave  
 - Minimum Chromium version: **93+** · Manifest: **V3**
@@ -149,13 +162,65 @@ Includes:
 
 ---
 
-## 🔥 Highlights in this release (v2.08.149)
+## 📚 Documentation
 
-- Added Image Inspector Mode: hover overlay (🕵️), side panel with Shadow DOM, zoom controls (✚ / – / ⛶), metadata, navigation (⬅️ / ➡️), and integrated save workflow
-- Integrated Inspector settings into Options and Peek Settings (Developer Mode, Close-on-save, toggle hotkey)
-- Improved manual save handling, badge error (red state) reporting, and UI consistency
-- Optimized panel rendering, teardown logic, and logDebug() instrumentation
-- Updated documentation and clarified browser testing status for this release
+Mass Image Downloader provides a **complete, structured documentation set**, organized into dedicated manuals with clear responsibilities.
+
+If you are looking for **step-by-step configuration**, **internal behavior explanations**, or **design rationale**, use the documentation hub:
+
+➡️ **Documentation Hub:** [`docs/README.md`](./docs/README.md)
+
+From there, you can access:
+
+- **User Manual (Basic)** — feature overview and everyday usage
+- **Configuration Guides** — outcome-driven, step-by-step setups
+- **Technical User Manual** — execution flow, internals, and state handling
+- **Advanced Manual** — design rationale, trade-offs, and edge cases
+
+> Each document is self-contained and avoids overlap, so you can go directly to what you need.
+
+---
+
+## 🔥 Highlights in this release (v2.08.181)
+
+- Added and validated **core hotkeys** for the main workflows:
+  - **Alt + Shift + D** — Bulk Image Download
+  - **Alt + Shift + G** — Extract galleries (direct links)
+  - **Alt + Shift + V** — Extract galleries (visual / no links)
+  - **Alt + Shift + W** — Extract galleries (web-linked)
+  - **Alt + Shift + S** — View Settings (Peek)
+
+- Introduced a **fully standardized toast notification system** across the extension.
+
+- Added a new configurable option:
+  - **Toast Minimum Visible Time (ms)**
+
+- Normalized user feedback messages under the `MID:` format and removed emoji-based UI noise from user-facing toasts.
+
+- Improved toast timing behavior to prevent overlapping messages during rapid workflows.
+
+- Stabilized feedback flows for:
+  - Bulk Download
+  - Gallery (direct links)
+  - Gallery (visual / no links)
+  - Gallery (web-linked)
+  - One-click download icon
+  - Image Inspector
+  - Settings Peek
+
+- Improved **Web-linked Gallery** reliability for the `Alt + Shift + W` workflow:
+  - stronger grouping for sequential gallery pages
+  - structural fallback when similarity is too strict
+  - more reliable handoff to the background process
+
+- Fixed false user-facing error reporting caused by **ephemeral MV3 callback errors** during Web-linked Gallery handoff.
+
+- Improved background configuration traceability:
+  - **Toast Minimum Visible Time (ms)** is now loaded and logged by the background service worker
+
+- Cleaned internal default settings initialization by removing a duplicated `enableClipboardHotkeys` entry.
+
+- Fixed additional QA-discovered runtime, messaging, and configuration consistency issues across Bulk and gallery flows.
 
 ---
 
@@ -220,6 +285,56 @@ Includes:
   - **Badge states** — Green (bulk), Yellow (manual), Blue (done) for quick progress cues.
   - **Notifications / Toasts** — optional in-page messages for success/errors.
   - **Debug log levels (0–3)** — from silent to detailed traces, all prefixed with `[Mass image downloader]:`.
+
+---
+
+## 🔔 User Notifications
+
+Mass Image Downloader uses a lightweight in-page toast notification system to provide consistent feedback during downloads, extraction flows, and read-only UI actions.
+
+All operational notifications now follow a unified `MID:` standard.
+
+### Standard Message Pattern
+
+The extension uses a consistent 3-step structure for long-running workflows:
+
+- `MID: <Functionality> started. Scanning...`
+- `MID: <Functionality>: found N image(s). Downloading...`
+- `MID: <Functionality> completed. Downloaded: N`
+
+Depending on the workflow, the second or third message may use wording such as:
+
+- **Sending...**
+- **Opening...**
+- or **Sent: N**
+
+When downloads are handled by the background layer or when tabs are opened instead of files being saved directly.
+
+### Toast Minimum Visible Time
+
+A new option is available in:
+
+- **Options → Notifications**
+
+> Toast Minimum Visible Time (ms)
+
+**Default value**:
+
+> 2000
+
+This setting defines the minimum amount of time a toast remains visible before another toast can replace it.
+
+#### **Notification Behavior**
+
+The toast engine follows these rules:
+
+- only one toast is visible at a time
+- user messages are prefixed with MID:
+- emoji usage was removed from user-facing toasts
+- fast flows defer replacement until the minimum visible time expires
+- the latest pending toast replaces the previous one once the delay window is over
+
+This keeps feedback readable and prevents visual spam during rapid workflows such as Bulk Download or Gallery extraction.
 
 ---
 
@@ -483,6 +598,12 @@ Controls in-page toasts and the visibility of the read-only Peek overlay.
   Applies to: Peek Settings Mode (UI only).  
   **Notes:** Typical comfortable values: 0.7–0.9.
 
+- **Toast Minimum Visible Time (ms)**  
+  Defines the minimum time a toast notification remains visible before another notification can replace it.  
+  Applies to: All user-facing toast flows.  
+  **Default:** `2000 ms`  
+  **Notes:** Useful for rapid workflows where multiple events happen back-to-back. Prevents toast overlap and improves readability.
+
 ### 🐛 Debugging
 
 Adjusts logging verbosity to diagnose filtering, grouping, and download behaviors.
@@ -615,22 +736,23 @@ Unless changed in the Options page, these defaults apply globally:
   1) Open **DevTools → Console** (F12 or Ctrl/Cmd + Shift + I).  
   2) Set the level dropdown to **All levels**.  
   3) In the **Console filter** box (top of the console), type:
- 
-      ```
+
+      ```text
      [Mass image downloader]
      ```
 
-     This shows only messages emitted by the extension.
-     - Optional: enable the **regex** toggle and use:
+This shows only messages emitted by the extension.
+Optional: enable the **regex** toggle and use:
 
-       ```
-       ^\[Mass image downloader\]
-       ```
+  ```text
+  ^\[Mass image downloader\]
+  ```
 
-       to match logs that **start** with the prefix.
-       
-  4) You can also press **Ctrl/Cmd + F** to find occurrences in the visible output.
-  5) Tip: enable **Preserve log** to keep messages across page reloads.
+To match logs that **start** with the prefix.
+
+  1) You can also press **Ctrl/Cmd + F** to find occurrences in the visible output.
+  2) Tip: enable **Preserve log** to keep messages across page reloads.
+
 - If results look small, inspect `naturalWidth/Height` in DevTools (CSS can upscale visuals).
 - If a platform uses `:large` / `:orig`, enable **Allow extended image URLs**.
 - For login-gated pages, keep the session authenticated; try **Web-linked galleries** if direct modes miss items.
@@ -659,9 +781,9 @@ Unless changed in the Options page, these defaults apply globally:
 
 - **Node.js** (optional, for linting or bundling tasks)
 
-### Browser testing status (v2.08.149)
+### Browser testing status (v2.08.181)
 
-- **Brave** → Fully tested 👍🏼 
+- **Brave** → Fully tested 👍🏼
 - **Chrome** → Not fully tested on this release 🚨 
 - **Edge** → Not fully tested on this release  🚨
 
@@ -910,7 +1032,7 @@ Pick a starting profile that matches your machine and the strictness of target s
 | **Medium (default)** | 3–5 | 5–6 | 300–800 | 20–30 | 75–85% | 1 | On | General browsing, forums, image boards, typical galleries |
 | **High (powerful / local testing)** | 6–10 | 7–10 | 150–400 | 40–60 | 65–75% | 0–1 | Off | Fast machines, stable sites, short sessions where you can monitor |
 
-**Notes**
+### Notes
 
 - Start conservative and **increase gradually**. If failures or rate limits appear, reduce **Max images/sec** and/or increase **Delay**.
 - High similarity levels (e.g., 85–90%) group more aggressively (fewer duplicates) but can split legitimate variants on messy sites. Lower it on heterogeneous galleries.
@@ -962,9 +1084,9 @@ To view inspector-specific activity:
 
 3) Filter logs by typing:
 
-    ```text
-     [Mass image downloader]
-     ```
+  ```text
+  [Mass image downloader]
+  ```
 
 4) Look for messages related to inspector lifecycle:
 
@@ -1022,12 +1144,17 @@ Keyboard shortcuts speed up labeling and manual saves. If a shortcut conflicts w
 
 | Shortcut | Action | Notes |
 |---|---|---|
-| **Alt + Shift + I** | Toggle the **one-click download icon** over the focused image and save instantly (no popup) | Great for manual curation; respects your size/format rules |
-| **Ctrl + Shift + M** | Toggle **Image Inspector Mode** (hover overlay + side panel) | Hover an eligible image to show the 🕵️ overlay, click it to open the inspector with zoom, metadata, and navigation |
-| **Ctrl + Alt + P** | Set filename **Prefix** from clipboard | Enable **Clipboard Hotkeys** in Options |
-| **Ctrl + Alt + S** | Set filename **Suffix** from clipboard | Enable **Clipboard Hotkeys** in Options |
+| **Alt + Shift + D** | Bulk Image Download | Scans open tabs and downloads valid image targets |
+| **Alt + Shift + G** | Extract galleries (direct links) | Best for galleries where thumbnails point directly to image files |
+| **Alt + Shift + V** | Extract galleries (visual / no links) | Best for inline image galleries without dedicated anchors |
+| **Alt + Shift + W** | Extract galleries (web-linked) | Opens linked detail pages and processes them as gallery candidates |
+| **Alt + Shift + S** | Toggle Settings Peek | Opens the read-only configuration overlay |
+| **Alt + Shift + I** | Toggle the one-click download icon | Manual curation flow for quick image saving |
+| **Ctrl + Shift + M** | Toggle Image Inspector Mode | Opens the inspector workflow |
+| **Ctrl + Alt + P** | Set filename prefix from clipboard | Requires clipboard hotkeys enabled |
+| **Ctrl + Alt + S** | Set filename suffix from clipboard | Requires clipboard hotkeys enabled |
 
-**Tips**
+### Tips
 
 - Copy a label once (e.g., “datasetA”) and press **Ctrl+Alt+P** to apply it as a prefix for the whole batch (result: “datasetA_”).
 - Use **Alt+Shift+I** to cherry-pick an image from a page without opening the popup.
@@ -1204,7 +1331,6 @@ If it saves you hours or makes your workflow smoother, consider supporting ongoi
 
 > 🙏 Every bit of support is truly appreciated.  
 > 💬 Feel free to reach out with questions, ideas, or feedback — your input matters!
-
 > 🧪 Useful for testing robustness of fallback logic during gallery inconsistencies.
 
 ---
@@ -1261,7 +1387,7 @@ This project targets **Chromium 93+** and **Manifest V3**, with code written in 
 ## 📝 Changelog
 
 See the full release notes in **[CHANGELOG.md](./CHANGELOG.md)**.  
-Current version: **v2.08.149**.
+Current version: **v2.08.181**.
 
 ---
 
@@ -1272,7 +1398,7 @@ This extension runs **locally** in your browser. It does **not** send browsing d
 Requested permissions are limited to the features described in this README (tabs, downloads, storage, scripting, clipboardRead).  
 Host permissions (`<all_urls>`) are required to discover and validate images across sites; filtering happens client-side.
 
-**Notes**
+### Notes
 
 - Some formats (e.g., AVIF) depend on your browser/OS; no external decoder services are used.  
 - The optional **Peek** overlay is read-only and displays locally stored settings only.
@@ -1289,7 +1415,7 @@ This project is offered for legitimate, responsible use. By using it, you agree 
 - **Own your outputs** — You are responsible for how you use downloaded content and for complying with any licensing or attribution requirements.  
 - **No warranty** — The software is provided “as is” under the MPL-2.0 license; the authors are not liable for misuse or resulting damages.
 
-**Good citizen tips**
+### Good citizen tips
 
 - Start with conservative throughput and increase gradually.  
 - Prefer “Open in new tab before downloading” when you need visual confirmation or when sites render the final image via client-side scripts.  

@@ -1,12 +1,13 @@
 name: Edge Case Report
-description: Report a non-blocking, context-dependent behavior that occurs only under specific conditions
-title: "[EdgeCase] <short-name>"
+
+description: Report non-blocking, context-dependent behaviors that occur only under specific conditions.
+title: "[EdgeCase] "
+
 labels:
   - type: edge-case
   - needs: triage
   - priority: normal
   - status: backlog
-assignees: []
 
 body:
   - type: markdown
@@ -14,28 +15,38 @@ body:
       value: |
         🤔 Edge Case Report
 
-        Use this template to document non-blocking behaviors that appear only under specific
-        conditions such as DOM structure, responsive layouts, CSS transforms, or MV3 lifecycle timing.
+        Use this template to document **non-blocking, context-dependent behaviors**
+        that occur only under specific conditions (DOM structure, responsive layouts,
+        scroll containers, CSS transforms, zoom level, or MV3 lifecycle timing).
 
-        If the issue blocks downloads or breaks a core flow, please use **Bug Report** instead.
+        ✅ Use this for:
+        - Visual quirks or minor UX degradations
+        - Behavior reproducible only under specific page or layout conditions
+        - Known limitations that do NOT break core flows
 
-        Notes:
-        - Keep the description objective and reproducible.
-        - Prefer visual-only edge cases here. If this blocks downloads or breaks a flow, use "Bug Report".
+        ❌ Do NOT use this for:
+        - Crashes, runtime errors, or broken core flows
+        - Download failures or blockers
+        - Regressions that used to work
+
+        If the issue blocks downloads or breaks a core flow, use **Bug Report** instead.
+
+        Tips:
+        - Keep the report objective and reproducible.
+        - Prefer minimal steps that work on a fresh browser profile.
+        - Avoid proposing full solutions; use Technical Notes only for short hypotheses.
 
   - type: dropdown
     id: feature
     attributes:
       label: Related Feature / Module
+      description: Select the feature or module where this edge case occurs.
       options:
         - Image Inspector Mode
-        - One-click Download Icon
-        - Peek Settings
         - Bulk Image Download
-        - Galleries (with direct links)
-        - Galleries (without links)
-        - Web-linked galleries
-        - Options / Storage
+        - Gallery Finder
+        - Extract Gallery Images
+        - Web-linked Galleries
         - Other
     validations:
       required: true
@@ -44,22 +55,27 @@ body:
     id: summary
     attributes:
       label: Short Summary
-      description: One concise sentence describing what happens and under which condition.
-      placeholder: "Inspector overlay appears offset inside nested responsive <figure> wrappers."
+      description: >
+        One concise sentence describing WHAT happens + UNDER WHICH CONDITION.
+        Avoid causes or solutions here.
+        Example: "Overlay appears offset on full-viewport images at non-100% zoom."
+      placeholder: "Describe the observed behavior and the specific condition."
     validations:
       required: true
 
   - type: textarea
-    id: conditions
+    id: context
     attributes:
       label: Conditions / Context
-      description: Describe the exact conditions required for this behavior to occur.
+      description: >
+        Describe the specific layout, DOM structure, browser state, or conditions
+        required for this edge case to appear.
+        Think in terms of wrappers, viewport size, transforms, scroll containers, zoom.
       placeholder: |
-        - Nested <figure>/<picture> wrappers
-        - Responsive layout with CSS transform
-        - Full-document image view
-        - Lazy-loaded image
-        - iframe (same-origin)
+        - Page layout / DOM structure:
+        - Responsive wrappers (<figure>, <picture>, srcset, etc.):
+        - Scroll containers or CSS transforms:
+        - Zoom level / viewport size:
     validations:
       required: true
 
@@ -67,38 +83,52 @@ body:
     id: steps
     attributes:
       label: Steps to Reproduce
+      description: >
+        Provide minimal, deterministic steps. A reviewer should be able to reproduce
+        this on a fresh browser profile. Include zoom level and scrolling if relevant.
       placeholder: |
-        1) Open the page
-        2) Enable Image Inspector Mode (Ctrl+Shift+M)
-        3) Hover the target image
-        4) Observe overlay placement
+        1) Open the page (include any required navigation)
+        2) Set zoom level (if relevant): 100% / 110% / 90%
+        3) Enable the feature (include hotkey if used)
+        4) Perform the interaction (hover / click / scroll)
+        5) Observe the behavior and note what differs from expectations
     validations:
       required: true
 
   - type: input
-    id: example_url
+    id: example
     attributes:
       label: Example URL or Pattern
+      description: Provide a sample URL or a generic pattern where this edge case appears.
       placeholder: "https://example.com/gallery/*"
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: expected
     attributes:
       label: Expected Behavior
-      placeholder: "Overlay should align to the top-left of the hovered image."
+      placeholder: Describe how the feature should behave under these conditions.
+    validations:
+      required: true
 
   - type: textarea
     id: actual
     attributes:
       label: Actual Behavior
-      placeholder: "Overlay appears offset or partially behind the image."
+      placeholder: Describe the observed behavior under the same conditions.
+    validations:
+      required: true
 
   - type: dropdown
     id: impact
     attributes:
       label: Impact Level
+      description: >
+        Choose the lowest accurate impact level:
+        - Visual only: cosmetic/UI alignment, workflows still work
+        - Minor UX degradation: extra interaction needed, but feature remains usable
+        - Functional limitation: feature works only in certain contexts/pages
       options:
         - Visual only (no functional impact)
         - Minor UX degradation
@@ -111,26 +141,26 @@ body:
     attributes:
       label: Browser
       options:
-        - Brave
-        - Chrome
         - Edge
+        - Chrome
+        - Brave
         - Other Chromium-based
     validations:
       required: true
 
   - type: input
-    id: chromium_version
+    id: chromium
     attributes:
       label: Chromium Version
-      placeholder: "143.0.xxxx.xxx"
+      placeholder: "e.g. 143.0.xxxx.xxx"
     validations:
       required: true
 
   - type: input
-    id: extension_version
+    id: extension
     attributes:
       label: Extension Version
-      placeholder: "2.08.149"
+      placeholder: "e.g. 2.08.149"
     validations:
       required: true
 
@@ -138,8 +168,12 @@ body:
     id: notes
     attributes:
       label: Technical Notes (optional)
-      description: Any hypotheses or implementation notes worth preserving.
+      description: >
+        Optional. Record observations or short hypotheses. Avoid full solutions.
+        Include any useful signals (target element type, rect values, scroll container, zoom).
       placeholder: |
-        - Possibly related to offsetParent inside transformed container
-        - BoundingClientRect vs offset calculations
-
+        - Observed on: <figure>/<picture>/srcset or full-viewport image
+        - Might involve: boundingClientRect vs visual bounds under wrappers/transforms
+        - Relevant signals: scroll container, CSS transform, zoom level, viewport size
+    validations:
+      required: false
