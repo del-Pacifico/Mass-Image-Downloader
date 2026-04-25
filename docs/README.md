@@ -59,7 +59,6 @@ Each document is self-contained and avoids overlap.
 Learn how to use the extension from a user perspective.
 
 **Read this if:**
-
 - You are new to Mass Image Downloader
 - You want to understand available features
 - You need basic usage instructions
@@ -75,7 +74,6 @@ Learn how to use the extension from a user perspective.
 Configure the extension to achieve **specific, real-world results** using step-by-step instructions.
 
 **Read this if:**
-
 - You want recommended settings for a specific scenario
 - You need predictable, reproducible behavior
 - You are tuning performance or stability
@@ -92,7 +90,6 @@ Configure the extension to achieve **specific, real-world results** using step-b
 Explain **how the extension works internally**, including execution flow, state handling, and feature interaction.
 
 **Read this if:**
-
 - You want to understand internal behavior
 - You are debugging unexpected outcomes
 - You are reviewing technical design choices
@@ -108,14 +105,12 @@ Explain **how the extension works internally**, including execution flow, state 
 This section defines the **official keyboard shortcut policy** for Mass Image Downloader.
 
 It documents:
-
 - Reserved hotkeys that must remain unchanged
 - Rules and constraints for introducing new shortcuts
 - Conflict avoidance strategies across Chromium browsers
 - Fallback behavior when hotkeys are unavailable
 
 👉 **Source of truth:**  
-
 - **[Hotkey Policy](hotkeys/hotkeys.md)**
 
 ---
@@ -126,7 +121,6 @@ It documents:
 Explain **why the system behaves the way it does**, covering design rationale, trade-offs, boundaries, and edge cases.
 
 **Read this if:**
-
 - You want to understand non-obvious behavior
 - You are evaluating design decisions
 - You are assessing feasibility of changes or feature requests
@@ -153,7 +147,6 @@ Use this quick guide:
 This repository follows a clear separation between **ideas**, **planned work**, and **execution**.
 
 ### 💡 Ideas & Early Proposals
-
 - **Location:** GitHub Discussions
 - Used for:
   - Early ideas and brainstorming
@@ -166,7 +159,6 @@ This repository follows a clear separation between **ideas**, **planned work**, 
 ---
 
 ### 🗂️ Development Backlog
-
 - **Location:** GitHub Issues
 - The backlog consists of Issues labeled with:
   - `type:*` (classification)
@@ -178,7 +170,6 @@ This repository follows a clear separation between **ideas**, **planned work**, 
 ---
 
 ### 🚧 Work in Progress
-
 - **Location:** GitHub Issues + Pull Requests
 - An Issue enters active development when:
   - It is assigned or explicitly picked up
@@ -189,7 +180,6 @@ This repository follows a clear separation between **ideas**, **planned work**, 
 ---
 
 ### 📦 Delivered Work
-
 - **Location:** Merged Pull Requests + `CHANGELOG.md`
 - A change is considered delivered when:
   - The Pull Request is merged
@@ -224,7 +214,6 @@ If observed behavior differs from the documentation:
 ## 🧭 Final Guidance
 
 Mass Image Downloader is designed to be:
-
 - Predictable
 - Explicit
 - User-controlled
