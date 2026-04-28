@@ -129,7 +129,6 @@ In addition, several runtime issues were corrected during QA validation of the n
 ### 🧩 Governance & Tooling
 
 #### Added
-
 - Introduced a fully standardized issue reporting system using GitHub Issue Forms (YAML) for:
   - Bug reports
   - Hotfixes (production-critical issues)
@@ -143,20 +142,17 @@ In addition, several runtime issues were corrected during QA validation of the n
 - Added a centralized README for issue templates describing when to use each report type.
 
 #### Changed
-
 - Migrated legacy Markdown-based issue templates to structured Issue Forms where appropriate.
 - Refined the Feature Request template to improve clarity, scope definition, and alignment with project principles.
 - Normalized `.github/ISSUE_TEMPLATE/config.yml` contact links and security reporting entry.
 
 #### Removed
-
 - Removed deprecated Markdown issue templates after successful migration:
   - `bug_report.md`
   - `hotfix.md`
   - `investigation.md`
 
 #### Notes
-
 - Feature requests intentionally remain Markdown-based to preserve flexibility and exploratory discussion.
 - Security vulnerabilities continue to be handled exclusively via the Security Policy and not through public issues.
 

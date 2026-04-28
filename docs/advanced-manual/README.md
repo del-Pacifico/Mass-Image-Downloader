@@ -91,7 +91,6 @@ This manual is intended for:
 - Future maintainers revisiting design context
 
 It assumes familiarity with:
-
 - All features described in the User Manual
 - Execution flows documented in the Technical User Manual
 - Browser extension concepts (content scripts, background processes)
