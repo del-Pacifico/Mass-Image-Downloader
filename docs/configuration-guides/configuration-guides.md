@@ -1,10 +1,9 @@
-# 🏔️ Mass Image Downloader – Configuration Guides  
+# 🏔️ Mass Image Downloader – Configuration Guides
 
-**Version:** `v2.08.149`  
-**Branch:** `main`  
+**Applies to:** latest stable release from the `main` branch  
+**Version source:** root `VERSION` file and `manifest.json`  
 **Status**: Step-by-step configuration, outcome-driven usage
 
----
 ## 📑 Table of Contents
 
 - [🧭 1. Introduction](#-1-introduction)
@@ -1077,7 +1076,7 @@ Open the **Options** page and apply the following values:
 - Minimum height: `800`
 
 **Web-Linked Gallery Settings**
-- Max concurrent pages: `3`
+- Max open tabs per gallery: `3`
 
 **Gallery Finder Settings**
 - Path similarity level: `80%`
@@ -1893,14 +1892,16 @@ Consult this document when you need to:
 
 ### 🧠 Version Awareness
 
-This document applies strictly to:
-- **Extension version:** `v2.08.149`
-- **Branch:** `main`
+These guides apply to the latest stable release from the `main` branch.
 
-If behavior differs from what is described here:
-- Verify the extension version and branch
-- Confirm option values match the guides
-- Ensure no experimental or deprecated settings are enabled
+For exact version verification, use:
+- the root `VERSION` file
+- `manifest.json`
+- `CHANGELOG.md`
+
+If option names, defaults, or documented outcomes change in a future stable release, the affected guides must be reviewed and updated.
+
+> If your results differ from what is described here, verify the current release version and active settings before assuming the guide is outdated.
 
 ---
 

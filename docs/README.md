@@ -1,7 +1,7 @@
-# 🏔️ Mass Image Downloader – Documentation Hub v2.08.149
+# 🏔️ Mass Image Downloader – Documentation Hub
 
-**Version:** `v2.08.149`  
-**Branch:** `main`  
+**Applies to:** latest stable release from the `main` branch  
+**Version source:** root `VERSION` file and `manifest.json`
 **Status**: `Documentation entry point and navigation guide`
 
 ---
@@ -17,18 +17,24 @@ This file acts as the **entry point and launcher**, allowing direct navigation t
 
 ## 📑 Table of Contents
 
-- [📘 Welcome to the Documentation](#-welcome-to-the-documentation)
-- [🧭 How the Documentation Is Organized](#-how-the-documentation-is-organized)
-- [📚 Available Documents](#-available-documents)
-  - [👤 User Manual (Basic)](#-user-manual-basic)
-  - [⚙️ Configuration Guides](#-configuration-guides)
-  - [🧠 Technical User Manual](#-technical-user-manual)
-  - [⌨️ Hotkeys & Keyboard Shortcuts Policy](#-hotkeys--keyboard-shortcuts-policy)
-  - [🏔️ Advanced Manual](#-advanced-manual)
-- [🧭 Which Document Should I Read First?](#-which-document-should-i-read-first)
-- [🗂️ Backlog & Development Flow](#-backlog--development-flow)
-- [🧾 Version Scope and Consistency](#-version-scope-and-consistency)
-- [🧭 Final Guidance](#-final-guidance)
+- [🏔️ Mass Image Downloader – Documentation Hub](#️-mass-image-downloader--documentation-hub)
+  - [📘 Welcome to the Documentation](#-welcome-to-the-documentation)
+  - [📑 Table of Contents](#-table-of-contents)
+  - [🧭 How the Documentation Is Organized](#-how-the-documentation-is-organized)
+  - [📚 Available Documents](#-available-documents)
+    - [👤 User Manual (Basic)](#-user-manual-basic)
+    - [⚙️ Configuration Guides](#️-configuration-guides)
+    - [🧑‍🔧 Technical User Manual](#-technical-user-manual)
+    - [⌨️ Hotkeys \& Keyboard Shortcuts Policy](#️-hotkeys--keyboard-shortcuts-policy)
+    - [👨🏻‍💻 Advanced Manual](#-advanced-manual)
+  - [🧭 Which Document Should I Read First?](#-which-document-should-i-read-first)
+  - [🧭 Backlog \& Development Flow](#-backlog--development-flow)
+    - [💡 Ideas \& Early Proposals](#-ideas--early-proposals)
+    - [🗂️ Development Backlog](#️-development-backlog)
+    - [🚧 Work in Progress](#-work-in-progress)
+    - [📦 Delivered Work](#-delivered-work)
+  - [🧾 Version Scope and Consistency](#-version-scope-and-consistency)
+  - [🧭 Final Guidance](#-final-guidance)
 
 ---
 
@@ -94,7 +100,7 @@ Explain **how the extension works internally**, including execution flow, state 
 
 ---
 
-## ⌨️ Hotkeys & Keyboard Shortcuts Policy
+### ⌨️ Hotkeys & Keyboard Shortcuts Policy
 
 This section defines the **official keyboard shortcut policy** for Mass Image Downloader.
 
@@ -189,13 +195,17 @@ This repository follows a clear separation between **ideas**, **planned work**, 
 
 ## 🧾 Version Scope and Consistency
 
-All documents in this directory apply strictly to:
+All documents in this directory apply to the latest stable release from the `main` branch.
 
-- **Extension version:** `v2.08.149`
-- **Branch:** `main`
+To verify the exact released version:
+
+- Check the root `VERSION` file
+- Confirm the extension `manifest.json`
+- Review `CHANGELOG.md` for release notes
 
 If observed behavior differs from the documentation:
-- Verify the extension version
+
+- Verify the installed extension version
 - Confirm you are on the correct branch
 - Check whether experimental or deprecated settings are enabled
 

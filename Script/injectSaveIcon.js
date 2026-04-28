@@ -104,6 +104,7 @@ if (typeof configCache === 'undefined') {
         minHeight: 600,
         allowedExts: [],
         showUserFeedbackMessages: false,
+        toastMinVisibleMs: 2000, // Default: 2000ms
         allowExtendedImageUrls: false,
         enableOneClickIcon: false
     };
@@ -112,7 +113,9 @@ if (typeof configCache === 'undefined') {
 // 🔧 Initialize local config for this script only
 function initConfigForInjectSaveIcon(callback) {
     chrome.storage.sync.get(
-        ["debugLogLevel", "minWidth", "minHeight", "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", "enableOneClickIcon", "showUserFeedbackMessages", "allowExtendedImageUrls"],
+        ["debugLogLevel", "minWidth", "minHeight", "allowJPG", "allowJPEG", 
+            "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", "enableOneClickIcon", 
+            "showUserFeedbackMessages", "toastMinVisibleMs", "allowExtendedImageUrls"],
         (data) => {
             debugLogLevelCache = parseInt(data.debugLogLevel ?? 1);
 
@@ -128,7 +131,13 @@ function initConfigForInjectSaveIcon(callback) {
             if (data.allowBMP) configCache.allowedExts.push('.bmp');
             if (data.showUserFeedbackMessages) configCache.showUserFeedbackMessages = true;
             else configCache.showUserFeedbackMessages = false;
-            if (data.allowExtendedImageUrls) configCache.allowExtendedImageUrls = true;
+
+            const rawToastMinVisibleMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
+            configCache.toastMinVisibleMs = (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
+                ? rawToastMinVisibleMs
+                : 2000;
+
+                if (data.allowExtendedImageUrls) configCache.allowExtendedImageUrls = true;
             else configCache.allowExtendedImageUrls = false;
             if (data.enableOneClickIcon) configCache.enableOneClickIcon = true;
             else configCache.enableOneClickIcon = false;
@@ -296,7 +305,7 @@ function createAndShowSaveIcon(targetUrl, normalizedUrl, position = "fixed", pos
                         if (isEphemeral) {
                             // Non-fatal timing issue: background likely received the message anyway
                             logDebug(2, `ℹ️ Ignoring MV3 ephemeral error: ${err.message}`);
-                            showUserMessage("Downloading image!", "success");
+                            showUserMessage("Downloading image!", "info");
                             return;
                         }
 
@@ -410,59 +419,121 @@ function proceedWithInjection() {
     }
 }
 
+/**
+ * Displays a temporary user message on the page.
+ * @param {string} text - The message text to display.
+ * @param {'info'|'success'|'error'} type - The type of message, which determines styling and duration.
+ * @returns {void}
+ * @description This function creates a temporary message element on the page to provide feedback to the user.
+ * It checks if the user has enabled feedback messages before displaying anything.
+ * The message is styled based on the type (info, success, error) and automatically disappears after a certain duration.
+ * If a new message is shown while another is still visible, the previous one is removed immediately to ensure that only one message is displayed at a time.
+ * This function is useful for providing feedback to the user about actions taken, such as successfully setting a prefix/suffix or encountering an error.
+ */
+function showUserMessage(text, type = "info") {
+    try {
+        // Display messages only if user feedback is enabled
+        if (!configCache.showUserFeedbackMessages) {
+            logDebug(2, `🚫 User feedback messages disabled. Skipping display.`);
+            return;
+        }
 
-    /**
-     * Displays a styled feedback message to the user if enabled in settings.
-     * - 5 seconds for success/progress messages.
-     * - 10 seconds for error messages.
-     * - Only visible if "showUserFeedbackMessages" setting is enabled.
-     * @param {string} text - The message text to display.
-     * @param {string} type - Type of message ("info", "success", "error").
-     * @returns {void}
-     * @description This function creates a styled message element and appends it to the document body.
-     */
-    function showUserMessage(text, type = "info") {
+        const baseDuration = (type === "error") ? 10000 : 5000;
+        const minVisibleMs = Math.max(0, parseInt(configCache.toastMinVisibleMs ?? 2000, 10) || 2000);
+        const effectiveDuration = Math.max(baseDuration, minVisibleMs);
+
+        // Define toast color explicitly for this flow.
+        // Error uses red, success uses green, info/default uses blue.
+        const backgroundColor =
+            type === "error"
+                ? "#d9534f"
+                : (type === "success" ? "#28a745" : "#007EE3");
+
+        // ✅ Last toast wins: remove previous toast + cancel previous timer
+        const TOAST_ID = "mdi-user-toast";
+        const TIMER_KEY = "__mdiUserToastTimer";
+        const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+        const DEFER_KEY = "__mdiUserToastDeferTimer";
+        const PENDING_KEY = "__mdiUserToastPending";
+
+        // Defer replacement inside minimum visible window (last pending wins)
         try {
-            // Display messages only if user feedback is enabled
-            if (!configCache.showUserFeedbackMessages) {
-                logDebug(2, `🚫 User feedback messages disabled. Skipping display.`);
+            const now = Date.now();
+            const minUntil = window[MINUNTIL_KEY] || 0;
+
+            if (minVisibleMs > 0 && now < minUntil) {
+                window[PENDING_KEY] = { text, type };
+
+                if (window[DEFER_KEY]) {
+                    clearTimeout(window[DEFER_KEY]);
+                    window[DEFER_KEY] = null;
+                }
+
+                window[DEFER_KEY] = setTimeout(() => {
+                    const pending = window[PENDING_KEY];
+                    window[PENDING_KEY] = null;
+                    window[DEFER_KEY] = null;
+
+                    if (pending && pending.text) {
+                        showUserMessage(pending.text, pending.type || "info");
+                    }
+                }, Math.max(0, minUntil - now));
+
                 return;
             }
+        } catch (_) {}
 
-            const duration = (type === "error") ? 10000 : 5000;
-            const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
+        // Last toast wins
+        try {
+            const existing = document.getElementById(TOAST_ID);
+            if (existing) existing.remove();
 
-            const messageElement = document.createElement("div");
-            messageElement.textContent = "Mass image downloader: " + text;
-            messageElement.style.position = "fixed";
-            messageElement.style.top = "20px";
-            messageElement.style.right = "20px";
-            messageElement.style.backgroundColor = backgroundColor;
-            messageElement.style.color = "#FFFFFF";
-            messageElement.style.padding = "12px";
-            messageElement.style.borderRadius = "6px";
-            messageElement.style.fontSize = "14px";
-            messageElement.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
-            messageElement.style.opacity = "1";
-            messageElement.style.transition = "opacity 0.5s ease-in-out";
-            messageElement.style.zIndex = "9999";
-            document.body.appendChild(messageElement);
+            if (window[TIMER_KEY]) {
+                clearTimeout(window[TIMER_KEY]);
+                window[TIMER_KEY] = null;
+            }
+        } catch (_) {}
 
-            logDebug(3, `📢 Showing user message: "${text}" (${type})`);
+        try { window[MINUNTIL_KEY] = Date.now() + minVisibleMs; } catch (_) {}
 
+        const messageElement = document.createElement("div");
+        messageElement.id = TOAST_ID;
+        
+        // ✅ Ensure consistent "MID: " prefix for all messages, but avoid duplication if already present
+        const finalText = (typeof text === "string" && text.trim().startsWith("MID:")) ? text.trim() : `MID: ${text}`;
+        messageElement.textContent = finalText;
+        
+        messageElement.style.position = "fixed";
+        messageElement.style.top = "20px";
+        messageElement.style.right = "20px";
+        messageElement.style.backgroundColor = backgroundColor;
+        messageElement.style.color = "#FFFFFF";
+        messageElement.style.padding = "12px";
+        messageElement.style.borderRadius = "6px";
+        messageElement.style.fontSize = "14px";
+        messageElement.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
+        messageElement.style.opacity = "1";
+        messageElement.style.transition = "opacity 0.5s ease-in-out";
+        messageElement.style.zIndex = "9999";
+        document.body.appendChild(messageElement);
+
+        logDebug(3, `📢 Showing user message: "${text}" (${type})`);
+
+        // ✅ Store timer id so the next toast can cancel it
+        window[TIMER_KEY] = setTimeout(() => {
+            messageElement.style.opacity = "0";
             setTimeout(() => {
-                messageElement.style.opacity = "0";
-                setTimeout(() => {
-                    try {
-                        messageElement.remove();
-                    } catch (removeError) {
-                        logDebug(1, `⚠️ Error removing message element: ${removeError.message}`);
-                    }
-                }, 500);
-            }, duration);
+                try {
+                    messageElement.remove();
+                } catch (removeError) {
+                    logDebug(1, `⚠️ Error removing message element: ${removeError.message}`);
+                }
+            }, 500);
+            window[TIMER_KEY] = null;
+        }, effectiveDuration);
 
-        } catch (error) {
-            logDebug(1, `❌ Error displaying user message: ${error.message}`);
-            logDebug(3, `❌ Stacktrace: ${error.stack}`);
-        }
+    } catch (error) {
+        logDebug(1, `❌ Error displaying user message: ${error.message}`);
+        logDebug(3, `❌ Stacktrace: ${error.stack}`);
     }
+}
