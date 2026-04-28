@@ -20,6 +20,7 @@ Provide a concise, high-level description of the proposed feature or enhancement
 Describe the problem or limitation this feature aims to solve.
 
 Consider addressing:
+
 - What is currently difficult, impossible, or inefficient?
 - Who is affected?
 - In which scenarios does this problem appear?
@@ -31,6 +32,7 @@ Consider addressing:
 Describe your proposed solution at a **conceptual level**.
 
 Guidelines:
+
 - Avoid implementation details or code.
 - Focus on behavior, user experience, and expected outcome.
 - It’s acceptable to propose alternatives or multiple approaches.

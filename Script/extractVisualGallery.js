@@ -14,6 +14,7 @@
     let minWidth = 300;
     let minHeight = 500;
 	let showUserFeedbackMessagesCache = true;
+    let toastMinVisibleMsCache = 2000; // Default minimum visible time for toast (ms)
 
     let allowJPG = true;
     let allowJPEG = true;
@@ -28,11 +29,18 @@
 		"minWidth", "minHeight", "galleryMaxImages",
 		"debugLogLevel", 
         "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP",
-		"showUserFeedbackMessages"
+		"showUserFeedbackMessages", "toastMinVisibleMs"
 	], (data) => {
 
         const level = parseInt(data.debugLogLevel ?? 0);
 		showUserFeedbackMessagesCache = data.showUserFeedbackMessages ?? true;
+
+        const rawToastMinVisibleMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
+        toastMinVisibleMsCache = (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
+            ? rawToastMinVisibleMs
+            : 2000;
+
+        logDebug(2, `⏱️ Config → Toast minimum visible time (ms): ${toastMinVisibleMsCache}`);
 
         if (!isNaN(level)) debugLogLevelCache = level;
     
@@ -90,11 +98,17 @@
         }
     }
 	
-	/**
-	 * Displays a styled message to the user if feedback is enabled.
-	 * @param {string} text - The message text to display.
-	 * @param {string} [type="info"] - Type: info or error.
-	 */
+    /**
+     * Displays a temporary user message on the page.
+     * @param {string} text - The message text to display.
+     * @param {'info'|'success'|'error'} type - The type of message, which determines styling and duration.
+     * @returns {void}
+     * @description This function creates a temporary message element on the page to provide feedback to the user.
+     * It checks if the user has enabled feedback messages before displaying anything.
+     * The message is styled based on the type (info, success, error) and automatically disappears after a certain duration.
+     * If a new message is shown while another is still visible, the previous one is removed immediately to ensure that only one message is displayed at a time.
+     * This function is useful for providing feedback to the user about actions taken, such as successfully setting a prefix/suffix or encountering an error.
+     */
 	function showUserMessage(text, type = "info") {
 		try {
 			if (!showUserFeedbackMessagesCache) {
@@ -102,11 +116,60 @@
 				return;
 			}
 
-			const duration = type === "error" ? 10000 : 5000;
-			const bg = type === "error" ? "#d9534f" : "#007EE3";
+			const baseDuration = type === "error" ? 10000 : 5000;
+            const minVisibleMs = Math.max(0, parseInt(toastMinVisibleMsCache ?? 2000, 10) || 2000);
+            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
+            const bg = type === "error" ? "#d9534f" : "#007EE3";
+
+			// ✅ Last toast wins: remove previous toast + cancel previous timer
+            const TOAST_ID = "mdi-user-toast";
+            const TIMER_KEY = "__mdiUserToastTimer";
+
+            // ⏱️ Minimum visible time: defer replacement inside the min window (last pending toast wins)
+            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+            const DEFER_KEY = "__mdiUserToastDeferTimer";
+            const PENDING_KEY = "__mdiUserToastPending";
+
+            try {
+                const now = Date.now();
+                const minUntil = window[MINUNTIL_KEY] || 0;
+
+                if (minVisibleMs > 0 && now < minUntil) {
+                    window[PENDING_KEY] = { text, type };
+
+                    if (window[DEFER_KEY]) {
+                        clearTimeout(window[DEFER_KEY]);
+                        window[DEFER_KEY] = null;
+                    }
+
+                    window[DEFER_KEY] = setTimeout(() => {
+                        const pending = window[PENDING_KEY];
+                        window[PENDING_KEY] = null;
+                        window[DEFER_KEY] = null;
+
+                        if (pending && pending.text) {
+                            showUserMessage(pending.text, pending.type || "info");
+                        }
+                    }, Math.max(0, minUntil - now));
+
+                    return;
+                }
+            } catch (_) {}
+
+            try {
+                const existing = document.getElementById(TOAST_ID);
+                if (existing) existing.remove();
+
+                if (window[TIMER_KEY]) {
+                    clearTimeout(window[TIMER_KEY]);
+                    window[TIMER_KEY] = null;
+                }
+            } catch (_) {}
 
 			const msg = document.createElement("div");
-			msg.textContent = text;
+			msg.id = TOAST_ID;
+			const finalText = (typeof text === "string" && text.trim().startsWith("MID:")) ? text.trim() : `MID: ${text}`;
+            msg.textContent = finalText;
 			msg.style = `
 				position:fixed; top:20px; right:20px;
 				background:${bg}; color:#fff; padding:12px;
@@ -115,21 +178,28 @@
 				opacity:1; transition:opacity 0.5s ease-in-out;
 				z-index:9999;
 			`;
-			document.body.appendChild(msg);
 
 			logDebug(2, `📢 Showing user message: "${text}" (${type})`);
 
-			setTimeout(() => {
+			// ⏱️ Mark minimum visible window start (before append to avoid ultra-fast overwrite)
+            try {
+                window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
+            } catch (_) {}
+
+            document.body.appendChild(msg);
+
+			// ✅ Store timer id so the next toast can cancel it
+			window[TIMER_KEY] = setTimeout(() => {
 				msg.style.opacity = "0";
 				setTimeout(() => {
 					try { msg.remove(); } catch (e) { logDebug(1, `⚠️ Failed to remove message: ${e.message}`); }
 				}, 500);
-			}, duration);
+				window[TIMER_KEY] = null;
+			}, effectiveDuration);
 		} catch (e) {
 			logDebug(1, `❌ showUserMessage error: ${e.message}`);
 		}
 	}
-	
 
 	/**
 	 * Validates if an image should be considered standalone or gallery-related.
@@ -175,6 +245,7 @@
         }
 
         window.__mdi_extractVisualGalleryRunning = true;
+        showUserMessage("Visual gallery started. Scanning page...", "info");    
 
         try {
             const imagesFound = [];
@@ -280,7 +351,7 @@
                 try {
                     logDebug(1, '⛔ No valid standalone images found on this page.');
                     logDebug(2, '💡 Tip: Use "Extract Web-Linked Gallery" instead.');
-                    showUserMessage("No images found. Try 'Extract Web-Linked Gallery' instead.", "error");
+                    showUserMessage('Visual gallery found no valid images. Try "Extract Web-Linked Gallery" instead.', "error");
 
                     if (Array.isArray(imagesFound)) imagesFound.length = 0;
                 } catch (cleanupError) {
@@ -294,6 +365,7 @@
             logDebug(3, '----------------------------------------');
             logDebug(1, `🎯 Visual gallery images collected: ${imagesFound.length}`);
             logDebug(2, '📤 Sending images to background script...');
+            showUserMessage(`Visual gallery: found ${imagesFound.length} image(s). Sending...`, "info");
 
             try {
                 // Send the images to the background script
@@ -308,10 +380,13 @@
                     // Check for errors in the response
                     if (chrome.runtime.lastError) {
                         logDebug(1, `❌ Error sending images: ${chrome.runtime.lastError.message}`);
+                        showUserMessage("Visual gallery failed. Could not send images to background.", "error");
                     } else if (response?.success) {
                         logDebug(1, "✅ Images sent to background successfully.");
+                        showUserMessage(`Visual gallery completed. Sent: ${imagesFound.length}`, "success");
                     } else {
                         logDebug(2, "⚠️ No response or process failed.");
+                        showUserMessage("Visual gallery failed. No response from background.", "error");
                     }
                     logDebug(3, '----------------------------------------');
                 });

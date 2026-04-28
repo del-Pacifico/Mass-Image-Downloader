@@ -123,6 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const continueBulkLoopCheckbox = document.getElementById("continueFromLastBulkBatch");
     let galleryMaxImagesInput;
     const showUserFeedbackMessagesCheckbox = document.getElementById("showUserFeedbackMessages");
+    const toastMinVisibleMsInput = document.getElementById("toastMinVisibleMs");
     const peekTransparencyInput = document.getElementById("peekTransparencyLevel");
     const enableClipboardHotkeysCheckbox = document.getElementById("enableClipboardHotkeys"); 
     const enableOneClickIconCheckbox = document.getElementById("chkEnableOneClickIcon");
@@ -393,7 +394,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "minWidth", "minHeight", "galleryMaxImages",
             "maxBulkBatch", "continueFromLastBulkBatch",
             "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", 
-            "allowExtendedImageUrls",
+            "allowExtendedImageUrls", "toastMinVisibleMs", 
             "gallerySimilarityLevel", "galleryMinGroupSize",
             "galleryEnableSmartGrouping", "galleryEnableFallback",
             "showUserFeedbackMessages", "enableClipboardHotkeys",
@@ -578,6 +579,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 // 📢 Notifications
                 if (showUserFeedbackMessagesCheckbox) {
                     showUserFeedbackMessagesCheckbox.checked = data.showUserFeedbackMessages ?? true; // Default: enabled
+                }
+
+                // 📢 Toast behavior
+                if (toastMinVisibleMsInput) {
+                    const raw = parseInt(data.toastMinVisibleMs ?? 2000, 10);
+                    const safe = (!isNaN(raw) && raw >= 0 && raw <= 10000) ? raw : 2000;
+                    toastMinVisibleMsInput.value = safe;
                 }
 
                 // 🔍 Peek Transparency Setting
@@ -787,6 +795,15 @@ document.addEventListener("DOMContentLoaded", () => {
             // 📢 Global Settings: Notifications
             const showUserFeedbackMessages = showUserFeedbackMessagesCheckbox ? showUserFeedbackMessagesCheckbox.checked : true;
 
+            // 📢 Toast behavior
+            let toastMinVisibleMs = 2000;
+            if (toastMinVisibleMsInput) {
+                const raw = parseInt(toastMinVisibleMsInput.value, 10);
+                if (!isNaN(raw)) {
+                    toastMinVisibleMs = Math.min(10000, Math.max(0, raw));
+                }
+            }
+
             // 🫥 Peek Transparency
             let peekTransparencyLevel = 0.8;
             if (peekTransparencyInput) {
@@ -827,6 +844,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 maxBulkBatch,
                 continueFromLastBulkBatch,
                 showUserFeedbackMessages,
+                toastMinVisibleMs,
                 enableClipboardHotkeys: enableClipboardHotkeysCheckbox ? enableClipboardHotkeysCheckbox.checked : false,
                 enableOneClickIcon: enableOneClickIconCheckbox ? enableOneClickIconCheckbox.checked : false,
                 maxOpenTabs: maxOpenTabsInput ? Math.min(10, Math.max(1, parseInt(maxOpenTabsInput.value))) : 5,

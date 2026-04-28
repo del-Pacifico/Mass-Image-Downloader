@@ -25,6 +25,9 @@
     let enableClipboardHotkeysCache = false;
     let filenameModeCache = 'none';
 
+    // 📢 Toast minimum visible time (ms). Range: 0..10000. Default: 2000.
+    let toastMinVisibleMsCache = 2000;
+
     // ✅ Initialize config from chrome.storage.sync
     /**
      * Initializes configuration settings from chrome.storage.sync.
@@ -46,13 +49,18 @@
             }
 
             chrome.storage.sync.get(
-                ["debugLogLevel", "showUserFeedbackMessages", "enableClipboardHotkeys", "filenameMode"],
+                ["debugLogLevel", "showUserFeedbackMessages", "toastMinVisibleMs", "enableClipboardHotkeys", 
+                    "filenameMode", "toastMinVisibleMs"],
                 (data) => {
                     try {
                         debugLogLevelCache = parseInt(data.debugLogLevel ?? 1);
                         showUserFeedbackMessagesCache = data.showUserFeedbackMessages ?? true;
                         enableClipboardHotkeysCache = data.enableClipboardHotkeys ?? false;
                         filenameModeCache = data.filenameMode ?? "none";
+
+                        const rawToastMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
+                        toastMinVisibleMsCache = (!isNaN(rawToastMs) && rawToastMs >= 0 && rawToastMs <= 10000) ? rawToastMs : 2000;
+
                     } catch (err) {
                         logDebug(1, "❌ Failed to assign config values:", err.message);
                     }
@@ -64,6 +72,65 @@
 
     // ✅ Initialize config
     await initConfig();
+
+    // 🔄 Keep local config in sync with settings changes (MV3 friendly)
+    if (chrome?.storage?.onChanged) {
+        chrome.storage.onChanged.addListener((changes, area) => {
+            try {
+                if (area !== "sync") return;
+                
+                // log all user config changes at options
+                logDebug(2, "🔄 Settings updated (sync). Applying changes...");
+
+                // update debugLogLevelCache if changed
+                if (changes.debugLogLevel) {
+                    const oldValue = debugLogLevelCache;
+                    debugLogLevelCache = parseInt(changes.debugLogLevel.newValue ?? 1);
+                    logDebug(2, `🔄 debugLogLevel updated: ${oldValue} → ${debugLogLevelCache}`);
+                }
+
+                // update showUserFeedbackMessagesCache if changed
+                if (changes.showUserFeedbackMessages) {
+                    const oldValue = showUserFeedbackMessagesCache;
+                    showUserFeedbackMessagesCache = changes.showUserFeedbackMessages.newValue ?? true;
+                    logDebug(2, `🔄 showUserFeedbackMessages updated: ${oldValue} → ${showUserFeedbackMessagesCache}`);
+                }
+
+                // update toastMinVisibleMsCache if changed
+                if (changes.toastMinVisibleMs) {
+                    const oldValue = toastMinVisibleMsCache;
+                    const raw = parseInt(changes.toastMinVisibleMs.newValue ?? 2000, 10);
+                    toastMinVisibleMsCache = (!isNaN(raw) && raw >= 0 && raw <= 10000) ? raw : 2000;
+                    logDebug(2, `🔄 toastMinVisibleMs updated: ${oldValue} → ${toastMinVisibleMsCache}`);
+                }
+
+                // update enableClipboardHotkeysCache if changed
+                if (changes.enableClipboardHotkeys) {
+                    const oldValue = enableClipboardHotkeysCache;
+                    enableClipboardHotkeysCache = changes.enableClipboardHotkeys.newValue ?? false;
+                    logDebug(2, `🔄 enableClipboardHotkeys updated: ${oldValue} → ${enableClipboardHotkeysCache}`);
+                }
+
+                // update filenameModeCache if changed
+                if (changes.filenameMode) {
+                    const oldValue = filenameModeCache;
+                    filenameModeCache = changes.filenameMode.newValue ?? "none";
+                    logDebug(2, `🔄 filenameMode updated: ${oldValue} → ${filenameModeCache}`);
+                }
+            
+                // update toastMinVisibleMsCache if changed (duplicate check for safety)
+                if (changes.toastMinVisibleMs) {
+                    const oldValue = toastMinVisibleMsCache;
+                    const raw = parseInt(changes.toastMinVisibleMs.newValue ?? 2000, 10);
+                    toastMinVisibleMsCache = (!isNaN(raw) && raw >= 0 && raw <= 10000) ? raw : 2000;
+                    logDebug(2, `🔄 toastMinVisibleMs updated: ${oldValue} → ${toastMinVisibleMsCache}`);
+                }
+
+            } catch (err) {
+                logDebug(2, "⚠️ storage.onChanged handler failed:", err.message);
+            }
+        });
+    }
     
     // ✅ Check if the script is already loaded
     logDebug(1, '📋 ClipboardHotkeys script loaded.');
@@ -118,50 +185,151 @@
     }
 
     /**
-     * Shows a visual message to the user.
-     * @param {string} text 
-     * @param {string} type - "info", "success", "error"
+     * Displays a user feedback message as a toast notification.
+     * @param {string} text - The message text to display.
+     * @param {"info"|"error"|"success"} type - The type of message, which determines styling and duration.
+     * @returns {void}
+     * @description This function creates a toast notification on the page to provide feedback to the user.
+     * It checks if user feedback messages are enabled in the settings before displaying.
+     * The message is styled based on the type (info, error, success) and automatically disappears after a certain duration.
+     * It also handles multiple messages by ensuring that the last message is shown and that messages do not overlap too quickly.
+     * This function is useful for providing immediate feedback to the user about actions they have taken, such as setting a prefix or suffix from the clipboard.
+     * It is designed to be non-intrusive and automatically manages the display and removal of messages.
      */
-    function showUserMessage(text, type = 'info') {
+    function showUserMessage(text, type = "info") {
         try {
-            
-            // ✅ Check if the user has enabled user feedback messages
             if (!showUserFeedbackMessagesCache) {
-                logDebug(2, '🛑 User feedback messages are disabled. Skipping message display.');
+                logDebug(2, "🚫 User feedback messages disabled. Skipping display.");
                 return;
             }
-                
-            logDebug(2, `🗨️ Showing user message: [${type}] ${text}`);
 
-            const duration = type === 'error' ? 10000 : 5000;
-            const backgroundColor = type === 'error' ? '#d9534f' : '#007EE3';
+            const safeText = (typeof text === "string") ? text.trim() : String(text || "").trim();
+            if (!safeText) return;
 
-            const msg = document.createElement('div');
-            msg.textContent = text;
-            msg.style.position = 'fixed';
-            msg.style.top = '20px';
-            msg.style.right = '20px';
+            // ✅ Normalize to MID standard
+            const finalText = safeText.startsWith("MID:") ? safeText : `MID: ${safeText}`;
+
+            const baseDuration = (type === "error") ? 10000 : 5000;
+            const minVisibleMs = Math.max(0, parseInt(toastMinVisibleMsCache ?? 2000, 10) || 2000);
+            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
+            const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
+
+            // ✅ Toast engine: last toast wins + optional minimum visible time (prevents fast overlap)
+            const TOAST_ID = "mdi-user-toast";
+            const TIMER_KEY = "__mdiUserToastTimer";
+            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+            const DEFER_KEY = "__mdiUserToastDeferTimer";
+            const PENDING_KEY = "__mdiUserToastPending";
+
+            // ✅ Defer replacement if current toast must remain visible for the minimum time
+            try {
+                const now = Date.now();
+                const minUntil = window[MINUNTIL_KEY] || 0;
+
+                if (minVisibleMs > 0 && now < minUntil) {
+                    window[PENDING_KEY] = { text: finalText, type };
+
+                    if (window[DEFER_KEY]) {
+                        clearTimeout(window[DEFER_KEY]);
+                        window[DEFER_KEY] = null;
+                    }
+
+                    window[DEFER_KEY] = setTimeout(() => {
+                        const pending = window[PENDING_KEY];
+                        window[PENDING_KEY] = null;
+                        window[DEFER_KEY] = null;
+
+                        if (pending && pending.text) {
+                            showUserMessage(pending.text, pending.type || "info");
+                        }
+                    }, Math.max(0, minUntil - now));
+
+                    return;
+                }
+            } catch (_) {}
+
+            // ✅ Last toast wins: remove previous toast + cancel previous timer
+            try {
+                const existing = document.getElementById(TOAST_ID);
+                if (existing) existing.remove();
+
+                if (window[TIMER_KEY]) {
+                    clearTimeout(window[TIMER_KEY]);
+                    window[TIMER_KEY] = null;
+                }
+            } catch (_) {}
+
+            // ✅ Mark the minimum visible window for the newly shown toast
+            try {
+                window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
+            } catch (_) {}
+
+            const msg = document.createElement("div");
+            msg.id = TOAST_ID;
+            msg.textContent = finalText;
+
+            msg.style.position = "fixed";
+            msg.style.top = "20px";
+            msg.style.right = "20px";
             msg.style.backgroundColor = backgroundColor;
-            msg.style.color = '#fff';
-            msg.style.padding = '10px';
-            msg.style.borderRadius = '5px';
-            msg.style.zIndex = '9999';
-            msg.style.fontSize = '14px';
-            msg.style.boxShadow = '2px 2px 6px rgba(0,0,0,0.3)';
-            msg.style.transition = 'opacity 0.4s ease-in-out';
-            msg.style.opacity = '1';
+            msg.style.color = "#FFFFFF";
+            msg.style.padding = "12px";
+            msg.style.borderRadius = "6px";
+            msg.style.fontSize = "14px";
+            msg.style.boxShadow = "2px 2px 8px rgba(0, 0, 0, 0.3)";
+            msg.style.opacity = "1";
+            msg.style.transition = "opacity 0.5s ease-in-out";
+            msg.style.zIndex = "9999";
+
             document.body.appendChild(msg);
 
-            setTimeout(() => {
-                msg.style.opacity = '0';
-                setTimeout(() => msg.remove(), 400);
-            }, duration);
+            logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
+
+            window[TIMER_KEY] = setTimeout(() => {
+                msg.style.opacity = "0";
+                setTimeout(() => {
+                    try { msg.remove(); } catch (_) {}
+                }, 500);
+                window[TIMER_KEY] = null;
+            }, effectiveDuration);
 
         } catch (err) {
-            logDebug(1, '❌ Failed to show user message:', err.message);
-            logDebug(2, '❌ Stacktrace:', err.stack);
+            logDebug(1, `❌ Failed to show user message: ${err.message}`);
+            logDebug(2, `🐛 Stacktrace: ${(err && err.stack) ? err.stack : "n/a"}`);
         }
     }
+
+    /**
+     * Receives toast requests from background.js and displays them in-page.
+     * MV3 service workers have no DOM, so user feedback must be rendered from a content script.
+     */
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        try {
+            if (!message || typeof message !== "object") return;
+            if (message.action !== "mdiUserToast") return;
+
+            const text = (typeof message.text === "string") ? message.text : "";
+            const type = (typeof message.type === "string") ? message.type : "info";
+
+            if (!text) {
+                try { sendResponse({ ok: false, reason: "empty_text" }); } catch (_) {}
+                return;
+            }
+
+            showUserMessage(text, type);
+
+            // ✅ Reply immediately to avoid MV3 "message port closed" warnings.
+            try { sendResponse({ ok: true }); } catch (_) {}
+            return;
+        } catch (err) {
+            logDebug(1, "❌ mdiUserToast handler failed:", err.message);
+            logDebug(2, "🐛 Stacktrace:", err.stack);
+
+            try { sendResponse({ ok: false, error: err.message }); } catch (_) {}
+            return;
+        }
+    });
+
     
     /**
      * Removes invalid characters from filename components.
@@ -191,7 +359,7 @@
             const sanitized = sanitizeFilenameComponent(rawText, maxLen);
 
             if (sanitized.length < 4) {
-                showUserMessage(`❌ ${type.charAt(0).toUpperCase() + type.slice(1)} too short. Minimum 4 characters.`, 'error');
+                showUserMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} too short. Minimum 4 characters.`, 'error');
                 return;
             }
 
@@ -204,7 +372,7 @@
 
             if (!(isPrefixAllowed || isSuffixAllowed)) {
                 logDebug(1, `⚠️ Attempted to set ${type} while filenameMode is '${mode}'. Operation ignored.`);
-                showUserMessage(`⚠️ Enable ${type} mode in settings first.`, 'info');
+                showUserMessage(`Enable ${type} mode in settings first.`, 'info');
                 return;
             }
 
@@ -224,17 +392,17 @@
                             }
 
                             logDebug(1, `✅ ${type} saved:`, sanitized);
-                            showUserMessage(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} set to: ${sanitized}`, 'success');
+                            showUserMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} set to: ${sanitized}`, 'success');
                         } catch (callbackErr) {
                             logDebug(1, `❌ Failed to save ${type}:`, callbackErr.message);
-                            showUserMessage(`❌ Failed to save ${type}.`, 'error');
+                            showUserMessage(`Failed to save ${type}.`, 'error');
                         }
                     });
                 });
             } catch (outerErr) {
                 logDebug(1, `❌ Exception saving ${type}:`, outerErr.message);
                 logDebug(2, `❌ Stacktrace saving ${type}: `, outerErr.stack);
-                showUserMessage(`❌ Error saving ${type}. Context may be invalid.`, 'error');
+                showUserMessage(`Error saving ${type}. Context may be invalid.`, 'error');
             }
         } catch (err) {
             logDebug(1, `❌ Exception saving ${type}:`, err.message);
@@ -269,7 +437,7 @@
                     ? 'Clipboard API not supported in this context.'
                     : 'Clipboard not accessible. Site may restrict clipboard API.';
             
-                showUserMessage(`❌ Clipboard read failed: ${reason}`, 'error');
+                showUserMessage(`Clipboard read failed: ${reason}`, 'error');
                 return;
             }
             
@@ -287,7 +455,7 @@
                 // If the permission is prompt, we show a message to the user to grant permission.
                 if (permissionStatus.state === 'denied') {
                     logDebug(1, '⛔ Clipboard access denied by browser or site permissions.');
-                    showUserMessage('❌ Clipboard access is denied by the site.', 'error');
+                    showUserMessage('Clipboard access is denied by the site.', 'error');
                     return;
                 }
             } catch (permError) {
@@ -301,11 +469,11 @@
             } catch (readError) {
                 logDebug(1, `❌ Clipboard read failed: ${readError.message}`);
                 logDebug(2, `❌ Stacktrace: ${readError.stack}`)
-                showUserMessage('❌ Clipboard access failed or was interrupted.', 'error');
+                showUserMessage('Clipboard access failed or was interrupted.', 'error');
                 return;
             }
             if (!text || typeof text !== 'string') {
-                showUserMessage('❌ Clipboard is empty or inaccessible.', 'error');
+                showUserMessage('Clipboard is empty or inaccessible.', 'error');
                 return;
             }
     
@@ -313,7 +481,7 @@
         } catch (err) {
             logDebug(1, `❌ Clipboard read failed: ${err.message}`);
             logDebug(2, '❌ Stacktrace: ', err.stack)
-            showUserMessage('❌ Could not access clipboard.', 'error');
+            showUserMessage('Could not access clipboard.', 'error');
         }
     }
     
@@ -345,4 +513,42 @@
         }
 
     });
+
+    /**
+     * Keydown listener to detect Alt+Shift+W (Web-linked galleries).
+     * This is NOT a chrome.commands hotkey due to MV3 command limits.
+     */
+    window.addEventListener('keydown', (event) => {
+        try {
+            // Ignore hotkeys while typing
+            const target = event.target;
+            const isTypingContext =
+                target &&
+                (target.tagName === "INPUT" ||
+                target.tagName === "TEXTAREA" ||
+                target.isContentEditable);
+
+            if (isTypingContext) return;
+
+            // Alt + Shift + W
+            if (!event.altKey || !event.shiftKey) return;
+            if (event.code !== "KeyW") return;
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            logDebug(1, "⌨️ Hotkey triggered: Extract Web-linked galleries (Alt+Shift+W)");
+
+            // 🔍 Dispatch message to background to inject extractor
+            chrome.runtime.sendMessage(
+                { action: "injectWebLinkedGalleryExtractor", source: "hotkey" },
+                () => {
+                    // Silent by design; extractor + background handle UX.
+                }
+            );
+        } catch (err) {
+            logDebug(1, `❌ Hotkey handler failed (Alt+Shift+W): ${err.message}`);
+        }
+    });
+
 })();    

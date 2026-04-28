@@ -1,6 +1,8 @@
 name: Edge Case Report
+
 description: Report non-blocking, context-dependent behaviors that occur only under specific conditions.
 title: "[EdgeCase] "
+
 labels:
   - type: edge-case
   - needs: triage
