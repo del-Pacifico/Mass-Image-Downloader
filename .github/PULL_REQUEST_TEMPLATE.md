@@ -54,6 +54,10 @@ _Reference any issues this PR addresses (e.g. Closes #42)._
 ## ✅ Testing Performed
 _Check what you actually ran._
 
+**Automated checks:**
+- [ ] `npm run check`
+- [ ] `npm test`
+
 **Browsers tested:**
 - [ ] Edge (Chromium): `version`
 - [ ] Chrome: `version`
@@ -83,6 +87,7 @@ _Add screenshots or screencasts to demonstrate UI/UX changes._
 - [ ] This PR targets `dev` and follows `feature/chore branch -> dev -> main -> tag/release`
 - [ ] Required repository labels were assigned (`type:*`, `scope:*`, and lifecycle/impact labels as applicable)
 - [ ] The code follows the project’s style guide
+- [ ] Local compliance checks pass, or any skipped checks are explained
 - [ ] Changes are modular, focused, and testable
 - [ ] Error handling and edge cases were considered, with clear logs or user-facing messages where appropriate
 - [ ] CPU, memory, filesystem, and batch-processing impact were considered

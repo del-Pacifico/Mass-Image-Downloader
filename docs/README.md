@@ -227,6 +227,7 @@ To verify the exact released version:
 - Check the root `VERSION` file
 - Confirm the extension `manifest.json`
 - Review `CHANGELOG.md` for release notes
+- Run `npm run check` and `npm test` from the repository root when validating a local checkout or pull request
 
 If observed behavior differs from the documentation:
 

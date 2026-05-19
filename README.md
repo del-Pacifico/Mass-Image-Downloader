@@ -43,6 +43,17 @@ Mass Image Downloader is a Chromium Manifest V3 extension for collecting and dow
 3. Configure formats, size filters, naming, pacing, and gallery limits from the Options page.
 4. Run the workflow from the popup or with the configured keyboard shortcuts.
 
+## Validation
+
+Contributors can run local compliance checks before opening a pull request:
+
+```bash
+npm run check
+npm test
+```
+
+These commands validate the extension manifest, declared paths, version alignment, command limits, required permissions, and JavaScript syntax.
+
 ## Documentation
 
 - [Documentation Hub](docs/README.md) - entry point for all manuals.

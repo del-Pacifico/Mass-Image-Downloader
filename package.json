@@ -1,0 +1,14 @@
+{
+  "name": "mass-image-downloader",
+  "version": "2.08.182",
+  "private": true,
+  "type": "module",
+  "description": "Validation tooling for the Mass Image Downloader Chromium extension.",
+  "scripts": {
+    "check": "node scripts/validate-extension.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
