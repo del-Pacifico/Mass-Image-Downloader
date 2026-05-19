@@ -16,6 +16,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Restored footer badges in the compact README and replaced the `Code Atomic` badge with a modular coding badge.
 - Added `Support the Project` and `Acknowledgements` sections to the compact README.
 - Removed hardcoded current-version text from README documents; version validation now points to the GitHub Release badge, GitHub tags/releases, the root `VERSION` file, and `manifest.json`.
+- Documented the official contribution flow: feature/chore branch -> `dev` -> `main` -> tag/release.
+- Added development rules for modularity, testability, error handling, edge-case handling, performance awareness, and professional English in comments, logs, and user-facing messages.
+- Added label taxonomy requirements for Issues, Pull Requests, and Discussions.
+- Updated Pull Request, Issue Template, and Release Checklist guidance to enforce branch flow and descriptive repository labels.
 
 ---
 

@@ -76,6 +76,8 @@ See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 Contributions should follow the project flow: feature or chore branch, PR to `dev`, merge to `main`, then tag/release.
 
+All issues, pull requests, and discussions should use the repository's descriptive label taxonomy so planning, review, and release work stay traceable.
+
 See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md).
 
 ## Support the Project

@@ -25,6 +25,13 @@ _Reference any issues this PR addresses (e.g. Closes #42)._
 
 ---
 
+## 🧭 Branch Flow & Labels
+- **Target branch:** `dev`
+- **Source branch type:** `feature/*`, `fix/*`, `chore/*`, `docs/*`, `refactor/*`, or another focused branch name
+- **Required labels:** `type:*`, `scope:*`, and applicable `behavior:*`, `dev:*`, `status:*`, or `priority:*`
+
+---
+
 ## 🎯 Scope & Impact
 - **User-facing change?** (UI/UX, settings, downloads behavior, output naming, docs)  
   - [ ] Yes
@@ -73,7 +80,13 @@ _Add screenshots or screencasts to demonstrate UI/UX changes._
 ---
 
 ## ✅ Checklist
+- [ ] This PR targets `dev` and follows `feature/chore branch -> dev -> main -> tag/release`
+- [ ] Required repository labels were assigned (`type:*`, `scope:*`, and lifecycle/impact labels as applicable)
 - [ ] The code follows the project’s style guide
+- [ ] Changes are modular, focused, and testable
+- [ ] Error handling and edge cases were considered, with clear logs or user-facing messages where appropriate
+- [ ] CPU, memory, filesystem, and batch-processing impact were considered
+- [ ] Code comments, logs, and user-facing messages use professional, approachable English
 - [ ] I’ve tested this functionality locally in a supported browser
 - [ ] I’ve reviewed and updated documentation where applicable
 - [ ] I’ve added or adjusted relevant logging/debug output (no sensitive data)

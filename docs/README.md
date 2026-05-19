@@ -163,6 +163,14 @@ Use this quick guide:
 
 This repository follows a clear separation between **ideas**, **planned work**, and **execution**.
 
+All development follows this release path:
+
+```text
+feature/chore branch -> dev -> main -> tag/release
+```
+
+Issues, Pull Requests, and Discussions must use the repository label taxonomy before they are considered ready for planning, review, or promotion. See the root [Contributing Guide](../CONTRIBUTING.md) for the full development and labeling rules.
+
 ### 💡 Ideas & Early Proposals
 - **Location:** GitHub Discussions
 - Used for:
