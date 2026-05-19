@@ -8,7 +8,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [2.08.184] - 2026-05-19
+## [2.8.184] - 2026-05-19
 
 ### 📄 Documentation
 
