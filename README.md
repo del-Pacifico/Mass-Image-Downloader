@@ -3,8 +3,6 @@
 ![Chromium 93+](https://img.shields.io/badge/Chromium-93%2B-4285F4?logo=google-chrome&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-FF9800)
 ![GitHub Release](https://img.shields.io/github/v/release/del-Pacifico/Mass-Image-Downloader?display_name=tag)
-![Chrome](https://img.shields.io/badge/Chrome-Not%20Fully%20Tested-9E9E9E?logo=google-chrome&logoColor=white)
-![Edge](https://img.shields.io/badge/Edge-Not%20Fully%20Tested-9E9E9E?logo=microsoft-edge&logoColor=white)
 ![Brave](https://img.shields.io/badge/Brave-Tested-FB542B?logo=brave&logoColor=white)
 ![License](https://img.shields.io/badge/license-MPL--2.0-green?style=flat-square)
 ![Status](https://img.shields.io/badge/status-active-brightgreen?style=flat-square)
@@ -74,6 +72,34 @@ Contributions should follow the project flow: feature or chore branch, PR to `de
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md).
 
+## Support the Project
+
+If Mass Image Downloader helps your workflow, consider starring the repository, opening focused issues, sharing reproducible test cases, or contributing documentation and fixes through the standard branch flow.
+
+Responsible feedback is especially useful for gallery edge cases, browser compatibility checks, and real-world configuration scenarios.
+
+## Acknowledgements
+
+Thank you for using Mass Image Downloader and supporting a focused, privacy-friendly tool for collecting images with predictable, browser-native workflows.
+
+Built for power users, researchers, curators, QA teams, dataset builders, and automation workflows that need controlled output without external services, tracking, or unnecessary complexity.
+
+Made with ❤️ by Del-Pacifico.
+
 ## License
 
 Mass Image Downloader is licensed under the [Mozilla Public License 2.0](LICENSE).
+
+---
+
+<!-- Badges (Footer) -->
+![Star this project](https://img.shields.io/github/stars/del-Pacifico/Mass-Image-Downloader?style=flat-square&logo=github)
+![Made with JavaScript](https://img.shields.io/badge/Made%20with-JavaScript-yellow?style=flat-square&logo=javascript)
+![No Tracking](https://img.shields.io/badge/Privacy-No%20tracking-blueviolet?style=flat-square&logo=shield)
+![Lightweight](https://img.shields.io/badge/Built-lightweight-lightgrey?style=flat-square)
+![Modular Design](https://img.shields.io/badge/Architecture-Modular-informational?style=flat-square)
+![ES Modules](https://img.shields.io/badge/ESM-Enabled-success?style=flat-square&logo=javascript)
+![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen?style=flat-square&logo=github)
+![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen?style=flat-square)
+![Modular Coding](https://img.shields.io/badge/Code-Modular-blue?style=flat-square)
+![Made with ❤️ by Del-Pacifico](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F%20by%20Del--Pacifico-orange?style=flat-square)

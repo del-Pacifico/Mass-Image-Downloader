@@ -4,8 +4,6 @@
 ![Chromium 93+](https://img.shields.io/badge/Chromium-93%2B-4285F4?logo=google-chrome&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-FF9800)
 ![GitHub Release](https://img.shields.io/github/v/release/del-Pacifico/Mass-Image-Downloader?display_name=tag)
-![Chrome](https://img.shields.io/badge/Chrome-Not%20Fully%20Tested-9E9E9E?logo=google-chrome&logoColor=white)
-![Edge](https://img.shields.io/badge/Edge-Not%20Fully%20Tested-9E9E9E?logo=microsoft-edge&logoColor=white)
 ![Brave](https://img.shields.io/badge/Brave-Tested-FB542B?logo=brave&logoColor=white)
 <!--Standards-->
 ![License](https://img.shields.io/badge/license-MPL--2.0-green?style=flat-square)
@@ -1431,4 +1429,4 @@ This project is offered for legitimate, responsible use. By using it, you agree 
 ![ES Modules](https://img.shields.io/badge/ESM-Enabled-success?style=flat-square&logo=javascript)
 ![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen?style=flat-square&logo=github)
 ![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen?style=flat-square)
-![Atomic Architecture](https://img.shields.io/badge/Code-Atomic-blue?style=flat-square)
+![Modular Coding](https://img.shields.io/badge/Code-Modular-blue?style=flat-square)
