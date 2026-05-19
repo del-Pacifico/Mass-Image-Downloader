@@ -19,6 +19,24 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [2.08.182] - 2026-04-28
+
+### 🚀 Overview
+
+This release aligns the repository state with the published `v2.08.182` tag and keeps `main` as the stable release branch.
+
+### 🔁 Changed
+
+- Synchronized `dev` and `main` for the `v2.08.182` release flow.
+- Confirmed the release version through the root `VERSION` file and `manifest.json`.
+
+### 🧹 Maintenance
+
+- Added repository hygiene exclusions for local logs and old version folders.
+- Preserved the standard release path: feature/chore branch → `dev` → `main` → tag/release.
+
+---
+
 ## [2.08.181] - 2026-03-12
 
 ### 🚀 Overview
