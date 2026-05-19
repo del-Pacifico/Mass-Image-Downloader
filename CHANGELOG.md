@@ -33,6 +33,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Added case-sensitive validation for extension script references.
 - Consolidated the extension runtime JavaScript under `scripts/` and normalized all extension script references accordingly.
 - Added the MPL license header and inline guidance comments to the validation helper for consistency with the rest of the repository.
+- Extracted shared Image Inspector download helpers into `scripts/utils.js` to reduce repetition in the background message handler without changing behavior.
 
 ---
 
