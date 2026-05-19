@@ -6,6 +6,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+---
+
+## [2.08.183] - 2026-05-18
+
 ### 📄 Documentation
 
 - Reworked the root `README.md` into a compact repository entry point.

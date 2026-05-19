@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Mass image downloader",
-  "version": "2.08.182",
+  "version": "2.08.183",
   "minimum_chrome_version": "93",
   "short_name": "MID",
   "description": "Download images from tabs or galleries. With filters, naming rules, batch control, and a lot options!",
