@@ -24,9 +24,9 @@
     {
       "matches": ["<all_urls>"],
       "js": [
-        "script/clipboardHotkeys.js",
-        "script/settingsPeek.js",
-        "script/imageInspector.js"
+        "scripts/clipboardHotkeys.js",
+        "scripts/settingsPeek.js",
+        "scripts/imageInspector.js"
       ],
       "run_at": "document_idle"
     }
@@ -35,7 +35,7 @@
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "script/background.js",
+    "service_worker": "scripts/background.js",
     "type": "module"
   },
   "action": {
@@ -52,7 +52,7 @@
     {
       "resources": [
         "html/peekOptions.html",
-        "script/peekOptions.js",
+        "scripts/peekOptions.js",
         "ico/*"
       ],
       "matches": ["<all_urls>"]

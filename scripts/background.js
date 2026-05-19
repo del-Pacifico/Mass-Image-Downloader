@@ -824,7 +824,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
                 await chrome.scripting.executeScript({
                     target: { tabId },
-                    files: ["script/extractWebLinkedGallery.js"]
+                    files: ["scripts/extractWebLinkedGallery.js"]
                 });
 
                 logDebug(1, "✅ END: extractWebLinkedGallery.js injected successfully.");
@@ -979,7 +979,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                                             if (enableOneClickIcon) {
                                                 chrome.scripting.executeScript({
                                                     target: { tabId: tab.id },
-                                                    files: ["script/injectSaveIcon.js"]
+                                                    files: ["scripts/injectSaveIcon.js"]
                                                 }, () => {
                                                     if (chrome.runtime.lastError) {
                                                         logDebug(1, `❌ Failed to inject save icon: ${chrome.runtime.lastError.message}`);
@@ -1693,7 +1693,7 @@ async function handleOneClickIconHotkey() {
             return;
         }
 
-        const injected = await injectScriptFileSafe(tab.id, "script/injectSaveIcon.js", "one-click-icon");
+        const injected = await injectScriptFileSafe(tab.id, "scripts/injectSaveIcon.js", "one-click-icon");
         if (!injected) return;
 
         logDebug(1, "✅ One-click download icon injected successfully.");
@@ -1742,7 +1742,7 @@ async function handleExtractLinkedGalleryHotkey() {
         return;
     }
 
-    await injectScriptFileSafe(tab.id, "script/extractLinkedGallery.js", "extract-linked-gallery");
+    await injectScriptFileSafe(tab.id, "scripts/extractLinkedGallery.js", "extract-linked-gallery");
 }
 
 /**
@@ -1762,7 +1762,7 @@ async function handleExtractVisualGalleryHotkey() {
         return;
     }
 
-    await injectScriptFileSafe(tab.id, "script/extractVisualGallery.js", "extract-visual-gallery");
+    await injectScriptFileSafe(tab.id, "scripts/extractVisualGallery.js", "extract-visual-gallery");
 }
 
 /**

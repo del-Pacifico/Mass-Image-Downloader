@@ -31,7 +31,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Added `npm run check` and `npm test` commands for contributors.
 - Added GitHub Actions workflow to run extension validation and compliance tests on PRs targeting `dev` and pushes to `dev` or `main`.
 - Added case-sensitive validation for extension script references.
-- Renamed the source folder from `Script` to `script` and normalized all extension script references to lowercase.
+- Consolidated the extension runtime JavaScript under `scripts/` and normalized all extension script references accordingly.
+- Added the MPL license header and inline guidance comments to the validation helper for consistency with the rest of the repository.
 
 ---
 
