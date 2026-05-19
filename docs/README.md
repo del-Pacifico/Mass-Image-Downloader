@@ -27,6 +27,7 @@ This file acts as the **entry point and launcher**, allowing direct navigation t
     - [🧑‍🔧 Technical User Manual](#-technical-user-manual)
     - [⌨️ Hotkeys \& Keyboard Shortcuts Policy](#️-hotkeys--keyboard-shortcuts-policy)
     - [👨🏻‍💻 Advanced Manual](#-advanced-manual)
+    - [📄 Extended Project Overview](#-extended-project-overview)
   - [🧭 Which Document Should I Read First?](#-which-document-should-i-read-first)
   - [🧭 Backlog \& Development Flow](#-backlog--development-flow)
     - [💡 Ideas \& Early Proposals](#-ideas--early-proposals)
@@ -131,6 +132,21 @@ Explain **why the system behaves the way it does**, covering design rationale, t
 
 ---
 
+### 📄 Extended Project Overview
+
+**Purpose:**  
+Preserve the previous long-form root README as a detailed project-level reference.
+
+**Read this if:**
+- You want the complete overview that used to live in the repository root
+- You need a broad feature, architecture, usage, and policy reference in one place
+- You are reviewing historical README content after the compact README migration
+
+📄 **Open document:**  
+➡️ [Extended Project Overview](project-overview-extended.md)
+
+---
+
 ## 🧭 Which Document Should I Read First?
 
 Use this quick guide:
@@ -139,6 +155,7 @@ Use this quick guide:
 - **Want to configure something specific** → [Configuration Guides](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/configuration-guides/configuration-guides.md)
 - **Want to understand internals** → [Technical User Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/technical-manual/README.md)
 - **Want to understand design decisions and limits** → [Advanced Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/advanced-manual/README.md)
+- **Want the old long-form README** → [Extended Project Overview](project-overview-extended.md)
 
 ---
 
