@@ -6,6 +6,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- QA was completed on Microsoft Edge 148.0.3967.54 and Opera One 131.0.5877.24 with no failures reported in flows, downloads, hotkeys, or configuration behavior.
+
 ---
 
 ## [2.8.184] - 2026-05-19
