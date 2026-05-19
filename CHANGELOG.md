@@ -26,7 +26,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Added Node.js-based extension compliance checks for manifest validity, declared paths, version alignment, command limits, required permissions, and JavaScript syntax.
 - Added `npm run check` and `npm test` commands for contributors.
 - Added GitHub Actions workflow to run extension validation and compliance tests on PRs targeting `dev` and pushes to `dev` or `main`.
-- Fixed extension script path casing from `script/` to `Script/` so declared paths match the repository case-sensitively.
+- Added case-sensitive validation for extension script references.
+- Renamed the source folder from `Script` to `script` and normalized all extension script references to lowercase.
 
 ---
 

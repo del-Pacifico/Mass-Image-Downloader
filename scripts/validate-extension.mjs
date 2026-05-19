@@ -95,7 +95,7 @@ function collectHtmlScriptPaths() {
 }
 
 function collectJavaScriptFiles() {
-  const scriptDir = path.join(repoRoot, "Script");
+  const scriptDir = path.join(repoRoot, "script");
   return fs
     .readdirSync(scriptDir)
     .filter((fileName) => fileName.endsWith(".js"))
