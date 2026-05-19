@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (chrome.scripting && chrome.scripting.executeScript) {
                     chrome.scripting.executeScript({
                         target: { tabId },
-                        files: ["script/extractLinkedGallery.js"]
+                        files: ["Script/extractLinkedGallery.js"]
                     })
                     .then(() => {
                         logDebug("💉 Extract Linked Gallery script injected.");
@@ -213,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (chrome.scripting && chrome.scripting.executeScript) {
                     chrome.scripting.executeScript({
                         target: { tabId },
-                        files: ["script/extractVisualGallery.js"]
+                        files: ["Script/extractVisualGallery.js"]
                     })
                     .then(() => {
                         logDebug("💉 Extract Visual Gallery script injected successfully.");
@@ -247,7 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (chrome.scripting && chrome.scripting.executeScript) {
                     chrome.scripting.executeScript({
                         target: { tabId },
-                        files: ["script/extractWebLinkedGallery.js"]
+                        files: ["Script/extractWebLinkedGallery.js"]
                     })
                     .then(() => {
                         logDebug(1, "💉 Extract Web-Linked Gallery script injected successfully.");
@@ -300,7 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 chrome.scripting.executeScript({
                     target: { tabId },
-                    files: ["script/settingsPeek.js"]
+                    files: ["Script/settingsPeek.js"]
                 }).then(() => {
 					logDebug("💉 settingsPeek.js injected into active tab.");
 

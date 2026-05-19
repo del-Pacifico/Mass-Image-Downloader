@@ -19,7 +19,9 @@ assignees: []
 ## Readiness
 
 - [ ] All feature/bugfix PRs merged into `dev`
-- [ ] CI green in `dev` (CodeQL / build / lint / tests)
+- [ ] CI green in `dev` (extension validation / compliance tests)
+- [ ] `npm run check` passes
+- [ ] `npm test` passes
 - [ ] Changelog updated (Added/Changed/Fixed/Removed)
 - [ ] README/docs adjusted if behavior changed
 - [ ] SemVer respected (breaking changes bump MAJOR)

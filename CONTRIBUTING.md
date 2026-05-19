@@ -26,6 +26,10 @@ This guide provides everything you need to know to start contributing effectivel
    ```
 3. Make your changes following the coding style and structure
 4. Test your changes locally
+   ```bash
+   npm run check
+   npm test
+   ```
 5. Submit a pull request using the [PR Template](.github/PULL_REQUEST_TEMPLATE.md)
 
 ---
@@ -53,6 +57,22 @@ feature/chore branch -> dev -> main -> tag/release
 - Follow modular principles (1 file = 1 concern)
 - Keep logging consistent: `[Mass image downloader]: emoji + message` (use `logDebug()` from `utils.js`)
 - Comment blocks using clear, concise English
+
+## 🧪 Local Validation
+
+Run these checks before opening a pull request:
+
+```bash
+npm run check
+npm test
+```
+
+- `npm run check` validates `manifest.json`, declared extension paths, version alignment across `manifest.json`, `VERSION`, and `package.json`, command limits, required permissions, and JavaScript syntax.
+- `npm test` runs the Node.js compliance tests used by CI.
+
+The same checks run in GitHub Actions for pull requests targeting `dev`.
+
+---
 
 ## 🧑‍💻 Development Rules
 
