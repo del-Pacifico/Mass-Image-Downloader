@@ -4,6 +4,60 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased]
+
+- QA was completed on Microsoft Edge 148.0.3967.54 and Opera One 131.0.5877.24 with no failures reported in flows, downloads, hotkeys, or configuration behavior.
+- No regression warnings were observed during the final review pass for the release branch.
+
+---
+
+## [2.8.184] - 2026-05-19
+
+### 📄 Documentation
+
+- Reworked the root `README.md` into a compact repository entry point.
+- Preserved the previous long-form README as `docs/project-overview-extended.md`.
+- Added the preview image reference to the compact README.
+- Updated the documentation hub to link to the extended project overview.
+- Removed partial Chrome and Edge testing badges from README documents.
+- Restored footer badges in the compact README and replaced the `Code Atomic` badge with a modular coding badge.
+- Added `Support the Project` and `Acknowledgements` sections to the compact README.
+- Removed hardcoded current-version text from README documents; version validation now points to the GitHub Release badge, GitHub tags/releases, the root `VERSION` file, and `manifest.json`.
+- Documented the official contribution flow: feature/chore branch -> `dev` -> `main` -> tag/release.
+- Added development rules for modularity, testability, error handling, edge-case handling, performance awareness, and professional English in comments, logs, and user-facing messages.
+- Added label taxonomy requirements for Issues, Pull Requests, and Discussions.
+- Updated Pull Request, Issue Template, and Release Checklist guidance to enforce branch flow and descriptive repository labels.
+
+### 🧪 Validation
+
+- Added Node.js-based extension compliance checks for manifest validity, declared paths, version alignment, command limits, required permissions, and JavaScript syntax.
+- Added `npm run check` and `npm test` commands for contributors.
+- Added GitHub Actions workflow to run extension validation and compliance tests on PRs targeting `dev` and pushes to `dev` or `main`.
+- Added case-sensitive validation for extension script references.
+- Consolidated the extension runtime JavaScript under `scripts/` and normalized all extension script references accordingly.
+- Added the MPL license header and inline guidance comments to the validation helper for consistency with the rest of the repository.
+- Extracted shared Image Inspector download helpers into `scripts/utils.js` to reduce repetition in the background message handler without changing behavior.
+
+---
+
+## [2.08.182] - 2026-04-28
+
+### 🚀 Overview
+
+This release aligns the repository state with the published `v2.08.182` tag and keeps `main` as the stable release branch.
+
+### 🔁 Changed
+
+- Synchronized `dev` and `main` for the `v2.08.182` release flow.
+- Confirmed the release version through the root `VERSION` file and `manifest.json`.
+
+### 🧹 Maintenance
+
+- Added repository hygiene exclusions for local logs and old version folders.
+- Preserved the standard release path: feature/chore branch → `dev` → `main` → tag/release.
+
+---
+
 ## [2.08.181] - 2026-03-12
 
 ### 🚀 Overview

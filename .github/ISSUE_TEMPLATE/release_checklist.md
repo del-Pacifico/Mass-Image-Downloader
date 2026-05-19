@@ -6,15 +6,22 @@ labels: ["type: release"]
 assignees: []
 ---
 
+## Flow
+
+- Official flow: feature/chore branch → dev → main → tag/release
+
 ## Version
 
 - Target version: vX.Y.Z
 - Branch: dev → main
+- Required labels: `type: release`, `scope: release`, and the appropriate release status label
 
 ## Readiness
 
 - [ ] All feature/bugfix PRs merged into `dev`
-- [ ] CI green in `dev` (CodeQL / build / lint / tests)
+- [ ] CI green in `dev` (extension validation / compliance tests)
+- [ ] `npm run check` passes
+- [ ] `npm test` passes
 - [ ] Changelog updated (Added/Changed/Fixed/Removed)
 - [ ] README/docs adjusted if behavior changed
 - [ ] SemVer respected (breaking changes bump MAJOR)

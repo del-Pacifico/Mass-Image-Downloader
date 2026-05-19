@@ -27,6 +27,7 @@ This file acts as the **entry point and launcher**, allowing direct navigation t
     - [🧑‍🔧 Technical User Manual](#-technical-user-manual)
     - [⌨️ Hotkeys \& Keyboard Shortcuts Policy](#️-hotkeys--keyboard-shortcuts-policy)
     - [👨🏻‍💻 Advanced Manual](#-advanced-manual)
+    - [📄 Extended Project Overview](#-extended-project-overview)
   - [🧭 Which Document Should I Read First?](#-which-document-should-i-read-first)
   - [🧭 Backlog \& Development Flow](#-backlog--development-flow)
     - [💡 Ideas \& Early Proposals](#-ideas--early-proposals)
@@ -131,6 +132,21 @@ Explain **why the system behaves the way it does**, covering design rationale, t
 
 ---
 
+### 📄 Extended Project Overview
+
+**Purpose:**  
+Preserve the previous long-form root README as a detailed project-level reference.
+
+**Read this if:**
+- You want the complete overview that used to live in the repository root
+- You need a broad feature, architecture, usage, and policy reference in one place
+- You are reviewing historical README content after the compact README migration
+
+📄 **Open document:**  
+➡️ [Extended Project Overview](project-overview-extended.md)
+
+---
+
 ## 🧭 Which Document Should I Read First?
 
 Use this quick guide:
@@ -139,12 +155,21 @@ Use this quick guide:
 - **Want to configure something specific** → [Configuration Guides](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/configuration-guides/configuration-guides.md)
 - **Want to understand internals** → [Technical User Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/technical-manual/README.md)
 - **Want to understand design decisions and limits** → [Advanced Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/advanced-manual/README.md)
+- **Want the old long-form README** → [Extended Project Overview](project-overview-extended.md)
 
 ---
 
 ## 🧭 Backlog & Development Flow
 
 This repository follows a clear separation between **ideas**, **planned work**, and **execution**.
+
+All development follows this release path:
+
+```text
+feature/chore branch -> dev -> main -> tag/release
+```
+
+Issues, Pull Requests, and Discussions must use the repository label taxonomy before they are considered ready for planning, review, or promotion. See the root [Contributing Guide](../CONTRIBUTING.md) for the full development and labeling rules.
 
 ### 💡 Ideas & Early Proposals
 - **Location:** GitHub Discussions
@@ -202,6 +227,7 @@ To verify the exact released version:
 - Check the root `VERSION` file
 - Confirm the extension `manifest.json`
 - Review `CHANGELOG.md` for release notes
+- Run `npm run check` and `npm test` from the repository root when validating a local checkout or pull request
 
 If observed behavior differs from the documentation:
 
