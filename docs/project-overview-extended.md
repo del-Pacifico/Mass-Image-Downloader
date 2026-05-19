@@ -25,7 +25,7 @@
     - [Who it’s for](#who-its-for)
     - [Environment](#environment)
   - [📚 Documentation](#-documentation)
-  - [🔥 Highlights in this release (v2.08.181)](#-highlights-in-this-release-v208181)
+  - [🔥 Release Highlights](#-release-highlights)
   - [✨ Features](#-features)
   - [🔔 User Notifications](#-user-notifications)
     - [Standard Message Pattern](#standard-message-pattern)
@@ -70,7 +70,7 @@
     - [6) Throughput \& stability](#6-throughput--stability)
     - [7) Quick troubleshooting](#7-quick-troubleshooting)
   - [✅ Requirements](#-requirements)
-    - [Browser testing status (v2.08.181)](#browser-testing-status-v208181)
+    - [Browser testing status](#browser-testing-status)
   - [🧠 Technical design](#-technical-design)
     - [Architecture overview](#architecture-overview)
     - [File-by-file map](#file-by-file-map)
@@ -179,7 +179,7 @@ From there, you can access:
 
 ---
 
-## 🔥 Highlights in this release (v2.08.181)
+## 🔥 Release Highlights
 
 - Added and validated **core hotkeys** for the main workflows:
   - **Alt + Shift + D** — Bulk Image Download
@@ -779,7 +779,7 @@ To match logs that **start** with the prefix.
 
 - **Node.js** (optional, for linting or bundling tasks)
 
-### Browser testing status (v2.08.181)
+### Browser testing status
 
 - **Brave** → Fully tested 👍🏼
 - **Chrome** → Not fully tested on this release 🚨 
@@ -1384,8 +1384,9 @@ This project targets **Chromium 93+** and **Manifest V3**, with code written in 
 
 ## 📝 Changelog
 
-See the full release notes in **[CHANGELOG.md](./CHANGELOG.md)**.  
-Current version: **v2.08.181**.
+See the full release notes in **[CHANGELOG.md](../CHANGELOG.md)**.
+
+The current public version is shown by the GitHub Release badge at the top of the root README. For source-level validation, check the latest GitHub tag/release, the root `VERSION` file, and `manifest.json`.
 
 ---
 

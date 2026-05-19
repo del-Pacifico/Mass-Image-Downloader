@@ -62,7 +62,13 @@ Mass Image Downloader is a Chromium Manifest V3 extension for collecting and dow
 
 ## Version
 
-Current project version: `2.08.182`.
+The current public version is shown by the GitHub Release badge above.
+
+For source-level validation, check:
+
+- the latest GitHub tag/release
+- the root `VERSION` file
+- `manifest.json`
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
 

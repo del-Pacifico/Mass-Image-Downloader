@@ -4,6 +4,21 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased]
+
+### 📄 Documentation
+
+- Reworked the root `README.md` into a compact repository entry point.
+- Preserved the previous long-form README as `docs/project-overview-extended.md`.
+- Added the preview image reference to the compact README.
+- Updated the documentation hub to link to the extended project overview.
+- Removed partial Chrome and Edge testing badges from README documents.
+- Restored footer badges in the compact README and replaced the `Code Atomic` badge with a modular coding badge.
+- Added `Support the Project` and `Acknowledgements` sections to the compact README.
+- Removed hardcoded current-version text from README documents; version validation now points to the GitHub Release badge, GitHub tags/releases, the root `VERSION` file, and `manifest.json`.
+
+---
+
 ## [2.08.181] - 2026-03-12
 
 ### 🚀 Overview
