@@ -123,5 +123,14 @@ For questions, ideas, or exploratory conversations that don’t yet translate in
 - Use **one issue per problem**.
 - Choose the **most specific template available**.
 - Clear, objective, and reproducible reports help everyone.
+- Issues, Pull Requests, and Discussions must use descriptive labels from the repository label set.
+- During triage, apply labels that describe:
+  - `type:*` for classification
+  - `scope:*` for the affected module or workflow
+  - `priority:*` for scheduling weight
+  - `needs:*` when information is missing
+  - `status:*` or `dev:*` for lifecycle state
+  - `behavior:*` when runtime behavior or compatibility impact is relevant
+- Discussions should use the correct category and descriptive labels when available. If promoted to an issue, the new issue must be labeled before it is considered ready for planning.
 
 Thank you for helping improve **Mass Image Downloader** 🚀

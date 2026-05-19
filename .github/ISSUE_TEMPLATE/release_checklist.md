@@ -6,10 +6,15 @@ labels: ["type: release"]
 assignees: []
 ---
 
+## Flow
+
+- Official flow: feature/chore branch → dev → main → tag/release
+
 ## Version
 
 - Target version: vX.Y.Z
 - Branch: dev → main
+- Required labels: `type: release`, `scope: release`, and the appropriate release status label
 
 ## Readiness
 
