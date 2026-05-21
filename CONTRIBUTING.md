@@ -50,6 +50,28 @@ feature/chore branch -> dev -> main -> tag/release
 
 ---
 
+## 🏷️ Issue Title Prefixes
+
+All issues must start with a bracketed prefix that clearly identifies the nature of the report.
+
+Use one of the following prefixes:
+
+- `[Bug]` for confirmed defects that break or degrade expected behavior.
+- `[Investigation]` for unclear, hard-to-reproduce, or not-yet-classified problems.
+- `[EdgeCase]` for narrow, reproducible cases with limited impact, often visual or layout-related.
+- `[Enhancement]` for functional or UX improvements that are not regressions.
+- `[Docs]` for documentation-only work.
+- `[Chore]` for maintenance, tooling, CI, repo cleanup, or non-functional refactors.
+- `[Question]` for support requests or open questions that are not yet actionable work.
+
+Examples:
+
+- `[Bug] Valid X/Twitter image URLs with query parameters are rejected`
+- `[Investigation] Align One-click icon with shared validation`
+- `[EdgeCase] Inspector overlay offset in nested responsive layouts`
+
+---
+
 ## 📐 Code Standards
 
 - Use **JavaScript ES6+**
