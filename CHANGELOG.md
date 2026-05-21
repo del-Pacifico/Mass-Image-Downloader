@@ -6,6 +6,13 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- QA was completed on Microsoft Edge 148.0.3967.54 and Opera One 131.0.5877.24 with no failures reported in flows, downloads, hotkeys, or configuration behavior.
+- No regression warnings were observed during the final review pass for the release branch.
+
+---
+
+## [2.8.184] - 2026-05-19
+
 ### 📄 Documentation
 
 - Reworked the root `README.md` into a compact repository entry point.
@@ -27,7 +34,9 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Added `npm run check` and `npm test` commands for contributors.
 - Added GitHub Actions workflow to run extension validation and compliance tests on PRs targeting `dev` and pushes to `dev` or `main`.
 - Added case-sensitive validation for extension script references.
-- Renamed the source folder from `Script` to `script` and normalized all extension script references to lowercase.
+- Consolidated the extension runtime JavaScript under `scripts/` and normalized all extension script references accordingly.
+- Added the MPL license header and inline guidance comments to the validation helper for consistency with the rest of the repository.
+- Extracted shared Image Inspector download helpers into `scripts/utils.js` to reduce repetition in the background message handler without changing behavior.
 
 ---
 
