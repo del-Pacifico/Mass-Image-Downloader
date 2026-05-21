@@ -67,7 +67,7 @@
     logDebug(1, '⚡ Utility script loaded.');
 
     // 🧠 Listen to live updates to keep configCache in sync with changes from clipboardHotkeys.js
-    if (chrome?.storage?.onChanged) {
+    if (typeof chrome !== "undefined" && chrome?.storage?.onChanged) {
         chrome.storage.onChanged.addListener((changes) => {
             
             // if prefix changed, update cache and log
@@ -419,6 +419,55 @@
         }
     }
 
+    function getImageUrlParts(url) {
+        try {
+            const parsed = new URL(url);
+            const pathname = parsed.pathname.replace(/\/+$/g, "");
+            const lastSegment = pathname.split("/").pop() || "image";
+            const pathExtMatch = lastSegment.match(/^(.*?)(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})?$/i);
+            const queryFormat = String(
+                parsed.searchParams.get("format")
+                || parsed.searchParams.get("ext")
+                || parsed.searchParams.get("type")
+                || ""
+            ).trim().toLowerCase();
+
+            let baseName = lastSegment;
+            let extension = "";
+            let hasExtendedSuffix = false;
+
+            if (pathExtMatch) {
+                baseName = pathExtMatch[1] || "image";
+                extension = pathExtMatch[2].toLowerCase();
+                hasExtendedSuffix = Boolean(pathExtMatch[4]);
+            } else if (queryFormat) {
+                const normalized = queryFormat.startsWith(".") ? queryFormat : `.${queryFormat}`;
+                if (/^\.(jpe?g|jpeg|png|webp|bmp|avif)$/i.test(normalized)) {
+                    extension = normalized;
+                }
+            }
+
+            return {
+                pathname,
+                lastSegment,
+                baseName,
+                extension,
+                hasPathExtension: Boolean(pathExtMatch),
+                hasExtendedSuffix
+            };
+        } catch (err) {
+            logDebug(1, `❌ Error parsing image URL parts: ${err.message}`);
+            return {
+                pathname: "",
+                lastSegment: "image",
+                baseName: "image",
+                extension: "",
+                hasPathExtension: false,
+                hasExtendedSuffix: false
+            };
+        }
+    }
+
     // 🔍 Checks if a URL points directly to an image, considering user-defined formats.
     //        Trims any trailing slashes from the path before validation.
     async function isDirectImageUrl(url) {
@@ -437,15 +486,6 @@
                 return false;
             }
 
-            // Remove trailing slashes so "/photo.jpg/" passes validation
-            let pathname = parsed.pathname.toLowerCase().replace(/\/+$/g, "");
-
-            // ⛔ Reject if path is empty after trimming
-            if (!pathname) {
-                logDebug(2, `🚫 Invalid path (empty after trim): ${parsed.pathname}`);
-                return false;
-            }
-
             // ✅ Load allowed image extensions from user settings
             const allowedExts = [];
             if (configCache.allowJPG)  allowedExts.push('.jpg');
@@ -455,37 +495,28 @@
             if (configCache.allowAVIF) allowedExts.push('.avif');
             if (configCache.allowBMP)  allowedExts.push('.bmp');
 
-            // 🔍 Extract the file name from the trimmed path
-            const segments = pathname.split('/');
-            const filename = segments.pop();
-            if (!filename || !filename.includes('.')) {
-                logDebug(2, `🚫 No valid filename found in path: ${pathname}`);
+            const { pathname, lastSegment, extension, hasPathExtension, hasExtendedSuffix } = getImageUrlParts(url);
+
+            // ⛔ Reject if path is empty after trimming
+            if (!pathname) {
+                logDebug(2, `🚫 Invalid path (empty after trim): ${parsed.pathname}`);
                 return false;
             }
 
-            /*
-            // ✅ Validate extension against allowed formats
-            const isValid = allowedExts.some(ext => filename.endsWith(ext));
-            logDebug(3, `✨ "${filename}" ends with a valid image URL: ${isValid}`);
-
-            return isValid;
-            */
-
            let isValid = false;
 
-           // 🔍 Check if extended image URLs are allowed
-           if (configCache.allowExtendedImageUrls) {
+           if (hasPathExtension) {
                // Accept extensions with optional :suffix (e.g., .jpg:large, .png:orig)
                isValid = allowedExts.some(ext => {
-                   // Allow up to 10 alphanumeric characters after a colon (e.g., :large, :orig, :small, etc.)
-                   const pattern = new RegExp(`${ext}(:[a-zA-Z0-9]{2,10})?$`, 'i');
-                   return pattern.test(filename);
+                   const pattern = hasExtendedSuffix && configCache.allowExtendedImageUrls
+                       ? new RegExp(`${ext}(:[a-zA-Z0-9]{2,10})?$`, 'i')
+                       : new RegExp(`${ext}$`, 'i');
+                   return pattern.test(lastSegment);
                });
-               logDebug(2, `🔎 Extended image URL support enabled. "${filename}" matches extended pattern: ${isValid}`);
-           } else {
-               // Strict extension check (must end with the extension)
-               isValid = allowedExts.some(ext => filename.endsWith(ext));
-               logDebug(3, `🔎 Extended image URL support disabled. "${filename}" ends with a valid extension: ${isValid}`);
+               logDebug(2, `🔎 Path-based image URL validation for "${lastSegment}": ${isValid}`);
+           } else if (extension) {
+               isValid = allowedExts.includes(extension.toLowerCase());
+               logDebug(2, `🔎 Query-based image URL validation for "${pathname}": ${isValid}`);
            }
 
            return isValid;
@@ -529,16 +560,7 @@
      */
     function splitUrlFileName(url) {
         try {
-            const parsedUrl = new URL(url);
-            let baseName = parsedUrl.pathname.split("/").pop() || "image";
-            let extension = "";
-
-            if (baseName.includes(".")) {
-                const lastDot = baseName.lastIndexOf(".");
-                extension = baseName.slice(lastDot);
-                baseName = baseName.slice(0, lastDot);
-            }
-
+            const { baseName, extension } = getImageUrlParts(url);
             return { baseName, extension };
         } catch (err) {
             logDebug(1, `❌ Error splitting URL file name: ${err.message}`);
@@ -778,10 +800,6 @@
      */
     async function isAllowedImageFormat(url) {
         try {
-            const parsed = new URL(url);
-            // Remove trailing slashes so "/photo.png/" passes validation
-            const pathname = parsed.pathname.toLowerCase().replace(/\/+$/g, "");
-
             const allowedExts = [];
             if (configCache.allowJPG)  allowedExts.push('.jpg');
             if (configCache.allowJPEG) allowedExts.push('.jpeg');
@@ -790,11 +808,21 @@
             if (configCache.allowAVIF) allowedExts.push('.avif');
             if (configCache.allowBMP)  allowedExts.push('.bmp');
 
-            const isValid = allowedExts.some(ext => pathname.endsWith(ext));
+            const { pathname, lastSegment, extension, hasPathExtension, hasExtendedSuffix } = getImageUrlParts(url);
+
+            const isValid = hasPathExtension
+                ? allowedExts.some(ext => {
+                    const pattern = hasExtendedSuffix && configCache.allowExtendedImageUrls
+                        ? new RegExp(`${ext}(:[a-zA-Z0-9]{2,10})?$`, 'i')
+                        : new RegExp(`${ext}$`, 'i');
+                    return pattern.test(lastSegment);
+                })
+                : allowedExts.includes(extension.toLowerCase());
+
             if (isValid) {
-                logDebug(2, `✅ "${pathname.split('/').pop()}" accepted by allowed image formats.`);
+                logDebug(2, `✅ "${lastSegment}" accepted by allowed image formats.`);
             } else {
-                logDebug(2, `⛔ "${pathname.split('/').pop()}" not allowed by image formats.`);
+                logDebug(2, `⛔ "${lastSegment}" not allowed by image formats.`);
             }
             return isValid;
         } catch (err) {

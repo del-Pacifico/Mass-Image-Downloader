@@ -1187,14 +1187,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
                 logDebug(2, `🔗 Processing URL: ${urlForDownload}`);
 
-                const urlObj = new URL(urlForDownload);
-                let baseName = urlObj.pathname.split('/').pop() || 'image';
-                let extension = '';
-                if (baseName.includes('.')) {
-                    const lastDot = baseName.lastIndexOf('.');
-                    extension = baseName.slice(lastDot);
-                    baseName = baseName.slice(0, lastDot);
-                }
+                const { baseName, extension } = splitUrlFileName(urlForDownload);
 
                 // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
                 await Promise.all([configReady, settingsReady]);
@@ -1781,10 +1774,7 @@ async function processValidTabs(validTabs, onComplete, validatedUrls, resetBadge
                     return;
                 }
 
-                const parts = url.pathname.split('/');
-                const lastPart = parts.pop();
-                const baseName = lastPart.split('.')[0] || 'image';
-                const extension = '.' + (lastPart.split('.').pop() || 'jpg');
+                const { baseName, extension } = splitUrlFileName(url.href);
 
                 // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
                 await Promise.all([settingsReady, configReady]);
@@ -1914,23 +1904,14 @@ async function downloadImageFromUrl(imageUrl, sourceTag = "unknown") {
         logDebug(2, `⚠️ [${sourceTag}] URL normalization warning: ${e.message}`);
     }
 
-    // ✅ Derive base filename + extension from URL path
+    // ✅ Derive base filename + extension from URL path or query format
     let baseName = "image";
     let extension = ".jpg";
 
     try {
-        const urlObj = new URL(urlForDownload);
-        const parts = urlObj.pathname.split("/");
-        const lastPart = parts.pop() || "image.jpg";
-
-        if (lastPart.includes(".")) {
-            const lastDot = lastPart.lastIndexOf(".");
-            baseName = lastPart.slice(0, lastDot) || "image";
-            extension = lastPart.slice(lastDot) || ".jpg";
-        } else {
-            baseName = lastPart || "image";
-            extension = ".jpg";
-        }
+        const urlParts = splitUrlFileName(urlForDownload);
+        baseName = urlParts.baseName || "image";
+        extension = urlParts.extension || ".jpg";
     } catch (e) {
         logDebug(2, `⚠️ [${sourceTag}] URL parse warning, using fallback filename: ${e.message}`);
     }
@@ -2424,15 +2405,7 @@ async function handleExtractVisualGallery(message, sendResponse) {
             const next = validatedImages.shift();
 
             try {
-                const urlObj = new URL(next.url);
-                const pathname = urlObj.pathname;
-                const extension = pathname.split('.').pop() || 'jpg';
-                let baseName = pathname.split('/').pop() || 'image';
-
-                // 🧪 Ensure baseName is sanitized: remove any leading/trailing slashes and normalize
-                if (baseName.includes('.')) {
-                    baseName = baseName.substring(0, baseName.lastIndexOf('.'));
-                }
+                const { baseName, extension } = splitUrlFileName(next.url);
 
                 const sanitizedBase = sanitizeFilenameComponent(baseName);
 

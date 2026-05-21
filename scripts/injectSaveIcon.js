@@ -45,6 +45,78 @@ function logDebug(levelOfLog, ...args) {
     }
 } 
 
+function getImageUrlParts(url) {
+    try {
+        const parsed = new URL(url, location.href);
+        const pathname = parsed.pathname.replace(/\/+$/g, "");
+        const lastSegment = pathname.split("/").pop() || "image";
+        const pathExtMatch = lastSegment.match(/^(.*?)(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})?$/i);
+        const queryFormat = String(
+            parsed.searchParams.get("format")
+            || parsed.searchParams.get("ext")
+            || parsed.searchParams.get("type")
+            || ""
+        ).trim().toLowerCase();
+
+        let baseName = lastSegment;
+        let extension = "";
+        let hasExtendedSuffix = false;
+
+        if (pathExtMatch) {
+            baseName = pathExtMatch[1] || "image";
+            extension = pathExtMatch[2].toLowerCase();
+            hasExtendedSuffix = Boolean(pathExtMatch[4]);
+        } else if (queryFormat) {
+            const normalized = queryFormat.startsWith(".") ? queryFormat : `.${queryFormat}`;
+            if (/^\.(jpe?g|jpeg|png|webp|bmp|avif)$/i.test(normalized)) {
+                extension = normalized;
+            }
+        }
+
+        return {
+            pathname,
+            lastSegment,
+            baseName,
+            extension,
+            hasPathExtension: Boolean(pathExtMatch),
+            hasExtendedSuffix
+        };
+    } catch (_) {
+        return {
+            pathname: "",
+            lastSegment: "image",
+            baseName: "image",
+            extension: "",
+            hasPathExtension: false,
+            hasExtendedSuffix: false
+        };
+    }
+}
+
+function isAllowedImageSource(url, allowedExts, allowExtended) {
+    const info = getImageUrlParts(url);
+    const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})?$/i;
+    let normalizedUrl = url;
+
+    if (allowExtended && info.hasPathExtension && info.hasExtendedSuffix) {
+        normalizedUrl = url.replace(extendedSuffixPattern, '.$2');
+    }
+
+    let isValid = false;
+    if (info.hasPathExtension) {
+        isValid = allowedExts.some(ext => {
+            const pattern = info.hasExtendedSuffix && allowExtended
+                ? new RegExp(`${ext}(:[a-zA-Z0-9]{2,10})?$`, 'i')
+                : new RegExp(`${ext}$`, 'i');
+            return pattern.test(info.lastSegment);
+        });
+    } else if (info.extension) {
+        isValid = allowedExts.includes(info.extension.toLowerCase());
+    }
+
+    return { isValid, normalizedUrl, ...info };
+}
+
 // Local tooltip helper for the one-click icon.
 // Shows a small bubble above the icon instead of relying on native title behavior.
 function attachTooltipForIcon(element, text) {
@@ -185,24 +257,11 @@ function detectContextAndProceed() {
             logDebug(1, "🖼️ Direct image URL detected. (window.location.href mode)");
 
             const url = window.location.href;
-            let isValid = false;
 
             try {
                 const allowedExts = configCache.allowedExts || [];
                 const allowExtended = configCache.allowExtendedImageUrls ?? false;
-
-                const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|gif|avif))(:[a-zA-Z0-9]{2,10})$/i;
-                const hasExtendedSuffix = extendedSuffixPattern.test(url.toLowerCase());
-
-                let normalizedUrl = url;
-
-                // Normalize URL if it has an extended suffix
-                if (allowExtended && hasExtendedSuffix) {
-                    normalizedUrl = url.replace(extendedSuffixPattern, '.$2');
-                    isValid = allowedExts.some(ext => normalizedUrl.toLowerCase().endsWith(ext));
-                } else {
-                    isValid = allowedExts.some(ext => url.toLowerCase().endsWith(ext));
-                }
+                const { isValid, normalizedUrl } = isAllowedImageSource(url, allowedExts, allowExtended);
 
                 if (!isValid) {
                     logDebug(1, `❌ Direct image URL does not match allowed formats: ${url}`);
@@ -361,19 +420,7 @@ function proceedWithInjection() {
 
             // ✅ Advanced logic: normal vs extended suffix
             const allowExtended = configCache.allowExtendedImageUrls === true;
-            const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|gif|avif))(:[a-zA-Z0-9]{2,10})$/i;
-            const hasExtendedSuffix = extendedSuffixPattern.test(src.toLowerCase());
-
-            let isAllowedFormat = false;
-            let normalizedSrc = src;
-
-            // Normalize the URL if it has an extended suffix
-            if (allowExtended && hasExtendedSuffix) {
-                normalizedSrc = src.replace(extendedSuffixPattern, '.$2');
-                isAllowedFormat = configCache.allowedExts.some(ext => normalizedSrc.toLowerCase().endsWith(ext));
-            } else {
-                isAllowedFormat = configCache.allowedExts.some(ext => src.toLowerCase().endsWith(ext));
-            }
+            const { isValid: isAllowedFormat, normalizedUrl: normalizedSrc } = isAllowedImageSource(src, configCache.allowedExts || [], allowExtended);
             return visible && hasMinSize && isAllowedFormat
                 ? { img, originalSrc: src, normalizedSrc }
                 : null;
