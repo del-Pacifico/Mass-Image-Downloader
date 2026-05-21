@@ -1,3 +1,11 @@
+// # This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+// # If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+// #
+// # Original Author: Sergio Palma Hidalgo
+// # Project URL: https://github.com/del-Pacifico/Mass-Image-Downloader
+// # Copyright (c) 2025 Sergio Palma Hidalgo
+// # All rights reserved.
+
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -18,6 +26,7 @@ function assert(condition, message) {
   }
 }
 
+// Keep path checks case-sensitive so CI can catch casing mistakes before publish.
 function assertPathExistsCaseSensitive(relativePath) {
   const normalized = relativePath.replaceAll("\\", "/").replace(/^\/+/, "");
   const parts = normalized.split("/").filter(Boolean);
@@ -30,6 +39,7 @@ function assertPathExistsCaseSensitive(relativePath) {
   }
 }
 
+// Gather every path declared by the extension manifest.
 function collectManifestPaths(manifest) {
   const paths = [];
 
@@ -72,6 +82,7 @@ function collectManifestPaths(manifest) {
   return paths;
 }
 
+// Read HTML entry points and verify the local script imports they reference.
 function collectHtmlScriptPaths() {
   const htmlDir = path.join(repoRoot, "html");
   const scriptPaths = [];
@@ -94,8 +105,9 @@ function collectHtmlScriptPaths() {
   return scriptPaths;
 }
 
+// Validate only the extension runtime scripts, not this tooling file.
 function collectJavaScriptFiles() {
-  const scriptDir = path.join(repoRoot, "script");
+  const scriptDir = path.join(repoRoot, "scripts");
   return fs
     .readdirSync(scriptDir)
     .filter((fileName) => fileName.endsWith(".js"))

@@ -30,6 +30,8 @@
         calculatePathSimilarity,
         generateFilename,
         normalizeImageUrl,
+        splitUrlFileName,
+        buildDownloadPath,
         sanitizeFilenameComponent,
         isDirectImageUrl,
         isAllowedImageFormat,
@@ -824,7 +826,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
                 await chrome.scripting.executeScript({
                     target: { tabId },
-                    files: ["script/extractWebLinkedGallery.js"]
+                    files: ["scripts/extractWebLinkedGallery.js"]
                 });
 
                 logDebug(1, "✅ END: extractWebLinkedGallery.js injected successfully.");
@@ -979,7 +981,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                                             if (enableOneClickIcon) {
                                                 chrome.scripting.executeScript({
                                                     target: { tabId: tab.id },
-                                                    files: ["script/injectSaveIcon.js"]
+                                                    files: ["scripts/injectSaveIcon.js"]
                                                 }, () => {
                                                     if (chrome.runtime.lastError) {
                                                         logDebug(1, `❌ Failed to inject save icon: ${chrome.runtime.lastError.message}`);
@@ -1067,14 +1069,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
                 logDebug(2, `🔗 Processing URL: ${urlForDownload}`);
 
-                const urlObj = new URL(urlForDownload);
-                let baseName = urlObj.pathname.split('/').pop() || 'image';
-                let extension = '';
-                if (baseName.includes('.')) {
-                    const lastDot = baseName.lastIndexOf('.');
-                    extension = baseName.slice(lastDot);
-                    baseName = baseName.slice(0, lastDot);
-                }
+                const { baseName, extension } = splitUrlFileName(urlForDownload);
 
                 // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
                 await Promise.all([configReady, settingsReady]);
@@ -1083,275 +1078,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                     try {
                         // Generate final filename with prefix/suffix/timestamp (from utils/configCache)
                         const finalName = await generateFilename(baseName, extension);
-
-                        // Normalize custom subfolder (relative under default Downloads)
-                        const safeFolder = (downloadFolder === 'custom' && typeof customFolderPath === 'string' && customFolderPath.trim())
-                            ? customFolderPath.trim().replace(/\\/g, '/').replace(/\/+$/, '')
-                            : '';
-
-                        const finalPath = safeFolder ? `${safeFolder}/${finalName}` : finalName;
-                        logDebug(2, `Saving folder/file (requested): ${finalPath}`);
-
-                        // 🔒 Register the desired filename so the listener can enforce it
-                        pendingDownloadPaths.set(urlForDownload, finalPath);
-
-                        chrome.downloads.download({
-                            url: urlForDownload,
-                            // filename is still passed (harmless); listener will enforce it anyway
-                            filename: finalPath,
-                            conflictAction: 'uniquify'
-                        }, (downloadId) => {
-                            if (downloadId) {
-                                // ACK early to keep message port healthy in MV3
-                                respondSafe(sendResponse, { success: true });
-
-                                try {
-                                    chrome.downloads.search({ id: downloadId }, (items) => {
-                                        const resolved = items && items[0] ? items[0].filename : finalPath;
-                                        logDebug(1, '🕵️ Image Inspector download (resolved path): ', resolved);
-                                    });
-                                } catch (auditErr) {
-                                    logDebug(1, `⚠️ Could not audit saved path: ${auditErr.message}`);
-                                    logDebug(3, `🐛 Stacktrace: ${auditErr.stack}`);
-                                }
-
-                                // ✅ Badge: 1 image processed (green) and then finished (blue)
-                                try {
-                                    updateBadge(1, false); // green with count=1
-                                    setTimeout(() => {
-                                        try {
-                                            updateBadge(1, true); // blue with final count
-                                        } catch (badgeEndErr) {
-                                            logDebug(1, `⚠️ Badge finalize error: ${badgeEndErr.message}`);
-                                        }
-                                    }, 300);
-                                } catch (badgeErr) {
-                                    logDebug(1, `⚠️ Badge update error: ${badgeErr.message}`);
-                                }
-
-                                const tabId = sender?.tab?.id;
-                                if (tabId) {
-                                    if (imageInspectorCloseOnSave === true) {
-                                        closeTabSafely(tabId, () => {
-                                            logDebug(1, `💥 tab ${tabId} closed after save (per option).`);
-                                        });
-                                    } else {
-                                        logDebug(2, "ℹ️ tab retained after save (option disabled).");
-                                    }
-                                } else {
-                                    logDebug(2, "ℹ️ no sender tabId, nothing to close.");
-                                }
-
-                                logDebug(2, '🕵️ END: Image Inspector save.');
-                                logDebug(3, '');
-                            } else {
-                                logDebug(1, `❌ Image Inspector download failed for: ${urlForDownload}`);
-                                setBadgeError();
-                                respondSafe(sendResponse, { success: false, error: "Download failed" });
-                                // Cleanup on failure
-                                pendingDownloadPaths.delete(urlForDownload);
-                            }
-                        });
-                    } catch (err) {
-                        logDebug(1, `❌ Failed to prepare Image Inspector download: ${err.message}`);
-                        logDebug(3, `🐛 Stacktrace: ${err.stack}`);
-                        setBadgeError();
-                        respondSafe(sendResponse, { success: false, error: err.message });
-                    }
-                })();
-
-            } catch (e) {
-                logDebug(1, `❌ Error handling Image Inspector save: ${e.message}`);
-                logDebug(3, `🐛 Stacktrace: ${e.stack}`);
-                setBadgeError();
-                respondSafe(sendResponse, { success: false, error: e.message });
-            }
-
-            return true;
-        }
-
-        // ✅ Handle Image Inspector save (single image, inspector panel)
-        if (message.action === 'imageInspectorSaveImage') {
-            logDebug(3, '');
-            logDebug(1, '🕵️ BEGIN: Image Inspector save requested.');
-
-            setBadgeProcessing();
-
-            try {
-                const imageUrl = message.imageUrl;
-                if (!imageUrl || typeof imageUrl !== 'string') {
-                    throw new Error("Invalid image URL received.");
-                }
-
-                const allowExtended = allowExtendedImageUrls ?? false;
-                const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
-                const hasExtendedSuffix = extendedSuffixPattern.test(imageUrl);
-
-                let urlForDownload;
-                if (allowExtended && hasExtendedSuffix) {
-                    urlForDownload = normalizeImageUrl(imageUrl);
-                    logDebug(2, `🔵 Extended suffix detected and allowed. Using normalized URL: ${urlForDownload}`);
-                } else {
-                    urlForDownload = imageUrl;
-                    logDebug(2, `🟢 No extended suffix detected or not allowed. Using original URL.`);
-                }
-
-                logDebug(2, `🔗 Processing URL: ${urlForDownload}`);
-
-                const urlObj = new URL(urlForDownload);
-                let baseName = urlObj.pathname.split('/').pop() || 'image';
-                let extension = '';
-                if (baseName.includes('.')) {
-                    const lastDot = baseName.lastIndexOf('.');
-                    extension = baseName.slice(lastDot);
-                    baseName = baseName.slice(0, lastDot);
-                }
-
-                // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
-                await Promise.all([configReady, settingsReady]);
-
-                (async () => {
-                    try {
-                        // Generate final filename with prefix/suffix/timestamp (from utils/configCache)
-                        const finalName = await generateFilename(baseName, extension);
-
-                        // Normalize custom subfolder (relative under default Downloads)
-                        const safeFolder = (downloadFolder === 'custom' && typeof customFolderPath === 'string' && customFolderPath.trim())
-                            ? customFolderPath.trim().replace(/\\/g, '/').replace(/\/+$/, '')
-                            : '';
-
-                        const finalPath = safeFolder ? `${safeFolder}/${finalName}` : finalName;
-                        logDebug(2, `Saving folder/file (requested): ${finalPath}`);
-
-                        // 🔒 Register the desired filename so the listener can enforce it
-                        pendingDownloadPaths.set(urlForDownload, finalPath);
-
-                        chrome.downloads.download({
-                            url: urlForDownload,
-                            // filename is still passed (harmless); listener will enforce it anyway
-                            filename: finalPath,
-                            conflictAction: 'uniquify'
-                        }, (downloadId) => {
-                            if (downloadId) {
-                                // ACK early to keep message port healthy in MV3
-                                respondSafe(sendResponse, { success: true });
-
-                                try {
-                                    chrome.downloads.search({ id: downloadId }, (items) => {
-                                        const resolved = items && items[0] ? items[0].filename : finalPath;
-                                        logDebug(1, '🕵️ Image Inspector download (resolved path): ', resolved);
-                                    });
-                                } catch (auditErr) {
-                                    logDebug(1, `⚠️ Could not audit saved path: ${auditErr.message}`);
-                                    logDebug(3, `🐛 Stacktrace: ${auditErr.stack}`);
-                                }
-
-                                // ✅ Badge: 1 image processed (green) and then finished (blue)
-                                try {
-                                    updateBadge(1, false); // green with count=1
-                                    setTimeout(() => {
-                                        try {
-                                            updateBadge(1, true); // blue with final count
-                                        } catch (badgeEndErr) {
-                                            logDebug(1, `⚠️ Badge finalize error: ${badgeEndErr.message}`);
-                                        }
-                                    }, 300);
-                                } catch (badgeErr) {
-                                    logDebug(1, `⚠️ Badge update error: ${badgeErr.message}`);
-                                }
-
-                                const tabId = sender?.tab?.id;
-                                if (tabId) {
-                                    if (imageInspectorCloseOnSave === true) {
-                                        closeTabSafely(tabId, () => {
-                                            logDebug(1, `💥 tab ${tabId} closed after save (per option).`);
-                                        });
-                                    } else {
-                                        logDebug(2, "ℹ️ tab retained after save (option disabled).");
-                                    }
-                                } else {
-                                    logDebug(2, "ℹ️ no sender tabId, nothing to close.");
-                                }
-
-                                logDebug(2, '🕵️ END: Image Inspector save.');
-                                logDebug(3, '');
-                            } else {
-                                logDebug(1, `❌ Image Inspector download failed for: ${urlForDownload}`);
-                                setBadgeError();
-                                respondSafe(sendResponse, { success: false, error: "Download failed" });
-                                // Cleanup on failure
-                                pendingDownloadPaths.delete(urlForDownload);
-                            }
-                        });
-                    } catch (err) {
-                        logDebug(1, `❌ Failed to prepare Image Inspector download: ${err.message}`);
-                        logDebug(3, `🐛 Stacktrace: ${err.stack}`);
-                        setBadgeError();
-                        respondSafe(sendResponse, { success: false, error: err.message });
-                    }
-                })();
-
-            } catch (e) {
-                logDebug(1, `❌ Error handling Image Inspector save: ${e.message}`);
-                logDebug(3, `🐛 Stacktrace: ${e.stack}`);
-                setBadgeError();
-                respondSafe(sendResponse, { success: false, error: e.message });
-            }
-
-            return true;
-        }
-
-        // ✅ Handle Image Inspector save (single image, inspector panel)
-        if (message.action === 'imageInspectorSaveImage') {
-            logDebug(3, '');
-            logDebug(1, '🕵️ BEGIN: Image Inspector save requested.');
-
-            setBadgeProcessing();
-
-            try {
-                const imageUrl = message.imageUrl;
-                if (!imageUrl || typeof imageUrl !== 'string') {
-                    throw new Error("Invalid image URL received.");
-                }
-
-                const allowExtended = allowExtendedImageUrls ?? false;
-                const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
-                const hasExtendedSuffix = extendedSuffixPattern.test(imageUrl);
-
-                let urlForDownload;
-                if (allowExtended && hasExtendedSuffix) {
-                    urlForDownload = normalizeImageUrl(imageUrl);
-                    logDebug(2, `🔵 Extended suffix detected and allowed. Using normalized URL: ${urlForDownload}`);
-                } else {
-                    urlForDownload = imageUrl;
-                    logDebug(2, `🟢 No extended suffix detected or not allowed. Using original URL.`);
-                }
-
-                logDebug(2, `🔗 Processing URL: ${urlForDownload}`);
-
-                const urlObj = new URL(urlForDownload);
-                let baseName = urlObj.pathname.split('/').pop() || 'image';
-                let extension = '';
-                if (baseName.includes('.')) {
-                    const lastDot = baseName.lastIndexOf('.');
-                    extension = baseName.slice(lastDot);
-                    baseName = baseName.slice(0, lastDot);
-                }
-
-                // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
-                await Promise.all([configReady, settingsReady]);
-
-                (async () => {
-                    try {
-                        // Generate final filename with prefix/suffix/timestamp (from utils/configCache)
-                        const finalName = await generateFilename(baseName, extension);
-
-                        // Normalize custom subfolder (relative under default Downloads)
-                        const safeFolder = (downloadFolder === 'custom' && typeof customFolderPath === 'string' && customFolderPath.trim())
-                            ? customFolderPath.trim().replace(/\\/g, '/').replace(/\/+$/, '')
-                            : '';
-
-                        const finalPath = safeFolder ? `${safeFolder}/${finalName}` : finalName;
+                        const finalPath = buildDownloadPath(customFolderPath, finalName);
                         logDebug(2, `Saving folder/file (requested): ${finalPath}`);
 
                         // 🔒 Register the desired filename so the listener can enforce it
@@ -1693,7 +1420,7 @@ async function handleOneClickIconHotkey() {
             return;
         }
 
-        const injected = await injectScriptFileSafe(tab.id, "script/injectSaveIcon.js", "one-click-icon");
+        const injected = await injectScriptFileSafe(tab.id, "scripts/injectSaveIcon.js", "one-click-icon");
         if (!injected) return;
 
         logDebug(1, "✅ One-click download icon injected successfully.");
@@ -1742,7 +1469,7 @@ async function handleExtractLinkedGalleryHotkey() {
         return;
     }
 
-    await injectScriptFileSafe(tab.id, "script/extractLinkedGallery.js", "extract-linked-gallery");
+    await injectScriptFileSafe(tab.id, "scripts/extractLinkedGallery.js", "extract-linked-gallery");
 }
 
 /**
@@ -1762,7 +1489,7 @@ async function handleExtractVisualGalleryHotkey() {
         return;
     }
 
-    await injectScriptFileSafe(tab.id, "script/extractVisualGallery.js", "extract-visual-gallery");
+    await injectScriptFileSafe(tab.id, "scripts/extractVisualGallery.js", "extract-visual-gallery");
 }
 
 /**

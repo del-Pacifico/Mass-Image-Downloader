@@ -1,4 +1,4 @@
-# Mass Image Downloader
+# 🖼️ Mass Image Downloader
 
 ![Chromium 93+](https://img.shields.io/badge/Chromium-93%2B-4285F4?logo=google-chrome&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-FF9800)

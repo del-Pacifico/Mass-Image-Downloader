@@ -522,6 +522,49 @@
         }
     }
 
+    /**
+     * Extracts the file base name and extension from a URL path.
+     * @param {string} url - Absolute URL pointing to the target image.
+     * @returns {{ baseName: string, extension: string }}
+     */
+    function splitUrlFileName(url) {
+        try {
+            const parsedUrl = new URL(url);
+            let baseName = parsedUrl.pathname.split("/").pop() || "image";
+            let extension = "";
+
+            if (baseName.includes(".")) {
+                const lastDot = baseName.lastIndexOf(".");
+                extension = baseName.slice(lastDot);
+                baseName = baseName.slice(0, lastDot);
+            }
+
+            return { baseName, extension };
+        } catch (err) {
+            logDebug(1, `❌ Error splitting URL file name: ${err.message}`);
+            return { baseName: "image", extension: "" };
+        }
+    }
+
+    /**
+     * Builds a download path from an optional folder and a final file name.
+     * @param {string} folderPath - Optional custom folder path.
+     * @param {string} finalName - Final file name already generated.
+     * @returns {string}
+     */
+    function buildDownloadPath(folderPath, finalName) {
+        try {
+            const safeFolder = (typeof folderPath === "string" && folderPath.trim())
+                ? folderPath.trim().replace(/\\/g, "/").replace(/\/+$/, "")
+                : "";
+
+            return safeFolder ? `${safeFolder}/${finalName}` : finalName;
+        } catch (err) {
+            logDebug(1, `❌ Error building download path: ${err.message}`);
+            return finalName;
+        }
+    }
+
     // 🧠 Generate final filename based on naming preferences (prefix, suffix, timestamp, etc.)
     // 🔒 This function does NOT handle folder paths. The caller must append them if needed.
     async function generateFilename(baseName, extension) {
@@ -770,6 +813,8 @@
         calculatePathSimilarity,
         generateFilename,
         normalizeImageUrl,
+        splitUrlFileName,
+        buildDownloadPath,
         isDirectImageUrl,
         isAllowedImageFormat,
         showUserMessage,
