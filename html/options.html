@@ -207,6 +207,23 @@
     <!-- options.html - Mass Image Downloader (restructured with global sections) -->
     <div class="global-options-wrapper">
 
+    <!-- 🌐 Global Settings: Extended Image URL Support -->
+    <h2>🌐 Extended Image URL Support</h2>
+    <p class="description">Choose which extended image URL patterns the extension should treat as valid when the selected image format is enabled.</p>
+    <div class="option-group">
+        <label>Supported extended URL patterns:</label><br>
+        <input type="checkbox" id="allowTwitterXQueryParams">
+        <label for="allowTwitterXQueryParams">Twitter/X image URLs with query parameters</label><br>
+        <input type="checkbox" id="allowRedditCdnQueryParams">
+        <label for="allowRedditCdnQueryParams">Reddit CDN image URLs with query parameters</label><br>
+        <input type="checkbox" id="allowParameterizedCdnUrls">
+        <label for="allowParameterizedCdnUrls">Parameterized CDN-style image URLs</label><br>
+        <input type="checkbox" id="allowWrappedImageUrls">
+        <label for="allowWrappedImageUrls">Wrapped URLs that still resolve to a valid image</label>
+        <p class="info-text">All of these options are disabled by default. Enable only the URL shapes you want the extension to accept.</p>
+        <p class="info-text">Rule: <em>Does this URL resolve to an image format that the user has enabled, even if it is decorated with suffixes or query parameters?</em></p>
+    </div>
+
     <!-- 📁 Global Settings: File system -->
     <h2>📁 File system</h2>
     <p class="description">Configure how and where images are stored on your system, including folder selection and supported formats.</p>
@@ -229,11 +246,6 @@
         <input type="checkbox" id="allowBMP"> BMP
         <p class="info-text">Only selected formats will be considered during processing.</p>
         <p class="info-text">❗ Unsupported formats like <strong>SVG, GIF, HEIC, TIFF, ICO</strong> are ignored due to decoding failures (e.g., "DOMException: The image format is not supported").</p>
-    </div>
-        <div class="option-group">
-        <input type="checkbox" id="allowExtendedImageUrls">
-        <label for="allowExtendedImageUrls">Allow extended image URLs (accept Twitter/X :large, :orig, etc. as valid images)</label>
-        <p class="info-text">Enable to accept image links that end with modifiers like :large or :orig. Useful for Twitter/X, Pixiv, etc.</p>
     </div>
     <div class="option-group">
         <label>Filename Customization:</label>
