@@ -45,12 +45,40 @@ function logDebug(levelOfLog, ...args) {
     }
 } 
 
+const SUPPORTED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".avif", ".bmp"];
+const EXTENDED_IMAGE_URL_FLAG_KEYS = [
+    "allowTwitterXQueryParams",
+    "allowRedditCdnQueryParams",
+    "allowParameterizedCdnUrls",
+    "allowWrappedImageUrls"
+];
+
+function escapeRegex(text) {
+    return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function getAllowedImageExtensions() {
+    const allowedExts = [];
+    if (configCache.allowJPG) allowedExts.push(".jpg");
+    if (configCache.allowJPEG) allowedExts.push(".jpeg");
+    if (configCache.allowPNG) allowedExts.push(".png");
+    if (configCache.allowWEBP) allowedExts.push(".webp");
+    if (configCache.allowAVIF) allowedExts.push(".avif");
+    if (configCache.allowBMP) allowedExts.push(".bmp");
+    return allowedExts;
+}
+
+function hasEnabledExtendedImageUrlSupport() {
+    return EXTENDED_IMAGE_URL_FLAG_KEYS.some((key) => configCache[key] === true);
+}
+
 function getImageUrlParts(url) {
     try {
         const parsed = new URL(url, location.href);
         const pathname = parsed.pathname.replace(/\/+$/g, "");
         const lastSegment = pathname.split("/").pop() || "image";
-        const pathExtMatch = lastSegment.match(/^(.*?)(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})?$/i);
+        const extensionPattern = SUPPORTED_IMAGE_EXTENSIONS.map((ext) => escapeRegex(ext.slice(1))).join("|");
+        const pathExtMatch = lastSegment.match(new RegExp(`^(.*?)(\\.(?:${extensionPattern}))(:[a-zA-Z0-9]{2,10})?$`, "i"));
         const queryFormat = String(
             parsed.searchParams.get("format")
             || parsed.searchParams.get("ext")
@@ -68,7 +96,7 @@ function getImageUrlParts(url) {
             hasExtendedSuffix = Boolean(pathExtMatch[4]);
         } else if (queryFormat) {
             const normalized = queryFormat.startsWith(".") ? queryFormat : `.${queryFormat}`;
-            if (/^\.(jpe?g|jpeg|png|webp|bmp|avif)$/i.test(normalized)) {
+            if (SUPPORTED_IMAGE_EXTENSIONS.some((ext) => ext.toLowerCase() === normalized.toLowerCase())) {
                 extension = normalized;
             }
         }
@@ -95,11 +123,11 @@ function getImageUrlParts(url) {
 
 function isAllowedImageSource(url, allowedExts, allowExtended) {
     const info = getImageUrlParts(url);
-    const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})?$/i;
     let normalizedUrl = url;
 
     if (allowExtended && info.hasPathExtension && info.hasExtendedSuffix) {
-        normalizedUrl = url.replace(extendedSuffixPattern, '.$2');
+        const extensionPattern = SUPPORTED_IMAGE_EXTENSIONS.map((ext) => escapeRegex(ext.slice(1))).join("|");
+        normalizedUrl = url.replace(new RegExp(`(\\.(?:${extensionPattern}))(:[a-zA-Z0-9]{2,10})$`, "i"), "$1");
     }
 
     let isValid = false;
@@ -178,6 +206,10 @@ if (typeof configCache === 'undefined') {
         showUserFeedbackMessages: false,
         toastMinVisibleMs: 2000, // Default: 2000ms
         allowExtendedImageUrls: false,
+        allowTwitterXQueryParams: false,
+        allowRedditCdnQueryParams: false,
+        allowParameterizedCdnUrls: false,
+        allowWrappedImageUrls: false,
         enableOneClickIcon: false
     };
 }
@@ -187,7 +219,10 @@ function initConfigForInjectSaveIcon(callback) {
     chrome.storage.sync.get(
         ["debugLogLevel", "minWidth", "minHeight", "allowJPG", "allowJPEG", 
             "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", "enableOneClickIcon", 
-            "showUserFeedbackMessages", "toastMinVisibleMs", "allowExtendedImageUrls"],
+            "showUserFeedbackMessages", "toastMinVisibleMs",
+            "allowTwitterXQueryParams", "allowRedditCdnQueryParams",
+            "allowParameterizedCdnUrls", "allowWrappedImageUrls",
+            "allowExtendedImageUrls"],
         (data) => {
             debugLogLevelCache = parseInt(data.debugLogLevel ?? 1);
 
@@ -209,8 +244,24 @@ function initConfigForInjectSaveIcon(callback) {
                 ? rawToastMinVisibleMs
                 : 2000;
 
-                if (data.allowExtendedImageUrls) configCache.allowExtendedImageUrls = true;
-            else configCache.allowExtendedImageUrls = false;
+            const hasGranularExtendedFlags = EXTENDED_IMAGE_URL_FLAG_KEYS.some((key) => Object.prototype.hasOwnProperty.call(data, key));
+            const legacyExtendedUrlsEnabled = data.allowExtendedImageUrls === true;
+
+            configCache.allowTwitterXQueryParams = hasGranularExtendedFlags
+                ? data.allowTwitterXQueryParams === true
+                : legacyExtendedUrlsEnabled;
+            configCache.allowRedditCdnQueryParams = hasGranularExtendedFlags
+                ? data.allowRedditCdnQueryParams === true
+                : legacyExtendedUrlsEnabled;
+            configCache.allowParameterizedCdnUrls = hasGranularExtendedFlags
+                ? data.allowParameterizedCdnUrls === true
+                : legacyExtendedUrlsEnabled;
+            configCache.allowWrappedImageUrls = hasGranularExtendedFlags
+                ? data.allowWrappedImageUrls === true
+                : legacyExtendedUrlsEnabled;
+            configCache.allowExtendedImageUrls = hasGranularExtendedFlags
+                ? EXTENDED_IMAGE_URL_FLAG_KEYS.some((key) => configCache[key] === true)
+                : legacyExtendedUrlsEnabled;
             if (data.enableOneClickIcon) configCache.enableOneClickIcon = true;
             else configCache.enableOneClickIcon = false;
 
@@ -260,7 +311,7 @@ function detectContextAndProceed() {
 
             try {
                 const allowedExts = configCache.allowedExts || [];
-                const allowExtended = configCache.allowExtendedImageUrls ?? false;
+                const allowExtended = hasEnabledExtendedImageUrlSupport();
                 const { isValid, normalizedUrl } = isAllowedImageSource(url, allowedExts, allowExtended);
 
                 if (!isValid) {
@@ -419,7 +470,7 @@ function proceedWithInjection() {
             const hasMinSize = img.naturalWidth >= configCache.minWidth && img.naturalHeight >= configCache.minHeight;
 
             // ✅ Advanced logic: normal vs extended suffix
-            const allowExtended = configCache.allowExtendedImageUrls === true;
+            const allowExtended = hasEnabledExtendedImageUrlSupport();
             const { isValid: isAllowedFormat, normalizedUrl: normalizedSrc } = isAllowedImageSource(src, configCache.allowedExts || [], allowExtended);
             return visible && hasMinSize && isAllowedFormat
                 ? { img, originalSrc: src, normalizedSrc }

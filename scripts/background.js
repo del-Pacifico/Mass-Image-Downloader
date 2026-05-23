@@ -95,7 +95,6 @@
     let allowWEBP = false;
     let allowAVIF = false;
     let allowBMP = false;
-    let allowExtendedImageUrls = false; // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
     let showUserFeedbackMessages = false;
     let toastMinVisibleMs = 2000; // ⏱️ Minimum visible time for user toasts (ms)
     let enableClipboardHotkeys = false;
@@ -204,7 +203,6 @@
                 allowWEBP: false,
                 allowAVIF: false,
                 allowBMP: false,
-                allowExtendedImageUrls: false, // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
                 downloadLimit: 1,
                 filenameMode: "none",
                 debugLogLevel: 1,
@@ -317,7 +315,7 @@
             "galleryMaxImages",
             "maxBulkBatch", "continueFromLastBulkBatch",
             "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "gallerySimilarityLevel",
-            "allowAVIF", "allowBMP", "allowExtendedImageUrls",
+            "allowAVIF", "allowBMP",
             "galleryMinGroupSize",
             "galleryEnableSmartGrouping",
             "galleryEnableFallback",
@@ -373,7 +371,6 @@
             allowWEBP = data.allowWEBP !== false;
             allowAVIF = data.allowAVIF !== false;
             allowBMP = data.allowBMP !== false;
-            allowExtendedImageUrls = data.allowExtendedImageUrls !== false; // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
 
             showUserFeedbackMessages = data.showUserFeedbackMessages ?? false;
             toastMinVisibleMs = (typeof data.toastMinVisibleMs === "number" && data.toastMinVisibleMs >= 0 && data.toastMinVisibleMs <= 10000)
@@ -414,8 +411,6 @@
             logDebug(3, `      🔤 Prefix: ${prefix}`);
             logDebug(3, `      🔡 Suffix: ${suffix}`);
             
-            logDebug(3, `   🐦 Allow extended image URLs: ${allowExtendedImageUrls}`);
-
             // 🌍 Clipboard hotkeys
             logDebug(2, '   📋 Clipboard hotkeys.');
             logDebug(3, `      📋 Clipboard hotkeys: ${enableClipboardHotkeys}`);
@@ -512,8 +507,6 @@ chrome.storage.onChanged.addListener((changes) => {
             case "allowWEBP": allowWEBP = newValue; break;
             case "allowAVIF": allowAVIF = newValue; break;
             case "allowBMP": allowBMP = newValue; break;
-            case "allowExtendedImageUrls": allowExtendedImageUrls = newValue; break; // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
-
             case "gallerySimilarityLevel": gallerySimilarityLevel = newValue; break;
             case "galleryMinGroupSize": galleryMinGroupSize = newValue; break;
             case "galleryEnableSmartGrouping": galleryEnableSmartGrouping = newValue; break;
@@ -1054,17 +1047,11 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                     throw new Error("Invalid image URL received.");
                 }
 
-                const allowExtended = allowExtendedImageUrls ?? false;
-                const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
-                const hasExtendedSuffix = extendedSuffixPattern.test(imageUrl);
-
-                let urlForDownload;
-                if (allowExtended && hasExtendedSuffix) {
-                    urlForDownload = normalizeImageUrl(imageUrl);
-                    logDebug(2, `🔵 Extended suffix detected and allowed. Using normalized URL: ${urlForDownload}`);
+                const urlForDownload = normalizeImageUrl(imageUrl);
+                if (urlForDownload !== imageUrl) {
+                    logDebug(2, `🔵 Extended image URL normalized: ${urlForDownload}`);
                 } else {
-                    urlForDownload = imageUrl;
-                    logDebug(2, `🟢 No extended suffix detected or not allowed. Using original URL.`);
+                    logDebug(2, `🟢 Using original image URL.`);
                 }
 
                 logDebug(2, `🔗 Processing URL: ${urlForDownload}`);
@@ -1172,17 +1159,11 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                     throw new Error("Invalid image URL received.");
                 }
 
-                const allowExtended = allowExtendedImageUrls ?? false;
-                const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
-                const hasExtendedSuffix = extendedSuffixPattern.test(imageUrl);
-
-                let urlForDownload;
-                if (allowExtended && hasExtendedSuffix) {
-                    urlForDownload = normalizeImageUrl(imageUrl);
-                    logDebug(2, `🔵 [Manual] Extended suffix detected and allowed. Using normalized URL: ${urlForDownload}`);
+                const urlForDownload = normalizeImageUrl(imageUrl);
+                if (urlForDownload !== imageUrl) {
+                    logDebug(2, `🔵 [Manual] Extended image URL normalized: ${urlForDownload}`);
                 } else {
-                    urlForDownload = imageUrl;
-                    logDebug(2, `🟢 [Manual] No extended suffix detected or not allowed. Using original URL.`);
+                    logDebug(2, `🟢 [Manual] Using original image URL.`);
                 }
 
                 logDebug(2, `🔗 Processing URL: ${urlForDownload}`);
@@ -1521,16 +1502,10 @@ async function handleBulkDownload(message, sendResponse) {
                 logDebug(3, `🕵 Checking tab id: ${tab.id}`);
                 logDebug(3, `⏳ Is a direct image URL?: ${tab.url}`);
 
-                const allowExtended = allowExtendedImageUrls ?? false;
-                const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
-                const hasExtendedSuffix = extendedSuffixPattern.test(tab.url);
-
-                let urlForValidation;
-                if (allowExtended && hasExtendedSuffix) {
-                    urlForValidation = normalizeImageUrl(tab.url); // Use clean version to validate
+                const urlForValidation = normalizeImageUrl(tab.url);
+                if (urlForValidation !== tab.url) {
                     logDebug(2, `🔵 Validating normalized URL for image: ${urlForValidation}`);
                 } else {
-                    urlForValidation = tab.url;
                     logDebug(3, `🟢 Validating original URL for image: ${urlForValidation}`);
                 }
 
@@ -1714,22 +1689,13 @@ async function processValidTabs(validTabs, onComplete, validatedUrls, resetBadge
         let url; // Declare early so it's visible in all inner scopes
         try {
             // 🧭 Route for normal and extended URLs
-            const allowExtended = allowExtendedImageUrls ?? false;
-            const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
-            const hasExtendedSuffix = extendedSuffixPattern.test(tab.url);
-
-            let chosenUrlString;
-
-            if (allowExtended && hasExtendedSuffix) {
-                // 🕵 Extended suffix present and allowed: normalize
-                chosenUrlString = normalizeImageUrl(tab.url);
-                logDebug(2, `🕵 Extended suffix detected and allowed.`);
+            const chosenUrlString = normalizeImageUrl(tab.url);
+            if (chosenUrlString !== tab.url) {
+                logDebug(2, `🕵 Extended image URL normalized.`);
                 logDebug(3, `🔴 Original URL: ${tab.url}`);
                 logDebug(3, `🟢 Normalized URL: ${chosenUrlString}`);
             } else {
-                // 🕵 Normal URL or option not enabled: use as is
-                chosenUrlString = tab.url;
-                logDebug(3, `🕵 No extended suffix detected or not allowed. Using original URL.`);
+                logDebug(3, `🕵 Using original URL.`);
                 logDebug(3, `🟢 Original URL: ${chosenUrlString}`);
             }
 
@@ -1889,16 +1855,12 @@ async function downloadImageFromUrl(imageUrl, sourceTag = "unknown") {
     // ✅ Ensure both settings (folder) and naming rules are ready
     await Promise.all([settingsReady, configReady]);
 
-    // ✅ Normalize URL if the extension allows extended image suffixes (optional behavior)
+    // ✅ Normalize URL using the shared extended-image policy
     let urlForDownload = imageUrl;
     try {
-        const allowExtended = allowExtendedImageUrls ?? false;
-        const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
-        const hasExtendedSuffix = extendedSuffixPattern.test(imageUrl);
-
-        if (allowExtended && hasExtendedSuffix) {
-            urlForDownload = normalizeImageUrl(imageUrl);
-            logDebug(3, `🔵 [${sourceTag}] Extended suffix normalized for download: ${urlForDownload}`);
+        urlForDownload = normalizeImageUrl(imageUrl);
+        if (urlForDownload !== imageUrl) {
+            logDebug(3, `🔵 [${sourceTag}] Extended image URL normalized for download: ${urlForDownload}`);
         }
     } catch (e) {
         logDebug(2, `⚠️ [${sourceTag}] URL normalization warning: ${e.message}`);
