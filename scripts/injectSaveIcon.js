@@ -53,10 +53,19 @@ const EXTENDED_IMAGE_URL_FLAG_KEYS = [
     "allowWrappedImageUrls"
 ];
 
+/**
+ * Escapes a string for safe use inside a RegExp pattern.
+ * @param {string} text - Raw text to escape.
+ * @returns {string} Escaped text.
+ */
 function escapeRegex(text) {
     return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+/**
+ * Returns the image extensions currently enabled in Options.
+ * @returns {string[]} Enabled extensions with leading dots.
+ */
 function getAllowedImageExtensions() {
     const allowedExts = [];
     if (configCache.allowJPG) allowedExts.push(".jpg");
@@ -68,10 +77,26 @@ function getAllowedImageExtensions() {
     return allowedExts;
 }
 
+/**
+ * Checks whether any extended image URL rule is enabled in Options.
+ * @returns {boolean} True when at least one extended URL checkbox is enabled.
+ */
 function hasEnabledExtendedImageUrlSupport() {
     return EXTENDED_IMAGE_URL_FLAG_KEYS.some((key) => configCache[key] === true);
 }
 
+/**
+ * Splits an image URL into filename and extension parts.
+ * @param {string} url - Absolute URL to inspect.
+ * @returns {{
+ *   pathname: string,
+ *   lastSegment: string,
+ *   baseName: string,
+ *   extension: string,
+ *   hasPathExtension: boolean,
+ *   hasExtendedSuffix: boolean
+ * }} Parsed URL parts used by the one-click flow.
+ */
 function getImageUrlParts(url) {
     try {
         const parsed = new URL(url, location.href);
@@ -121,6 +146,22 @@ function getImageUrlParts(url) {
     }
 }
 
+/**
+ * Validates a direct image source against the enabled formats and extended rules.
+ * @param {string} url - URL to validate.
+ * @param {string[]} allowedExts - Enabled image extensions from Options.
+ * @param {boolean} allowExtended - Whether extended suffix handling is enabled.
+ * @returns {{
+ *   isValid: boolean,
+ *   normalizedUrl: string,
+ *   pathname: string,
+ *   lastSegment: string,
+ *   baseName: string,
+ *   extension: string,
+ *   hasPathExtension: boolean,
+ *   hasExtendedSuffix: boolean
+ * }} Validation result and parsed URL parts.
+ */
 function isAllowedImageSource(url, allowedExts, allowExtended) {
     const info = getImageUrlParts(url);
     let normalizedUrl = url;
@@ -215,6 +256,11 @@ if (typeof configCache === 'undefined') {
 }
 
 // 🔧 Initialize local config for this script only
+/**
+ * Loads the local configuration cache for the one-click overlay.
+ * @param {Function} callback - Called once configuration is ready and the feature is enabled.
+ * @returns {void}
+ */
 function initConfigForInjectSaveIcon(callback) {
     chrome.storage.sync.get(
         ["debugLogLevel", "minWidth", "minHeight", "allowJPG", "allowJPEG", 
@@ -297,6 +343,10 @@ function initConfigForInjectSaveIcon(callback) {
 })();
 
 // 🧠 New function to detect execution context
+/**
+ * Chooses the correct injection path based on the current document type.
+ * @returns {void}
+ */
 function detectContextAndProceed() {
     try {
         const contentType = document.contentType || '';
@@ -453,6 +503,10 @@ function createAndShowSaveIcon(targetUrl, normalizedUrl, position = "fixed", pos
 }
 
 // 🔧 Function to proceed with the image evaluation and icon injection
+/**
+ * Scans visible images and injects the save icon onto the best candidate.
+ * @returns {void}
+ */
 function proceedWithInjection() {
     try {
         logDebug(1, "💾 Script injected: injectSaveIcon.js (optimized)");

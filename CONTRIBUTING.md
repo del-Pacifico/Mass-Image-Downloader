@@ -79,6 +79,7 @@ Examples:
 - Follow modular principles (1 file = 1 concern)
 - Keep logging consistent: `[Mass image downloader]: emoji + message` (use `logDebug()` from `utils.js`)
 - Comment blocks using clear, concise English
+- Add JSDoc or a concise header comment to every new or changed function, including its purpose, parameters, and return value when applicable
 
 ## 🧪 Local Validation
 

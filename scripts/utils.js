@@ -106,10 +106,19 @@
         "allowWrappedImageUrls"
     ];
 
+    /**
+     * Escapes a string so it can be safely embedded inside a RegExp.
+     * @param {string} text - Raw text to escape.
+     * @returns {string} Escaped text safe for RegExp patterns.
+     */
     function escapeRegex(text) {
         return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     }
 
+    /**
+     * Returns the image extensions currently enabled in Options.
+     * @returns {string[]} Array of enabled extensions including the leading dot.
+     */
     function getAllowedImageExtensions() {
         const enabledExtensions = [];
         if (configCache.allowJPG) enabledExtensions.push(".jpg");
@@ -121,16 +130,29 @@
         return enabledExtensions;
     }
 
+    /**
+     * Reports whether any extended image URL pattern is enabled in Options.
+     * @returns {boolean} True when at least one extended URL rule is active.
+     */
     function hasEnabledExtendedImageUrlSupport() {
         return EXTENDED_IMAGE_URL_FLAG_KEYS.some((key) => configCache[key] === true);
     }
 
+    /**
+     * Builds a regex fragment that matches all supported image extensions.
+     * @returns {string} Regex fragment without leading or trailing delimiters.
+     */
     function getSupportedImageExtensionPattern() {
         return SUPPORTED_IMAGE_EXTENSIONS
             .map((extension) => escapeRegex(extension.slice(1)))
             .join("|");
     }
 
+    /**
+     * Checks whether the provided extension is one of the supported image formats.
+     * @param {string} extension - Extension including or excluding the leading dot.
+     * @returns {boolean} True when the extension is supported by the extension.
+     */
     function isSupportedImageExtension(extension) {
         if (typeof extension !== "string" || !extension.trim()) {
             return false;
@@ -140,6 +162,11 @@
         return SUPPORTED_IMAGE_EXTENSIONS.some((item) => item.toLowerCase() === normalizedExtension);
     }
 
+    /**
+     * Mirrors storage updates into the cached extended image URL flags.
+     * @param {Record<string, {newValue: any, oldValue: any}>} changes - Storage change payload.
+     * @returns {void}
+     */
     function syncExtendedImageUrlFlagsFromStorageChanges(changes) {
         const hasGranularChange = EXTENDED_IMAGE_URL_FLAG_KEYS.some((key) => changes[key]);
         const legacyChange = changes.allowExtendedImageUrls;
@@ -533,6 +560,18 @@
         }
     }
 
+    /**
+     * Extracts path, filename, and extension data from an image URL.
+     * @param {string} url - Absolute image URL.
+     * @returns {{
+     *   pathname: string,
+     *   lastSegment: string,
+     *   baseName: string,
+     *   extension: string,
+     *   hasPathExtension: boolean,
+     *   hasExtendedSuffix: boolean
+     * }} Parsed URL parts used by download and validation flows.
+     */
     function getImageUrlParts(url) {
         try {
             const parsed = new URL(url);
@@ -587,6 +626,11 @@
 
     // 🔍 Checks if a URL points directly to an image, considering user-defined formats.
     //        Trims any trailing slashes from the path before validation.
+    /**
+     * Checks whether a URL points directly to an image using the enabled format list.
+     * @param {string} url - Absolute URL to validate.
+     * @returns {Promise<boolean>} True when the URL resolves to an allowed image format.
+     */
     async function isDirectImageUrl(url) {
         try {
             // 🛡️ Defensive check: URL must be a valid, non-empty string
@@ -651,6 +695,11 @@
      * Normalizes image URLs by removing known Twitter/X-style suffixes (e.g. :large, :orig) if allowed in settings.
      * @param {string} url - The original image URL.
      * @returns {string} - The normalized image URL.
+     */
+    /**
+     * Removes enabled extended suffixes from an image URL when the policy allows it.
+     * @param {string} url - Image URL to normalize.
+     * @returns {string} Normalized URL or the original URL when no change is needed.
      */
     function normalizeImageUrl(url) {
         try {
@@ -909,6 +958,11 @@
     /**
      * Checks if the given URL has an allowed image format based on user settings.
      * Trims any trailing slashes before validation.
+     */
+    /**
+     * Checks whether an image URL resolves to a format allowed by user settings.
+     * @param {string} url - Absolute image URL to inspect.
+     * @returns {Promise<boolean>} True when the URL matches an enabled image format.
      */
     async function isAllowedImageFormat(url) {
         try {
