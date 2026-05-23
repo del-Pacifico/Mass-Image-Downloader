@@ -38,6 +38,8 @@ let parentPointerEnterHandler = null;
 
 let overlayRemovalTimer = null;
 let debugLogLevelCache = 1;
+let currentInspectorImage = null;
+let currentInspectorSrc = "";
 
 let toastMinVisibleMsCache = 2000; // Range: 0..10000. Default: 2000.
 
@@ -413,15 +415,68 @@ function teardownImageInspector(reason) {
   logDebug(1, `🧹 Inspector teardown. Reason: ${reason}`);
 }
 
-// Find valid image from event target, excluding panel images
-function findValidImgFromEvent(ev) {
-  if (!ev || !ev.target) return null;
-  const t = ev.target;
-  if (t instanceof HTMLImageElement && t.isConnected && t.width > 0 && t.height > 0) {
-    if (inspectorPanelRoot && inspectorPanelRoot.contains(t)) return null;
-    return t;
+// Returns true when an image is visible enough to be used by the inspector.
+function isValidInspectorImageNode(node) {
+  try {
+    if (!(node instanceof HTMLImageElement)) return false;
+    if (!node.isConnected) return false;
+    if (inspectorPanelRoot && inspectorPanelRoot.contains(node)) return false;
+
+    const width = Number(node.naturalWidth || node.width || 0);
+    const height = Number(node.naturalHeight || node.height || 0);
+    return width > 0 && height > 0;
+  } catch (_) {
+    return false;
   }
-  return null;
+}
+
+// Picks the best image candidate inside a wrapper element.
+function pickBestInspectorImage(container) {
+  try {
+    if (!(container instanceof Element)) return null;
+    if (container instanceof HTMLImageElement) {
+      return isValidInspectorImageNode(container) ? container : null;
+    }
+
+    if (!container.querySelectorAll) return null;
+
+    const candidates = Array.from(container.querySelectorAll("img"))
+      .filter(isValidInspectorImageNode)
+      .sort((a, b) => {
+        const aScore = Number(a.naturalWidth || a.width || 0) * Number(a.naturalHeight || a.height || 0);
+        const bScore = Number(b.naturalWidth || b.width || 0) * Number(b.naturalHeight || b.height || 0);
+        return bScore - aScore;
+      });
+
+    return candidates.length > 0 ? candidates[0] : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+// Find valid image from event target, allowing wrapper-based markup.
+function findValidImgFromEvent(ev) {
+  try {
+    if (!ev || !ev.target) return null;
+
+    const t = ev.target;
+    if (inspectorPanelRoot && inspectorPanelRoot.contains(t)) return null;
+    if (t instanceof HTMLBodyElement || t instanceof HTMLHtmlElement) return null;
+
+    if (isValidInspectorImageNode(t)) return t;
+
+    if (!(t instanceof Element)) return null;
+
+    const wrapper = t.closest("figure, a, picture, .Image, .Logo, .TPost, .Objf, .Auto");
+    if (wrapper && !(inspectorPanelRoot && inspectorPanelRoot.contains(wrapper))) {
+      const wrapperImg = pickBestInspectorImage(wrapper);
+      if (wrapperImg) return wrapperImg;
+    }
+
+    return pickBestInspectorImage(t);
+  } catch (_) {
+    return null;
+  }
 }
 
 // Track last mouse position for overlay removal logic
@@ -560,7 +615,7 @@ function openInspectorPanelForImage(img) {
   try {
     removeInspectorPanel();
 
-    // Host fijo (mínimo inline)
+    // Fixed host container (minimal inline footprint)
     const host = document.createElement("div");
     host.id = "__mdi_inspectorHost";
     host.style.position = "fixed";
@@ -794,6 +849,9 @@ function openInspectorPanelForImage(img) {
     const rect = img.getBoundingClientRect();
     const renderedDim = `${Math.round(rect.width)} × ${Math.round(rect.height)}px`;
 
+    currentInspectorImage = img;
+    currentInspectorSrc = src;
+
     // Helper to add a labeled row
     const addRow = (wrapper, labelText, valueText) => {
       const group = document.createElement("div");
@@ -988,6 +1046,36 @@ function openInspectorPanelForImage(img) {
       }
     }
 
+    // Keep the panel selection and preview synchronized to the active image.
+    function setActiveInspectorImage(targetImg, resetZoom = false) {
+      try {
+        if (!targetImg) return;
+
+        currentInspectorImage = targetImg;
+        currentInspectorSrc = String(targetImg.currentSrc || targetImg.src || "");
+
+        if (previewImg) {
+          previewImg.src = currentInspectorSrc;
+          previewImg.alt = "";
+        }
+
+        updateMetadataForImage(targetImg);
+        updateDeveloperForImage(targetImg);
+
+        if (resetZoom) {
+          try {
+            if (typeof zoomResetBtn !== "undefined" && zoomResetBtn) {
+              zoomResetBtn.click();
+            }
+          } catch (zoomErr) {
+            logDebug(2, "⚠️ Could not trigger zoom reset on navigation:", zoomErr?.message || zoomErr);
+          }
+        }
+      } catch (err) {
+        logDebug(1, "❌ setActiveInspectorImage error:", err?.message || err);
+      }
+    }
+
     // Navigation button handlers
     function navigateBy(delta) {
       if (!navigationList || navigationList.length === 0) {
@@ -1009,20 +1097,7 @@ function openInspectorPanelForImage(img) {
 
         // Check validity
         if (target && target.src) {
-          const newSrc = String(target.currentSrc || target.src || "");
-          previewImg.src = newSrc;
-
-          updateMetadataForImage(target);
-          updateDeveloperForImage(target);
-
-          // Reset zoom to original size via the same behavior used by the button
-          try {
-            if (typeof zoomResetBtn !== "undefined" && zoomResetBtn) {
-              zoomResetBtn.click();
-            }
-          } catch (zoomErr) {
-            logDebug(2, "⚠️ Could not trigger zoom reset on navigation:", zoomErr?.message || zoomErr);
-          }
+          setActiveInspectorImage(target, true);
 
           logDebug(2, "🧭 Image Inspector navigation: moved to index", navigationIndex);
           return;
@@ -1064,13 +1139,13 @@ function openInspectorPanelForImage(img) {
     // Actions: open/save
     openBtn.addEventListener("click", (e) => {
       e.preventDefault(); e.stopPropagation();
-      tryOpenImageInNewTab(src);
+      tryOpenImageInNewTab(currentInspectorSrc);
     });
 
     // Save action
     saveBtn.addEventListener("click", (e) => {
       e.preventDefault(); e.stopPropagation();
-      trySaveImage(src);
+      trySaveImage(currentInspectorSrc);
     });
 
     // Navigation: previous image
@@ -1088,6 +1163,9 @@ function openInspectorPanelForImage(img) {
     // Zoom/Pan
     attachZoomPanBehavior({ frame, previewImg, zoomHint, zoomInBtn, zoomOutBtn, zoomResetBtn });
 
+    // Keep the initial selection in sync with the active panel state.
+    setActiveInspectorImage(img, false);
+
   } catch (err) {
     logDebug(1, "❌ openInspectorPanelForImage:", err?.message || err);
     logDebug(3, `🐛 Stacktrace: ${err.stack}`);
@@ -1099,12 +1177,14 @@ function removeInspectorPanel() {
   if (!inspectorPanelRoot) return;
   try { inspectorPanelRoot.remove(); } catch (_) {}
   inspectorPanelRoot = null;
+  currentInspectorImage = null;
+  currentInspectorSrc = "";
 }
 
 // Refresh Dev Block if open (after iiDevMode change)
 function refreshDevBlockIfOpen() {
-  if (inspectorPanelRoot && overlayTargetImg) {
-    const img = overlayTargetImg;
+  if (inspectorPanelRoot && (currentInspectorImage || overlayTargetImg)) {
+    const img = currentInspectorImage || overlayTargetImg;
     removeInspectorPanel();
     openInspectorPanelForImage(img);
   }
