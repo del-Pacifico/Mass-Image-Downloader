@@ -166,14 +166,23 @@
         }
 
         .inline-checkbox {
-            display: block;
-            font-weight: 500;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            font-weight: bold;
             color: #768591;
             margin-bottom: 6px;
+            line-height: 1.35;
         }
         .inline-checkbox input[type="checkbox"] {
-            margin-right: 6px;
-            vertical-align: middle;
+            margin: 2px 0 0;
+            flex: 0 0 auto;
+        }
+        .inline-checkbox span {
+            display: block;
+            font-weight: inherit;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .title-header {
@@ -211,15 +220,23 @@
     <h2>🌐 Extended Image URL Support</h2>
     <p class="description">Choose which extended image URL patterns the extension should treat as valid when the selected image format is enabled.</p>
     <div class="option-group">
-        <label>Supported extended URL patterns:</label><br>
-        <input type="checkbox" id="allowTwitterXQueryParams">
-        <label for="allowTwitterXQueryParams">Twitter/X image URLs with query parameters</label><br>
-        <input type="checkbox" id="allowRedditCdnQueryParams">
-        <label for="allowRedditCdnQueryParams">Reddit CDN image URLs with query parameters</label><br>
-        <input type="checkbox" id="allowParameterizedCdnUrls">
-        <label for="allowParameterizedCdnUrls">Parameterized CDN-style image URLs</label><br>
-        <input type="checkbox" id="allowWrappedImageUrls">
-        <label for="allowWrappedImageUrls">Wrapped URLs that still resolve to a valid image</label>
+        <label>Supported extended URL patterns:</label>
+        <label class="inline-checkbox" for="allowTwitterXQueryParams">
+            <input type="checkbox" id="allowTwitterXQueryParams">
+            <span>Twitter/X image URLs with query parameters</span>
+        </label>
+        <label class="inline-checkbox" for="allowRedditCdnQueryParams">
+            <input type="checkbox" id="allowRedditCdnQueryParams">
+            <span>Reddit CDN image URLs with query parameters</span>
+        </label>
+        <label class="inline-checkbox" for="allowParameterizedCdnUrls">
+            <input type="checkbox" id="allowParameterizedCdnUrls">
+            <span>Parameterized CDN-style image URLs</span>
+        </label>
+        <label class="inline-checkbox" for="allowWrappedImageUrls">
+            <input type="checkbox" id="allowWrappedImageUrls">
+            <span>Wrapped URLs that still resolve to a valid image</span>
+        </label>
         <p class="info-text">All of these options are disabled by default. Enable only the URL shapes you want the extension to accept.</p>
         <p class="info-text">Rule: <em>Does this URL resolve to an image format that the user has enabled, even if it is decorated with suffixes or query parameters?</em></p>
     </div>
@@ -238,12 +255,12 @@
     </div>
     <div class="option-group">
         <label>Allowed Image Formats:</label>
-        <input type="checkbox" id="allowJPG" checked> JPG
-        <input type="checkbox" id="allowJPEG" checked> JPEG
-        <input type="checkbox" id="allowPNG" checked> PNG
-        <input type="checkbox" id="allowWEBP" checked> WEBP
-        <input type="checkbox" id="allowAVIF"> AVIF
-        <input type="checkbox" id="allowBMP"> BMP
+        <label class="inline-checkbox" for="allowJPG"><input type="checkbox" id="allowJPG" checked><span>JPG</span></label>
+        <label class="inline-checkbox" for="allowJPEG"><input type="checkbox" id="allowJPEG" checked><span>JPEG</span></label>
+        <label class="inline-checkbox" for="allowPNG"><input type="checkbox" id="allowPNG" checked><span>PNG</span></label>
+        <label class="inline-checkbox" for="allowWEBP"><input type="checkbox" id="allowWEBP" checked><span>WEBP</span></label>
+        <label class="inline-checkbox" for="allowAVIF"><input type="checkbox" id="allowAVIF"><span>AVIF</span></label>
+        <label class="inline-checkbox" for="allowBMP"><input type="checkbox" id="allowBMP"><span>BMP</span></label>
         <p class="info-text">Only selected formats will be considered during processing.</p>
         <p class="info-text">❗ Unsupported formats like <strong>SVG, GIF, HEIC, TIFF, ICO</strong> are ignored due to decoding failures (e.g., "DOMException: The image format is not supported").</p>
     </div>
@@ -274,8 +291,10 @@
     <h2>📋 Clipboard Hotkeys</h2>
     <p class="description">Quickly set prefix or suffix from clipboard using keyboard shortcuts:</p>
     <div class="option-group">
-        <input type="checkbox" id="enableClipboardHotkeys">
-        <label for="enableClipboardHotkeys">Enable clipboard shortcuts for prefix/suffix</label>
+        <label class="inline-checkbox" for="enableClipboardHotkeys">
+            <input type="checkbox" id="enableClipboardHotkeys">
+            <span>Enable clipboard shortcuts for prefix/suffix</span>
+        </label>
         <p class="info-text">Use Ctrl+Shift+P to set new prefix. Only if prefix. Is available.<br>
             Use Ctrl+Shift+S to set new suffix. Only if suffix. Is available.<br>
             Only on active tabs.</p>
@@ -286,9 +305,9 @@
     <p class="description">Enable or configure how the Image Inspector Mode behaves on hover and in its panel.</p>
 
     <div class="option-group">
-        <label class="inline-checkbox">
+        <label class="inline-checkbox" for="imageInspectorEnabled">
             <input type="checkbox" id="imageInspectorEnabled">
-            Enable Image Inspector Mode (Ctrl+Shift+M)
+            <span>Enable Image Inspector Mode (Ctrl+Shift+M)</span>
         </label>
         <p class="info-text">
             Use Ctrl+Shift+M to toggle the Image Inspector overlay 🕵️ on images while hovering.<br>
@@ -297,9 +316,9 @@
     </div>
 
     <div class="option-group">
-        <label class="inline-checkbox">
+        <label class="inline-checkbox" for="imageInspectorDevMode">
             <input type="checkbox" id="imageInspectorDevMode">
-            Developer Mode (extra technical metadata)
+            <span>Developer Mode (extra technical metadata)</span>
         </label>
         <p class="info-text">
             Add an extra "Developer" section inside the inspector panel with technical fields (full URL, node type, debug data). Default: Disabled.
@@ -307,9 +326,9 @@
     </div>
 
     <div class="option-group">
-        <label class="inline-checkbox">
+        <label class="inline-checkbox" for="imageInspectorCloseOnSave">
             <input type="checkbox" id="imageInspectorCloseOnSave">
-            Close page after saving image
+            <span>Close page after saving image</span>
         </label>
         <p class="info-text">
             If enabled, the current tab will be closed automatically after an image is saved successfully from the inspector panel. The panel itself is closed manually. Default: Disabled.
@@ -320,8 +339,10 @@
     <h2>🖱️ One-click Download Icon</h2>
     <p class="description">Activate the floating download icon on a high-resolution image using a keyboard shortcut:</p>
     <div class="option-group">
-    <input type="checkbox" id="chkEnableOneClickIcon">
-    <label for="chkEnableOneClickIcon">Enable One-click download icon (via hotkey)</label>
+    <label class="inline-checkbox" for="chkEnableOneClickIcon">
+        <input type="checkbox" id="chkEnableOneClickIcon">
+        <span>Enable One-click download icon (via hotkey)</span>
+    </label>
     <p class="info-text">
         Use <strong>Alt+Shift+I</strong> to activate the download icon over the best image candidate.<br>
         Works only if this option is enabled and the current page contains valid images.
@@ -344,14 +365,18 @@
         <p class="info-text">Defines how many images must match to form a gallery group (2..50). Default: 3. Used in grouping logic for galleries.</p>
     </div>
     <div class="option-group">
-        <input type="checkbox" id="galleryEnableSmartGrouping">
-        <label for="galleryEnableSmartGrouping">Enable smart similarity grouping</label>
+        <label class="inline-checkbox" for="galleryEnableSmartGrouping">
+            <input type="checkbox" id="galleryEnableSmartGrouping">
+            <span>Enable smart similarity grouping</span>
+        </label>
         <p class="info-text">When enabled, groups images by URL similarity before processing.</p>
         <p class="info-text">Activates advanced path similarity logic before selecting images. This helps group visually-related thumbnails (e.g., image01.jpg, image02.jpg) into cohesive sets for gallery processing.</p>
     </div>
     <div class="option-group">
-        <input type="checkbox" id="galleryEnableFallback">
-        <label for="galleryEnableFallback">Enable fallback grouping</label>
+        <label class="inline-checkbox" for="galleryEnableFallback">
+            <input type="checkbox" id="galleryEnableFallback">
+            <span>Enable fallback grouping</span>
+        </label>
         <p class="info-text">If no dominant group is found, retry grouping with a more permissive threshold.</p>
         <p class="info-text">If no main group is detected under current similarity level, a secondary attempt is made using a fallback level (10% lower). Useful for galleries with minor variations in image paths.</p>
     </div>
@@ -392,8 +417,10 @@
     <h2>📢 Notifications</h2>
     <p class="description">Enable or disable notifications.</p>
     <div class="option-group">
-        <label for="showUserFeedbackMessages">Show user feedback messages:</label>
-        <input type="checkbox" id="showUserFeedbackMessages">
+        <label class="inline-checkbox" for="showUserFeedbackMessages">
+            <input type="checkbox" id="showUserFeedbackMessages">
+            <span>Show user feedback messages:</span>
+        </label>
         <p class="info-text">Toggle on to receive visual feedback during operations (success, progress, and errors).</p>
     </div>
     <div class="option-group">
@@ -447,9 +474,9 @@
         <p class="info-text">Controls how many tabs are processed at once (1–50). Default: 20. Higher values speed up processing but may affect browser performance on slower machines.</p>
     </div>
     <div class="option-group">
-        <label>
+        <label class="inline-checkbox" for="continueFromLastBulkBatch">
             <input type="checkbox" id="continueFromLastBulkBatch">
-            Continue from where it left off
+            <span>Continue from where it left off</span>
         </label>
         <p class="info-text">If enabled, resumes the bulk download from the last skipped or failed tab batch. Useful when dealing with large galleries or interrupted sessions.</p>
     </div>
