@@ -20,6 +20,11 @@
         allowWEBP: true,
         allowAVIF: false, // Default to false for compatibility
         allowBMP: false, // Default to false for compatibility
+        allowTwitterXQueryParams: false,
+        allowRedditCdnQueryParams: false,
+        allowParameterizedCdnUrls: false,
+        allowWrappedImageUrls: false,
+        allowExtendedImageUrls: false, // Legacy compatibility flag, derived from the granular extended URL settings
         minWidth: 800,
         minHeight: 600,
         filenameMode: "none",
@@ -34,7 +39,11 @@
                 "minWidth", "minHeight",
                 "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", 
                 "filenameMode", "prefix", "suffix", "downloadFolder", "customFolderPath",
-                "allowExtendedImageUrls" // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
+                "allowTwitterXQueryParams",
+                "allowRedditCdnQueryParams",
+                "allowParameterizedCdnUrls",
+                "allowWrappedImageUrls",
+                "allowExtendedImageUrls" // Legacy compatibility flag for older saved settings
             ], (data) => {
                 configCache.debugLogLevel = parseInt(data.debugLogLevel ?? 1);
                 configCache.showUserFeedbackMessages = data.showUserFeedbackMessages ?? true;
@@ -48,7 +57,34 @@
                 configCache.allowWEBP = data.allowWEBP !== false;
                 configCache.allowAVIF = data.allowAVIF !== false;
                 configCache.allowBMP = data.allowBMP !== false;
-                configCache.allowExtendedImageUrls = data.allowExtendedImageUrls !== false; // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
+                const hasGranularExtendedFlags = [
+                    "allowTwitterXQueryParams",
+                    "allowRedditCdnQueryParams",
+                    "allowParameterizedCdnUrls",
+                    "allowWrappedImageUrls"
+                ].some((key) => Object.prototype.hasOwnProperty.call(data, key));
+                const legacyExtendedUrlsEnabled = data.allowExtendedImageUrls === true;
+
+                configCache.allowTwitterXQueryParams = hasGranularExtendedFlags
+                    ? data.allowTwitterXQueryParams === true
+                    : legacyExtendedUrlsEnabled;
+                configCache.allowRedditCdnQueryParams = hasGranularExtendedFlags
+                    ? data.allowRedditCdnQueryParams === true
+                    : legacyExtendedUrlsEnabled;
+                configCache.allowParameterizedCdnUrls = hasGranularExtendedFlags
+                    ? data.allowParameterizedCdnUrls === true
+                    : legacyExtendedUrlsEnabled;
+                configCache.allowWrappedImageUrls = hasGranularExtendedFlags
+                    ? data.allowWrappedImageUrls === true
+                    : legacyExtendedUrlsEnabled;
+                configCache.allowExtendedImageUrls = hasGranularExtendedFlags
+                    ? [
+                        configCache.allowTwitterXQueryParams,
+                        configCache.allowRedditCdnQueryParams,
+                        configCache.allowParameterizedCdnUrls,
+                        configCache.allowWrappedImageUrls
+                    ].some(Boolean)
+                    : legacyExtendedUrlsEnabled; // Backward-compatible derived flag
                 configCache.filenameMode = data.filenameMode ?? "none";
                 configCache.prefix = data.prefix ?? "";
                 configCache.suffix = data.suffix ?? "";
@@ -60,7 +96,75 @@
             });
         });
     }
-    
+
+    const SUPPORTED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".avif", ".bmp"];
+
+    const EXTENDED_IMAGE_URL_FLAG_KEYS = [
+        "allowTwitterXQueryParams",
+        "allowRedditCdnQueryParams",
+        "allowParameterizedCdnUrls",
+        "allowWrappedImageUrls"
+    ];
+
+    function escapeRegex(text) {
+        return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function getAllowedImageExtensions() {
+        const enabledExtensions = [];
+        if (configCache.allowJPG) enabledExtensions.push(".jpg");
+        if (configCache.allowJPEG) enabledExtensions.push(".jpeg");
+        if (configCache.allowPNG) enabledExtensions.push(".png");
+        if (configCache.allowWEBP) enabledExtensions.push(".webp");
+        if (configCache.allowAVIF) enabledExtensions.push(".avif");
+        if (configCache.allowBMP) enabledExtensions.push(".bmp");
+        return enabledExtensions;
+    }
+
+    function hasEnabledExtendedImageUrlSupport() {
+        return EXTENDED_IMAGE_URL_FLAG_KEYS.some((key) => configCache[key] === true);
+    }
+
+    function getSupportedImageExtensionPattern() {
+        return SUPPORTED_IMAGE_EXTENSIONS
+            .map((extension) => escapeRegex(extension.slice(1)))
+            .join("|");
+    }
+
+    function isSupportedImageExtension(extension) {
+        if (typeof extension !== "string" || !extension.trim()) {
+            return false;
+        }
+
+        const normalizedExtension = extension.trim().toLowerCase();
+        return SUPPORTED_IMAGE_EXTENSIONS.some((item) => item.toLowerCase() === normalizedExtension);
+    }
+
+    function syncExtendedImageUrlFlagsFromStorageChanges(changes) {
+        const hasGranularChange = EXTENDED_IMAGE_URL_FLAG_KEYS.some((key) => changes[key]);
+        const legacyChange = changes.allowExtendedImageUrls;
+
+        if (hasGranularChange) {
+            EXTENDED_IMAGE_URL_FLAG_KEYS.forEach((key) => {
+                if (changes[key]) {
+                    configCache[key] = changes[key].newValue === true;
+                }
+            });
+            configCache.allowExtendedImageUrls = EXTENDED_IMAGE_URL_FLAG_KEYS.some((key) => configCache[key] === true);
+            logDebug(2, `🔄 Extended image URL support updated in cache: ${configCache.allowExtendedImageUrls}`);
+            return;
+        }
+
+        if (legacyChange) {
+            const legacyEnabled = legacyChange.newValue === true;
+            EXTENDED_IMAGE_URL_FLAG_KEYS.forEach((key) => {
+                configCache[key] = legacyEnabled;
+            });
+            configCache.allowExtendedImageUrls = legacyEnabled;
+            logDebug(2, `🔄 Legacy extended image URL support updated in cache: ${configCache.allowExtendedImageUrls}`);
+        }
+    }
+
     // 🧠 Track closed tabs to prevent double-closure
     const closedTabs = new Set();
 
@@ -89,21 +193,21 @@
                 logDebug(2, `🔄 Filename mode updated in cache: "${configCache.filenameMode}"`);
             }
 
-            // if allowExtendedImageUrls changed, update cache and log
+            // if debugLogLevel changed, update cache and log
             if (changes.debugLogLevel) {
                 const oldLevel = configCache.debugLogLevel;
                 configCache.debugLogLevel = parseInt(changes.debugLogLevel.newValue ?? 1);
                 logDebug(1, `🪵 Debug level changed: ${oldLevel} → ${configCache.debugLogLevel}`);
             }
 
-            // if allowExtendedImageUrls changed, update cache and log
+            // if minWidth changed, update cache and log
             if (changes.minWidth) {
                 const oldValue = configCache.minWidth;
                 configCache.minWidth = parseInt(changes.minWidth.newValue ?? 800);
                 logDebug(2, `🔄 Min width updated in cache: ${oldValue} → ${configCache.minWidth}`);
             }
 
-            // if allowExtendedImageUrls changed, update cache and log
+            // if minHeight changed, update cache and log
             if (changes.minHeight) {
                 const oldValue = configCache.minHeight;
                 configCache.minHeight = parseInt(changes.minHeight.newValue ?? 600);
@@ -124,6 +228,16 @@
                 const safe = (!isNaN(raw) && raw >= 0 && raw <= 10000) ? raw : 2000;
                 configCache.toastMinVisibleMs = safe;
                 logDebug(2, `🔄 toastMinVisibleMs updated in cache: ${oldValue} → ${configCache.toastMinVisibleMs}`);
+            }
+
+            if (
+                changes.allowTwitterXQueryParams ||
+                changes.allowRedditCdnQueryParams ||
+                changes.allowParameterizedCdnUrls ||
+                changes.allowWrappedImageUrls ||
+                changes.allowExtendedImageUrls
+            ) {
+                syncExtendedImageUrlFlagsFromStorageChanges(changes);
             }
 
         });
@@ -424,7 +538,10 @@
             const parsed = new URL(url);
             const pathname = parsed.pathname.replace(/\/+$/g, "");
             const lastSegment = pathname.split("/").pop() || "image";
-            const pathExtMatch = lastSegment.match(/^(.*?)(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})?$/i);
+            const pathExtPattern = getSupportedImageExtensionPattern();
+            const pathExtMatch = lastSegment.match(
+                new RegExp(`^(.*?)(\\.(?:${pathExtPattern}))(:[a-zA-Z0-9]{2,10})?$`, "i")
+            );
             const queryFormat = String(
                 parsed.searchParams.get("format")
                 || parsed.searchParams.get("ext")
@@ -442,7 +559,7 @@
                 hasExtendedSuffix = Boolean(pathExtMatch[4]);
             } else if (queryFormat) {
                 const normalized = queryFormat.startsWith(".") ? queryFormat : `.${queryFormat}`;
-                if (/^\.(jpe?g|jpeg|png|webp|bmp|avif)$/i.test(normalized)) {
+                if (isSupportedImageExtension(normalized)) {
                     extension = normalized;
                 }
             }
@@ -486,16 +603,9 @@
                 return false;
             }
 
-            // ✅ Load allowed image extensions from user settings
-            const allowedExts = [];
-            if (configCache.allowJPG)  allowedExts.push('.jpg');
-            if (configCache.allowJPEG) allowedExts.push('.jpeg');
-            if (configCache.allowPNG)  allowedExts.push('.png');
-            if (configCache.allowWEBP) allowedExts.push('.webp');
-            if (configCache.allowAVIF) allowedExts.push('.avif');
-            if (configCache.allowBMP)  allowedExts.push('.bmp');
-
             const { pathname, lastSegment, extension, hasPathExtension, hasExtendedSuffix } = getImageUrlParts(url);
+            const allowedExts = getAllowedImageExtensions();
+            const allowedExtSet = new Set(allowedExts.map((ext) => ext.toLowerCase()));
 
             // ⛔ Reject if path is empty after trimming
             if (!pathname) {
@@ -507,15 +617,16 @@
 
            if (hasPathExtension) {
                // Accept extensions with optional :suffix (e.g., .jpg:large, .png:orig)
-               isValid = allowedExts.some(ext => {
-                   const pattern = hasExtendedSuffix && configCache.allowExtendedImageUrls
-                       ? new RegExp(`${ext}(:[a-zA-Z0-9]{2,10})?$`, 'i')
-                       : new RegExp(`${ext}$`, 'i');
+               isValid = allowedExts.some((ext) => {
+                   const escapedExt = escapeRegex(ext);
+                   const pattern = hasExtendedSuffix && hasEnabledExtendedImageUrlSupport()
+                       ? new RegExp(`${escapedExt}(:[a-zA-Z0-9]{2,10})?$`, "i")
+                       : new RegExp(`${escapedExt}$`, "i");
                    return pattern.test(lastSegment);
                });
                logDebug(2, `🔎 Path-based image URL validation for "${lastSegment}": ${isValid}`);
            } else if (extension) {
-               isValid = allowedExts.includes(extension.toLowerCase());
+               isValid = allowedExtSet.has(extension.toLowerCase());
                logDebug(2, `🔎 Query-based image URL validation for "${pathname}": ${isValid}`);
            }
 
@@ -543,10 +654,11 @@
      */
     function normalizeImageUrl(url) {
         try {
-            const allowExtended = configCache.allowExtendedImageUrls ?? false;
+            const allowExtended = configCache.allowExtendedImageUrls ?? hasEnabledExtendedImageUrlSupport();
             if (!allowExtended) return url;
             // Remove suffix (e.g., .jpg:large → .jpg)
-            return url.replace(/(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i, '.$2');
+            const extensionPattern = getSupportedImageExtensionPattern();
+            return url.replace(new RegExp(`(\\.(?:${extensionPattern}))(:[a-zA-Z0-9]{2,10})$`, "i"), "$1");
         } catch (err) {
             logDebug(1, `❌ Error in normalizeImageUrl: ${err.message}`);
             return url;
@@ -800,24 +912,19 @@
      */
     async function isAllowedImageFormat(url) {
         try {
-            const allowedExts = [];
-            if (configCache.allowJPG)  allowedExts.push('.jpg');
-            if (configCache.allowJPEG) allowedExts.push('.jpeg');
-            if (configCache.allowPNG)  allowedExts.push('.png');
-            if (configCache.allowWEBP) allowedExts.push('.webp');
-            if (configCache.allowAVIF) allowedExts.push('.avif');
-            if (configCache.allowBMP)  allowedExts.push('.bmp');
-
             const { pathname, lastSegment, extension, hasPathExtension, hasExtendedSuffix } = getImageUrlParts(url);
+            const allowedExts = getAllowedImageExtensions();
+            const allowedExtSet = new Set(allowedExts.map((ext) => ext.toLowerCase()));
 
             const isValid = hasPathExtension
-                ? allowedExts.some(ext => {
-                    const pattern = hasExtendedSuffix && configCache.allowExtendedImageUrls
-                        ? new RegExp(`${ext}(:[a-zA-Z0-9]{2,10})?$`, 'i')
-                        : new RegExp(`${ext}$`, 'i');
+                ? allowedExts.some((ext) => {
+                    const escapedExt = escapeRegex(ext);
+                    const pattern = hasExtendedSuffix && hasEnabledExtendedImageUrlSupport()
+                        ? new RegExp(`${escapedExt}(:[a-zA-Z0-9]{2,10})?$`, "i")
+                        : new RegExp(`${escapedExt}$`, "i");
                     return pattern.test(lastSegment);
                 })
-                : allowedExts.includes(extension.toLowerCase());
+                : allowedExtSet.has(extension.toLowerCase());
 
             if (isValid) {
                 logDebug(2, `✅ "${lastSegment}" accepted by allowed image formats.`);
