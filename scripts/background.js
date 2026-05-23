@@ -95,6 +95,10 @@
     let allowWEBP = false;
     let allowAVIF = false;
     let allowBMP = false;
+    let allowTwitterXQueryParams = false;
+    let allowRedditCdnQueryParams = false;
+    let allowParameterizedCdnUrls = false;
+    let allowWrappedImageUrls = false;
     let showUserFeedbackMessages = false;
     let toastMinVisibleMs = 2000; // ⏱️ Minimum visible time for user toasts (ms)
     let enableClipboardHotkeys = false;
@@ -203,6 +207,10 @@
                 allowWEBP: false,
                 allowAVIF: false,
                 allowBMP: false,
+                allowTwitterXQueryParams: false,
+                allowRedditCdnQueryParams: false,
+                allowParameterizedCdnUrls: false,
+                allowWrappedImageUrls: false,
                 downloadLimit: 1,
                 filenameMode: "none",
                 debugLogLevel: 1,
@@ -320,6 +328,8 @@
             "maxBulkBatch", "continueFromLastBulkBatch",
             "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "gallerySimilarityLevel",
             "allowAVIF", "allowBMP",
+            "allowTwitterXQueryParams", "allowRedditCdnQueryParams",
+            "allowParameterizedCdnUrls", "allowWrappedImageUrls",
             "galleryMinGroupSize",
             "galleryEnableSmartGrouping",
             "galleryEnableFallback",
@@ -375,6 +385,10 @@
             allowWEBP = data.allowWEBP !== false;
             allowAVIF = data.allowAVIF !== false;
             allowBMP = data.allowBMP !== false;
+            allowTwitterXQueryParams = data.allowTwitterXQueryParams === true;
+            allowRedditCdnQueryParams = data.allowRedditCdnQueryParams === true;
+            allowParameterizedCdnUrls = data.allowParameterizedCdnUrls === true;
+            allowWrappedImageUrls = data.allowWrappedImageUrls === true;
 
             showUserFeedbackMessages = data.showUserFeedbackMessages ?? false;
             toastMinVisibleMs = (typeof data.toastMinVisibleMs === "number" && data.toastMinVisibleMs >= 0 && data.toastMinVisibleMs <= 10000)
@@ -411,10 +425,10 @@
             logDebug(3, `      allow AVIF? ${allowAVIF}`);
             logDebug(3, `      allow BMP?  ${allowBMP}`);
             logDebug(3, '   🔗 Extended Image URL Support:');
-            logDebug(3, `      Twitter/X image URLs with query parameters: ${configCache?.allowTwitterXQueryParams ?? false}`);
-            logDebug(3, `      Reddit CDN image URLs with query parameters: ${configCache?.allowRedditCdnQueryParams ?? false}`);
-            logDebug(3, `      Parameterized CDN-style image URLs: ${configCache?.allowParameterizedCdnUrls ?? false}`);
-            logDebug(3, `      Wrapped URLs that still resolve to a valid image: ${configCache?.allowWrappedImageUrls ?? false}`);
+            logDebug(3, `      Twitter/X image URLs with query parameters: ${allowTwitterXQueryParams}`);
+            logDebug(3, `      Reddit CDN image URLs with query parameters: ${allowRedditCdnQueryParams}`);
+            logDebug(3, `      Parameterized CDN-style image URLs: ${allowParameterizedCdnUrls}`);
+            logDebug(3, `      Wrapped URLs that still resolve to a valid image: ${allowWrappedImageUrls}`);
             
             logDebug(3, `   📜 Filename Mode: ${filenameMode}`);
             logDebug(3, `      🔤 Prefix: ${prefix}`);
@@ -516,6 +530,10 @@ chrome.storage.onChanged.addListener((changes) => {
             case "allowWEBP": allowWEBP = newValue; break;
             case "allowAVIF": allowAVIF = newValue; break;
             case "allowBMP": allowBMP = newValue; break;
+            case "allowTwitterXQueryParams": allowTwitterXQueryParams = newValue; break;
+            case "allowRedditCdnQueryParams": allowRedditCdnQueryParams = newValue; break;
+            case "allowParameterizedCdnUrls": allowParameterizedCdnUrls = newValue; break;
+            case "allowWrappedImageUrls": allowWrappedImageUrls = newValue; break;
             case "gallerySimilarityLevel": gallerySimilarityLevel = newValue; break;
             case "galleryMinGroupSize": galleryMinGroupSize = newValue; break;
             case "galleryEnableSmartGrouping": galleryEnableSmartGrouping = newValue; break;
