@@ -192,8 +192,11 @@
                 allowAVIF: "Allow AVIF",
                 allowBMP: "Allow BMP"
             },
-            "🐦 Allow extended image URLs":{
-                allowExtendedImageUrls: "Allow extended image URLs (e.g., Twitter/X :large, :orig)"
+            "🔗 Extended Image URL Support": {
+                allowTwitterXQueryParams: "Twitter/X image URLs with query parameters",
+                allowRedditCdnQueryParams: "Reddit CDN image URLs with query parameters",
+                allowParameterizedCdnUrls: "Parameterized CDN-style image URLs",
+                allowWrappedImageUrls: "Wrapped URLs that still resolve to a valid image"
             },
             "📋 Clipboard Hotkeys": {
                 enableClipboardHotkeys: "Enable Clipboard Hotkeys",

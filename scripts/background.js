@@ -249,7 +249,11 @@
                 logDebug(3, '      allow WEBP? false');
                 logDebug(3, '      allow AVIF? false');
                 logDebug(3, '      allow BMP?  false');
-                logDebug(3, '   🐦 Allow extended image URLs? false');
+                logDebug(3, '   🔗 Extended Image URL Support:');
+                logDebug(3, '      Twitter/X image URLs with query parameters: false');
+                logDebug(3, '      Reddit CDN image URLs with query parameters: false');
+                logDebug(3, '      Parameterized CDN-style image URLs: false');
+                logDebug(3, '      Wrapped URLs that still resolve to a valid image: false');
                 logDebug(3, '   📜 Filename Mode: none');
                 logDebug(3, '      🔤 Prefix: ""');
                 logDebug(3, '      🔡 Suffix: ""');
@@ -406,6 +410,11 @@
             logDebug(3, `      allow WEBP? ${allowWEBP}`);
             logDebug(3, `      allow AVIF? ${allowAVIF}`);
             logDebug(3, `      allow BMP?  ${allowBMP}`);
+            logDebug(3, '   🔗 Extended Image URL Support:');
+            logDebug(3, `      Twitter/X image URLs with query parameters: ${configCache?.allowTwitterXQueryParams ?? false}`);
+            logDebug(3, `      Reddit CDN image URLs with query parameters: ${configCache?.allowRedditCdnQueryParams ?? false}`);
+            logDebug(3, `      Parameterized CDN-style image URLs: ${configCache?.allowParameterizedCdnUrls ?? false}`);
+            logDebug(3, `      Wrapped URLs that still resolve to a valid image: ${configCache?.allowWrappedImageUrls ?? false}`);
             
             logDebug(3, `   📜 Filename Mode: ${filenameMode}`);
             logDebug(3, `      🔤 Prefix: ${prefix}`);
