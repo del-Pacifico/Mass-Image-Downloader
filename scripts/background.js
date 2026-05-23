@@ -2338,6 +2338,8 @@ async function handleExtractVisualGallery(message, sendResponse) {
     logDebug(3, '---------------------------------------------------------------');
 
     const timing = logTimingStart("Extract images from galleries (without links)");
+    const rate = Math.max(0, parseInt(galleryMaxImages || 0, 10));
+    const delay = (rate > 0) ? Math.round(1000 / rate) : 0;
 
     try {
         if (!message.images || !Array.isArray(message.images)) {
@@ -2345,6 +2347,8 @@ async function handleExtractVisualGallery(message, sendResponse) {
             respondSafe(sendResponse, { success: false, error: 'Invalid images list received.' });
             return;
         }
+
+        logDebug(2, `⚡ Visual gallery pacing: ${rate > 0 ? `${rate} images/sec (${delay} ms delay)` : 'disabled'}`);
 
         const validatedImages = [];
         for (let i = 0; i < message.images.length; i++) {
@@ -2414,6 +2418,10 @@ async function handleExtractVisualGallery(message, sendResponse) {
 
                         const finalPath = safeFolder ? `${safeFolder}/${finalName}` : finalName;
 
+                        if (delay > 0) {
+                            await sleep(delay);
+                        }
+
                         logDebug(2, `📥 Downloading image: ${next.url}`);
                         logDebug(2, `📁 Final name/path: ${finalPath}`);
 
@@ -2451,6 +2459,10 @@ async function handleExtractVisualGallery(message, sendResponse) {
                 processNext();
             }
         };
+
+        if (delay > 0) {
+            logDebug(3, `⏱️ Applying visual gallery launch delay before each download: ${delay} ms`);
+        }
 
         processNext();
 
