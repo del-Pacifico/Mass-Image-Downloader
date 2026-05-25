@@ -6,14 +6,10 @@
 // # Copyright (c) 2025 Sergio Palma Hidalgo
 // # All rights reserved.
 
-// imageInspector.js:
-// Image Inspector content script for Mass Image Downloader: shows a hover overlay and opens a fixed inspector sidebar for inspecting images.
-// Provides a safe preview with zoom/pan, visible metadata, prev/next navigation, and actions to open or save images.
-// Loads runtime settings from chrome.storage.sync and toggles activation via the Ctrl+Shift+M hotkey.
-// Sends robust messages to the background to initiate downloads with fallback handling and displays non-blocking user toasts.
-// Manages overlay and panel lifecycle, supports developer mode details, and respects a cached debug log level.
+// Image Inspector content script.
+// Shows a hover overlay and opens a sidebar panel for inspecting images.
 
-// Runtime (storage-synced) 
+// Runtime state (storage-synced)
 let iiEnabledFromOptions = false;
 let iiActiveInPage = false;
 let iiDevMode = false;
@@ -34,7 +30,13 @@ let lastOverlayTs = 0;
 let parentPointerLeaveHandler = null;
 let overlayPointerEnterHandler = null;
 let overlayPointerLeaveHandler = null;
+let overlayPointerCancelHandler = null;
 let parentPointerEnterHandler = null;
+let overlayInteractionLocked = false;
+let overlayTriggerButton = null;
+let overlayPositionRaf = null;
+let overlayScrollHandler = null;
+let overlayResizeHandler = null;
 
 let overlayRemovalTimer = null;
 let debugLogLevelCache = 1;
@@ -42,8 +44,17 @@ let currentInspectorImage = null;
 let currentInspectorSrc = "";
 
 let toastMinVisibleMsCache = 2000; // Range: 0..10000. Default: 2000.
+const INSPECTOR_DEFAULT_MIN_WIDTH = 800;
+const INSPECTOR_DEFAULT_MIN_HEIGHT = 600;
+let inspectorMinWidthCache = INSPECTOR_DEFAULT_MIN_WIDTH;
+let inspectorMinHeightCache = INSPECTOR_DEFAULT_MIN_HEIGHT;
+const INSPECTOR_IMAGE_WRAPPER_SELECTOR = "figure, picture, .Image, .Logo";
+const INSPECTOR_OVERLAY_BUTTON_MIN_SIZE = 40;
+const INSPECTOR_OVERLAY_ANCHOR_PADDING = 8;
+const INSPECTOR_OVERLAY_OFFSET = 8;
+const INSPECTOR_OVERLAY_HOST_SIZE = INSPECTOR_OVERLAY_BUTTON_MIN_SIZE + INSPECTOR_OVERLAY_ANCHOR_PADDING * 2;
 
-// Config & storage sync 
+// Config and storage sync
 async function initConfig() {
   return new Promise((resolve) => {
     try {
@@ -53,6 +64,8 @@ async function initConfig() {
         "imageInspectorCloseOnSave",
         "showUserFeedbackMessages",
         "toastMinVisibleMs",
+        "minWidth",
+        "minHeight",
 		    "debugLogLevel"
       ], (data) => {
         iiEnabledFromOptions = data.imageInspectorEnabled === true;
@@ -65,11 +78,31 @@ async function initConfig() {
         toastMinVisibleMsCache = (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
           ? rawToastMinVisibleMs
           : 2000;
+        const rawMinWidth = parseInt(data.minWidth ?? INSPECTOR_DEFAULT_MIN_WIDTH, 10);
+        const rawMinHeight = parseInt(data.minHeight ?? INSPECTOR_DEFAULT_MIN_HEIGHT, 10);
+        inspectorMinWidthCache = (!isNaN(rawMinWidth) && rawMinWidth >= 1 && rawMinWidth <= 10000)
+          ? rawMinWidth
+          : INSPECTOR_DEFAULT_MIN_WIDTH;
+        inspectorMinHeightCache = (!isNaN(rawMinHeight) && rawMinHeight >= 1 && rawMinHeight <= 10000)
+          ? rawMinHeight
+          : INSPECTOR_DEFAULT_MIN_HEIGHT;
 
         if (!isNaN(level)) debugLogLevelCache = level;
 
         logDebug(1, "🕵️ Image Inspector settings loaded:", {
-          iiEnabledFromOptions, iiDevMode, iiCloseOnSave, showUserFeedbackMessagesCache, debugLogLevelCache
+          iiEnabledFromOptions,
+          iiDevMode,
+          iiCloseOnSave,
+          showUserFeedbackMessagesCache,
+          debugLogLevelCache,
+          imageSize: {
+            minWidth: inspectorMinWidthCache,
+            minHeight: inspectorMinHeightCache
+          }
+        });
+        logDebug(3, "🧪 [II trace] initConfig() image size cache:", {
+          minWidth: inspectorMinWidthCache,
+          minHeight: inspectorMinHeightCache
         });
         resolve();
       });
@@ -81,22 +114,11 @@ async function initConfig() {
 }
 
 /**
- * Robust logging function with support for log levels and legacy calls.
- * @param {number|string} levelOfLog - Log level (1-3) or message string for legacy calls.
- * @param  {...any} args - Message arguments (if level is provided) or message parts (if legacy).
- * @description
- * This function supports both structured logging with explicit levels and legacy calls where the first argument is the message.
- * If the first argument is a number between 1 and 3, it's treated as the log level. Otherwise, it's treated as part of the message with a default level of 1.
- * The function checks against a cached debug log level before logging to avoid unnecessary overhead.
- * All logging is wrapped in try-catch blocks to prevent any logging errors from affecting the main functionality. 
+ * Logs messages with support for levels and legacy calls.
+ * @param {number|string} levelOfLog - Log level (1-3) or message text.
+ * @param {...any} args - Additional log arguments.
  * @returns {void}
- * 
- * Log levels:
- * 1: Critical issues and important state changes (e.g., activation, errors).
- * 2: Informational messages about user interactions and config changes.
- * 3: Detailed debug information, including data values and stack traces.
- * Legacy calls (without a numeric level) will be treated as level 1 for compatibility.
- **/
+ */
 function logDebug(levelOfLog, ...args) {
     try {
         let level = 1;
@@ -106,7 +128,7 @@ function logDebug(levelOfLog, ...args) {
             level = levelOfLog;
             messageArgs = args;
         } else {
-            // Handle legacy or malformed calls (assume default log level 1)
+            // Legacy or malformed call.
             level = 1;
             messageArgs = [levelOfLog, ...args].filter(arg => arg !== undefined);
         }
@@ -123,13 +145,11 @@ function logDebug(levelOfLog, ...args) {
     }
 }
 
-// Initialization, then set up listeners. 
-// Await config load before adding event listeners.
-// This prevents race conditions where user toggles before config is loaded.
+// Initialize config before listeners to avoid race conditions.
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "sync") return;
 
-  // Image Inspector enable/disable toggle
+  // Enable/disable toggle
   if ("imageInspectorEnabled" in changes) {
     iiEnabledFromOptions = changes.imageInspectorEnabled.newValue === true;
     logDebug(1, "🕵️ imageInspectorEnabled →", iiEnabledFromOptions);
@@ -139,51 +159,65 @@ chrome.storage.onChanged.addListener((changes, area) => {
     }
   }
 
-  // Developer mode toggle (shows extra metadata fields in the panel)
+  // Developer mode toggle
   if ("imageInspectorDevMode" in changes) {
     iiDevMode = changes.imageInspectorDevMode.newValue === true;
     logDebug(2, "👨🏻‍💻 imageInspectorDevMode →", iiDevMode);
     try { refreshDevBlockIfOpen(); } catch (_) {}
   }
 
-  // Close on save toggle
+  // Close-on-save toggle
   if ("imageInspectorCloseOnSave" in changes) {
     iiCloseOnSave = changes.imageInspectorCloseOnSave.newValue === true;
     logDebug(2, "🔄 imageInspectorCloseOnSave →", iiCloseOnSave);
   }
 
-  // User feedback messages toggle
+  // User feedback toggle
   if ("showUserFeedbackMessages" in changes) {
     showUserFeedbackMessagesCache = changes.showUserFeedbackMessages.newValue !== false;
     logDebug(2, "🔄 showUserFeedbackMessages →", showUserFeedbackMessagesCache);
   }
 
-  // Handle toastMinVisibleMs changes
+  // Toast duration setting
   if ("showUserFeedbackMessages" in changes) {
     showUserFeedbackMessagesCache = changes.showUserFeedbackMessages.newValue !== false;
     logDebug(2, "🔄 showUserFeedbackMessages →", showUserFeedbackMessagesCache);
+  }
+
+  if ("minWidth" in changes) {
+    const oldValue = inspectorMinWidthCache;
+    const nextValue = parseInt(changes.minWidth.newValue ?? INSPECTOR_DEFAULT_MIN_WIDTH, 10);
+    inspectorMinWidthCache = (!isNaN(nextValue) && nextValue >= 1 && nextValue <= 10000)
+      ? nextValue
+      : INSPECTOR_DEFAULT_MIN_WIDTH;
+    logDebug(2, "📐 minWidth →", oldValue, "=>", inspectorMinWidthCache);
+    logDebug(3, "🧪 [II trace] Image size minWidth cache updated:", {
+      previous: oldValue,
+      current: inspectorMinWidthCache
+    });
+  }
+
+  if ("minHeight" in changes) {
+    const oldValue = inspectorMinHeightCache;
+    const nextValue = parseInt(changes.minHeight.newValue ?? INSPECTOR_DEFAULT_MIN_HEIGHT, 10);
+    inspectorMinHeightCache = (!isNaN(nextValue) && nextValue >= 1 && nextValue <= 10000)
+      ? nextValue
+      : INSPECTOR_DEFAULT_MIN_HEIGHT;
+    logDebug(2, "📐 minHeight →", oldValue, "=>", inspectorMinHeightCache);
+    logDebug(3, "🧪 [II trace] Image size minHeight cache updated:", {
+      previous: oldValue,
+      current: inspectorMinHeightCache
+    });
   }
 
 });
 
 /**
- * Displays a non-blocking toast message to the user with safety checks and queuing.
- * @param {string} text - The message text to display in the toast.
- * @param {string} [type="info"] - The type of message, which affects styling. Can be "info" or "error".
- * @description
- * This function creates a toast message that appears in the top-right corner of the page. It includes several safety checks:
- * - It verifies that showing user feedback messages is enabled in the cache before proceeding.
- * - It sanitizes and trims the input text, ensuring it's a non-empty string.
- * - It formats the message to include a "MID:" prefix for consistency.
- * - It calculates the display duration based on the message type and a cached minimum visible time, ensuring important messages stay visible longer.
- * - It manages a single toast instance, replacing the existing one if a new message arrives while the previous one is still visible. If a message is replaced during its minimum visible window, it defers showing the new message until the window expires, ensuring that users have time to read important messages.
- * - All DOM manipulations and timer handling are wrapped in try-catch blocks to prevent any errors from affecting the main functionality of the extension.
- * Log levels:
- * - "info": Standard informational messages with a blue background.
- * - "error": Critical messages with a red background that stay visible longer.
- * The function ensures that user feedback is delivered in a clear, consistent, and non-intrusive manner while maintaining robustness against potential errors.
- * @return {void}
- **/
+ * Shows a non-blocking toast message.
+ * @param {string} text - Message text.
+ * @param {string} [type="info"] - Message type.
+ * @returns {void}
+ */
 function showUserMsgSafe(text, type = "info") {
   try {
     if (!showUserFeedbackMessagesCache) return;
@@ -204,7 +238,7 @@ function showUserMsgSafe(text, type = "info") {
     const DEFER_KEY = "__mdiUserToastDeferTimer";
     const PENDING_KEY = "__mdiUserToastPending";
 
-    // Defer replacement inside minimum visible window (last pending wins)
+    // Defer replacement during the minimum visible window.
     try {
       const now = Date.now();
       const minUntil = window[MINUNTIL_KEY] || 0;
@@ -231,7 +265,7 @@ function showUserMsgSafe(text, type = "info") {
       }
     } catch (_) {}
 
-    // Last toast wins: remove previous + cancel timer
+    // Replace any existing toast.
     try {
       const existing = document.getElementById(TOAST_ID);
       if (existing) existing.remove();
@@ -242,7 +276,7 @@ function showUserMsgSafe(text, type = "info") {
       }
     } catch (_) {}
 
-    // Mark minimum visible window
+    // Mark the minimum visible window.
     try { window[MINUNTIL_KEY] = Date.now() + minVisibleMs; } catch (_) {}
 
     if (!document?.body) return;
@@ -277,13 +311,12 @@ function showUserMsgSafe(text, type = "info") {
   }
 }
 
-// Simple tooltip helper to avoid native title behavior covering text.
-// Renders a fixed-position bubble slightly above the target element.
+// Tooltip helper with a fixed-position bubble.
 function attachTooltip(element, text) {
   try {
     if (!element || !text) return;
 
-    // Accessibility hint; we control visuals ourselves.
+    // Keep the accessible label and remove the native title.
     element.setAttribute("aria-label", text);
     element.removeAttribute("title");
 
@@ -291,7 +324,7 @@ function attachTooltip(element, text) {
 
     const showTooltip = () => {
       try {
-        // Clean any previous tooltip created for this element
+        // Remove any previous tooltip.
         if (tooltipEl && tooltipEl.remove) {
           try { tooltipEl.remove(); } catch (_) {}
           tooltipEl = null;
@@ -318,7 +351,7 @@ function attachTooltip(element, text) {
         tooltipEl.style.zIndex = "2147483647";
         document.body.appendChild(tooltipEl);
       } catch (_) {
-        // Tooltip is best-effort; do not break flows.
+        // Best effort only.
       }
     };
 
@@ -338,8 +371,7 @@ function attachTooltip(element, text) {
   }
 }
 
-// Hotkey handling 
-// Ctrl+Shift+M to toggle image inspector.
+// Hotkey handling.
 function onKeyDown(evt) {
   try {
     if (!evt || evt.repeat) return;
@@ -348,22 +380,21 @@ function onKeyDown(evt) {
     evt.preventDefault();
     evt.stopPropagation();
 
-    // Toggle inspector
+    // Toggle the inspector.
     toggleInspectorViaHotkey();
   } catch (err) {
     logDebug(1, "❌ onKeyDown error:", err?.message || err);
   }
 }
 
-// Attach keydown listener
-// (use capture to ensure we get it before page scripts)
+// Attach the keydown listener in capture phase.
 function toggleInspectorViaHotkey() {
   if (!iiEnabledFromOptions) {
     logDebug(1, "🔔 INFO 🕵️ Image Inspector is disabled in Options.");
     showUserMsgSafe("Image Inspector is disabled in Options.", "info");
     return;
   }
-  // Toggle activation
+  // Toggle activation.
   if (!iiActiveInPage) {
     activateImageInspector();
     showUserMsgSafe("Image Inspector enabled.", "info");
@@ -373,10 +404,9 @@ function toggleInspectorViaHotkey() {
   }
 }
 
-// Inspector activation/teardown 
-// (on-demand via hotkey)
+// Inspector activation and teardown.
 function activateImageInspector() {
-  // Avoid double-activation
+  // Prevent double activation.
   if (iiActiveInPage) return;
   iiActiveInPage = true;
 
@@ -389,7 +419,7 @@ function activateImageInspector() {
       const img = findValidImgFromEvent(ev);
       if (!img) return;
       const now = Date.now();
-      // if throttled, skip
+      // Throttled.
       if (now - lastOverlayTs < OVERLAY_THROTTLE_MS) return;
       lastOverlayTs = now;
       showOverlayForImage(img);
@@ -402,7 +432,7 @@ function activateImageInspector() {
   logDebug(1, "🧩 Image Inspector activated.");
 }
 
-// Teardown inspector, removing overlays and panel
+// Teardown the inspector.
 function teardownImageInspector(reason) {
   if (!iiActiveInPage) return;
   iiActiveInPage = false;
@@ -415,27 +445,119 @@ function teardownImageInspector(reason) {
   logDebug(1, `🧹 Inspector teardown. Reason: ${reason}`);
 }
 
-// Returns true when an image is visible enough to be used by the inspector.
+/**
+ * Checks whether an image is eligible for the inspector.
+ * @param {HTMLImageElement} node - Candidate image node.
+ * @returns {boolean}
+ */
 function isValidInspectorImageNode(node) {
   try {
     if (!(node instanceof HTMLImageElement)) return false;
     if (!node.isConnected) return false;
     if (inspectorPanelRoot && inspectorPanelRoot.contains(node)) return false;
 
-    const width = Number(node.naturalWidth || node.width || 0);
-    const height = Number(node.naturalHeight || node.height || 0);
-    return width > 0 && height > 0;
+    const width = Number(node.naturalWidth || 0);
+    const height = Number(node.naturalHeight || 0);
+    const minWidth = Number(inspectorMinWidthCache || INSPECTOR_DEFAULT_MIN_WIDTH);
+    const minHeight = Number(inspectorMinHeightCache || INSPECTOR_DEFAULT_MIN_HEIGHT);
+    const hasBitmap = width > 0 && height > 0;
+    const accepted = hasBitmap && width >= minWidth && height >= minHeight;
+    logDebug(3, "🧪 [II trace] isValidInspectorImageNode() size check:", {
+      src: node.currentSrc || node.src || "",
+      width,
+      height,
+      minWidth,
+      minHeight,
+      hasBitmap,
+      accepted
+    });
+    return accepted;
   } catch (_) {
     return false;
   }
 }
 
-// Picks the best image candidate inside a wrapper element.
+/**
+ * Checks whether a node belongs to the inspector UI.
+ * @param {Node|Element|null} node - Node to inspect.
+ * @returns {boolean}
+ */
+function isInspectorUiNode(node) {
+  try {
+    if (!(node instanceof Element)) return false;
+    if (inspectorPanelRoot && inspectorPanelRoot.contains(node)) return true;
+    if (overlayEl && (overlayEl === node || overlayEl.contains(node))) return true;
+    return false;
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
+ * Returns the element stack under the pointer.
+ * @param {MouseEvent} ev - Pointer event from the page.
+ * @returns {Element[]}
+ */
+function getInspectorPointerStack(ev) {
+  try {
+    if (!ev || !Number.isFinite(ev.clientX) || !Number.isFinite(ev.clientY)) return [];
+    return Array.from(document.elementsFromPoint(ev.clientX, ev.clientY) || [])
+      .filter((node) => node instanceof Element && !isInspectorUiNode(node));
+  } catch (_) {
+    return [];
+  }
+}
+
+/**
+ * Resolves the nearest allowed wrapper from a pointer stack.
+ * @param {Element[]} stack - Elements under the pointer.
+ * @returns {Element|null}
+ */
+function getInspectorWrapperFromStack(stack) {
+  try {
+    if (!Array.isArray(stack)) return null;
+    for (const node of stack) {
+      if (!(node instanceof Element)) continue;
+      const wrapper = node.matches?.(INSPECTOR_IMAGE_WRAPPER_SELECTOR)
+        ? node
+        : node.closest?.(INSPECTOR_IMAGE_WRAPPER_SELECTOR);
+      if (wrapper && !isInspectorUiNode(wrapper)) return wrapper;
+    }
+    return null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/**
+ * Resolves the overlay parent for a target image.
+ * @param {HTMLImageElement} img - Target image.
+ * @returns {Element|null}
+ */
+function getInspectorOverlayParent(img) {
+  try {
+    if (!(img instanceof Element)) return null;
+    return img.closest(INSPECTOR_IMAGE_WRAPPER_SELECTOR) || img.parentElement || img;
+  } catch (_) {
+    return img?.parentElement || img || null;
+  }
+}
+
+/**
+ * Picks the best image candidate inside a wrapper element.
+ * @param {Element} container - Candidate wrapper.
+ * @returns {HTMLImageElement|null}
+ */
 function pickBestInspectorImage(container) {
   try {
     if (!(container instanceof Element)) return null;
     if (container instanceof HTMLImageElement) {
-      return isValidInspectorImageNode(container) ? container : null;
+      const ok = isValidInspectorImageNode(container);
+      return ok ? container : null;
+    }
+
+    if (!container.matches?.(INSPECTOR_IMAGE_WRAPPER_SELECTOR)) {
+      return null;
     }
 
     if (!container.querySelectorAll) return null;
@@ -448,44 +570,54 @@ function pickBestInspectorImage(container) {
         return bScore - aScore;
       });
 
-    return candidates.length > 0 ? candidates[0] : null;
+    const chosen = candidates.length > 0 ? candidates[0] : null;
+    return chosen;
   } catch (_) {
     return null;
   }
 }
 
-// Find valid image from event target, allowing wrapper-based markup.
+/**
+ * Resolves a valid image from the hover target.
+ * @param {MouseEvent} ev - Pointer event from the page.
+ * @returns {HTMLImageElement|null}
+ */
 function findValidImgFromEvent(ev) {
   try {
     if (!ev || !ev.target) return null;
 
     const t = ev.target;
-    if (inspectorPanelRoot && inspectorPanelRoot.contains(t)) return null;
+    if (isInspectorUiNode(t)) return null;
     if (t instanceof HTMLBodyElement || t instanceof HTMLHtmlElement) return null;
+
+    const pointerStack = getInspectorPointerStack(ev);
+
+    const stackImage = pointerStack.find((node) => node instanceof HTMLImageElement && isValidInspectorImageNode(node));
+    if (stackImage) return stackImage;
 
     if (isValidInspectorImageNode(t)) return t;
 
     if (!(t instanceof Element)) return null;
 
-    const wrapper = t.closest("figure, a, picture, .Image, .Logo, .TPost, .Objf, .Auto");
+    const wrapper = getInspectorWrapperFromStack(pointerStack) || t.closest?.(INSPECTOR_IMAGE_WRAPPER_SELECTOR) || null;
     if (wrapper && !(inspectorPanelRoot && inspectorPanelRoot.contains(wrapper))) {
       const wrapperImg = pickBestInspectorImage(wrapper);
       if (wrapperImg) return wrapperImg;
     }
 
-    return pickBestInspectorImage(t);
+    return null;
   } catch (_) {
     return null;
   }
 }
 
-// Track last mouse position for overlay removal logic
+// Track the last mouse position for overlay removal.
 document.addEventListener("mousemove", (e) => {
   window._mdi_lastMouseX = e.clientX;
   window._mdi_lastMouseY = e.clientY;
 }, { passive: true, capture: true });
 
-// Check if pointer is still within overlay composite
+// Check whether the pointer is still within the overlay composite.
 function isPointerStillWithinComposite() {
   const within = (node) => {
     try {
@@ -499,24 +631,75 @@ function isPointerStillWithinComposite() {
   return within(overlayParent) || within(overlayEl) || within(overlayTargetImg);
 }
 
-// Overlay removal scheduling, with throttling
+// Overlay removal timer control.
 function clearOverlayRemovalTimer() {
-  if (overlayRemovalTimer) { clearTimeout(overlayRemovalTimer); overlayRemovalTimer = null; }
+  if (overlayRemovalTimer) {
+    clearTimeout(overlayRemovalTimer);
+    overlayRemovalTimer = null;
+  }
 }
 
-// Schedule overlay removal after short delay, checking pointer position
+// Schedule overlay removal after a short delay.
 function scheduleOverlayRemoval() {
   clearOverlayRemovalTimer();
+  if (overlayInteractionLocked) {
+    return;
+  }
   overlayRemovalTimer = setTimeout(() => {
     try { if (isPointerStillWithinComposite()) return; removeOverlay(); }
     catch (_) { removeOverlay(); }
   }, 60);
 }
 
-// Overlay handling, show/hide
+function clearOverlayPositionRaf() {
+  if (overlayPositionRaf != null) {
+    try {
+      cancelAnimationFrame(overlayPositionRaf);
+    } catch (_) {}
+    overlayPositionRaf = null;
+  }
+}
+
+function updateOverlayPosition() {
+  if (!overlayEl || !overlayTriggerButton || !overlayParent || !overlayTargetImg) return;
+  try {
+    const rect = overlayTargetImg.getBoundingClientRect();
+    const hostLeft = Math.max(0, Math.round(rect.right - INSPECTOR_OVERLAY_HOST_SIZE - INSPECTOR_OVERLAY_OFFSET));
+    const hostTop = Math.max(0, Math.round(rect.top + INSPECTOR_OVERLAY_OFFSET));
+    const hostWidth = Math.max(INSPECTOR_OVERLAY_HOST_SIZE, Math.round(rect.width));
+    const hostHeight = Math.max(INSPECTOR_OVERLAY_HOST_SIZE, Math.round(rect.height));
+
+    overlayEl.style.left = `${hostLeft}px`;
+    overlayEl.style.top = `${hostTop}px`;
+    overlayEl.style.width = `${INSPECTOR_OVERLAY_HOST_SIZE}px`;
+    overlayEl.style.height = `${INSPECTOR_OVERLAY_HOST_SIZE}px`;
+    overlayEl.style.pointerEvents = "none";
+
+    overlayTriggerButton.style.left = "0";
+    overlayTriggerButton.style.top = "0";
+    overlayTriggerButton.style.right = "auto";
+    overlayTriggerButton.style.bottom = "auto";
+    overlayTriggerButton.style.width = "100%";
+    overlayTriggerButton.style.height = "100%";
+  } catch (err) {
+    logDebug(2, "⚠️ overlay position update failed:", err?.message || err);
+  }
+}
+
+function scheduleOverlayPositionUpdate() {
+  if (!overlayEl || !overlayTriggerButton) return;
+  clearOverlayPositionRaf();
+  overlayPositionRaf = requestAnimationFrame(() => {
+    overlayPositionRaf = null;
+    updateOverlayPosition();
+  });
+}
+
+// Overlay show and hide.
 function showOverlayForImage(img) {
   try {
-    const parent = img.closest("figure, a, .Image, .TPost, .Objf, .Auto") || img.parentElement || img;
+    logDebug(3, "🧪 [II trace] showOverlayForImage() called with:", img?.currentSrc || img?.src || "[no-src]");
+    const parent = getInspectorOverlayParent(img);
 
     if (overlayEl && overlayParent === parent && overlayTargetImg === img) return;
 
@@ -524,20 +707,15 @@ function showOverlayForImage(img) {
 
     overlayTargetImg = img;
     overlayParent = parent;
-
-    const cs = window.getComputedStyle(parent);
-    const restorePosition = (cs.position === "static");
-    if (restorePosition) {
-      parent._mdi_prevPos = parent.style.position;
-      parent.style.position = "relative";
-    }
+    overlayInteractionLocked = false;
+    logDebug(3, "🧪 [II trace] showOverlayForImage() resolved parent:", parent?.tagName || "[none]", parent?.className || "");
 
     const btn = document.createElement("button");
     btn.type = "button";
     btn.setAttribute("aria-label", "Image info");
     btn.setAttribute("role", "button");
     btn.textContent = "🕵️";
-    // Tooltip
+    // Tooltip.
     attachTooltip(
       btn,
       "[Mass image downloader]: Open this image in the Image Inspector panel by clicking on it."
@@ -546,76 +724,196 @@ function showOverlayForImage(img) {
     btn.style.position = "absolute";
     btn.style.top = "6px";
     btn.style.right = "6px";
-    btn.style.fontSize = "14px";
-    btn.style.lineHeight = "20px";
-    btn.style.padding = "2px 8px";
-    btn.style.borderRadius = "6px";
+    btn.style.display = "inline-flex";
+    btn.style.alignItems = "center";
+    btn.style.justifyContent = "center";
+    btn.style.minWidth = `${INSPECTOR_OVERLAY_BUTTON_MIN_SIZE}px`;
+    btn.style.minHeight = `${INSPECTOR_OVERLAY_BUTTON_MIN_SIZE}px`;
+    btn.style.padding = "6px 10px";
+    btn.style.boxSizing = "border-box";
+    btn.style.fontSize = "16px";
+    btn.style.lineHeight = "1";
+    btn.style.borderRadius = "8px";
     btn.style.backgroundColor = "#F8F8F8";
     btn.style.color = "#FFFFFF";
-    btn.style.border = "3px solid #768591";
+    btn.style.border = "2px solid #768591";
     btn.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.2)";
     btn.style.cursor = "pointer";
     btn.style.zIndex = "2147483646";
     btn.style.transition = "all 0.2s ease-in-out";
+    btn.style.userSelect = "none";
+    btn.style.touchAction = "manipulation";
 
-    // Hover behavior aligned with injectSaveIcon
-    btn.addEventListener("mouseenter", () => {
-      btn.style.backgroundColor = "#4f5984";
-    });
+    const host = document.createElement("div");
+    host.style.position = "fixed";
+    host.style.left = "0";
+    host.style.top = "0";
+    host.style.width = `${INSPECTOR_OVERLAY_HOST_SIZE}px`;
+    host.style.height = `${INSPECTOR_OVERLAY_HOST_SIZE}px`;
+    host.style.boxSizing = "border-box";
+    host.style.display = "block";
+    host.style.zIndex = "2147483646";
+    host.style.background = "transparent";
+    host.style.pointerEvents = "none";
+    host.style.overflow = "visible";
+    host.setAttribute("role", "presentation");
+    host.setAttribute("aria-hidden", "true");
 
-    btn.addEventListener("mouseleave", () => {
-      btn.style.backgroundColor = "#F8F8F8";
-    });
-    btn.addEventListener("mousedown", (e) => { e.stopPropagation(); }, true);
+    btn.style.position = "absolute";
+    btn.style.left = "0";
+    btn.style.top = "0";
+    btn.style.right = "auto";
+    btn.style.bottom = "auto";
+    btn.style.width = "100%";
+    btn.style.height = "100%";
+    btn.style.minWidth = "0";
+    btn.style.minHeight = "0";
+    btn.style.padding = "0";
+    btn.style.pointerEvents = "auto";
+    btn.style.boxSizing = "border-box";
+
+    host.appendChild(btn);
+
+    // Hover behavior.
+    btn.addEventListener("pointerdown", (e) => {
+      logDebug(3, "🧪 [II trace] overlay button pointerdown:", e.type, overlayTargetImg?.currentSrc || overlayTargetImg?.src || "[no-src]");
+      overlayInteractionLocked = true;
+      clearOverlayRemovalTimer();
+      e.stopPropagation();
+    }, true);
     btn.addEventListener("click", (e) => {
       e.preventDefault(); e.stopPropagation();
+      logDebug(3, "🧪 [II trace] overlay button click:", overlayTargetImg?.currentSrc || overlayTargetImg?.src || "[no-src]");
+      overlayInteractionLocked = false;
       openInspectorPanelForImage(img);
     });
 
-    parent.appendChild(btn);
-    overlayEl = btn;
-    overlayEl._mdi_restorePositionParent = restorePosition ? parent : null;
+    document.body.appendChild(host);
+    overlayEl = host;
+    overlayTriggerButton = btn;
 
-    parentPointerEnterHandler = () => { clearOverlayRemovalTimer(); };
-    parentPointerLeaveHandler = () => { scheduleOverlayRemoval(); };
-    overlayPointerEnterHandler = () => { clearOverlayRemovalTimer(); };
-    overlayPointerLeaveHandler = () => { scheduleOverlayRemoval(); };
+    parentPointerEnterHandler = () => {
+      clearOverlayRemovalTimer();
+    };
+    parentPointerLeaveHandler = () => {
+      scheduleOverlayRemoval();
+    };
+    overlayPointerEnterHandler = () => {
+      clearOverlayRemovalTimer();
+    };
+    overlayPointerLeaveHandler = () => {
+      scheduleOverlayRemoval();
+    };
 
     parent.addEventListener("pointerenter", parentPointerEnterHandler, true);
     parent.addEventListener("pointerleave", parentPointerLeaveHandler, true);
-    overlayEl.addEventListener("pointerenter", overlayPointerEnterHandler, true);
-    overlayEl.addEventListener("pointerleave", overlayPointerLeaveHandler, true);
+    overlayTriggerButton.addEventListener("pointerenter", overlayPointerEnterHandler, true);
+    overlayTriggerButton.addEventListener("pointerleave", overlayPointerLeaveHandler, true);
+    overlayPointerCancelHandler = () => {
+      overlayInteractionLocked = false;
+    };
+    overlayTriggerButton.addEventListener("pointercancel", overlayPointerCancelHandler, true);
+    overlayScrollHandler = () => { scheduleOverlayPositionUpdate(); };
+    overlayResizeHandler = () => { scheduleOverlayPositionUpdate(); };
+    window.addEventListener("scroll", overlayScrollHandler, true);
+    window.addEventListener("resize", overlayResizeHandler, true);
+    try {
+      scheduleOverlayPositionUpdate();
+      const parentRect = parent.getBoundingClientRect();
+      const hostRect = host.getBoundingClientRect();
+      const btnRect = btn.getBoundingClientRect();
+      const btnStyle = window.getComputedStyle(btn);
+      const hostStyle = window.getComputedStyle(host);
+      const parentStyle = window.getComputedStyle(parent);
+      const probeX = Math.round(hostRect.left + Math.max(1, hostRect.width / 2));
+      const probeY = Math.round(hostRect.top + Math.max(1, hostRect.height / 2));
+      const probeNode = document.elementFromPoint(probeX, probeY);
+      const probeStack = document.elementsFromPoint(probeX, probeY).slice(0, 6).map((node) => ({
+        tag: node?.tagName || node?.nodeName || "[unknown]",
+        className: node?.className || "",
+        id: node?.id || ""
+      }));
+      logDebug(3, "🧪 [II trace] overlay mount metrics:", {
+        probe: { x: probeX, y: probeY },
+        probeNode: {
+          tag: probeNode?.tagName || probeNode?.nodeName || "[none]",
+          className: probeNode?.className || "",
+          id: probeNode?.id || ""
+        },
+        probeStack,
+        parentRect: {
+          left: Math.round(parentRect.left),
+          top: Math.round(parentRect.top),
+          right: Math.round(parentRect.right),
+          bottom: Math.round(parentRect.bottom),
+          width: Math.round(parentRect.width),
+          height: Math.round(parentRect.height)
+        },
+        hostRect: {
+          left: Math.round(hostRect.left),
+          top: Math.round(hostRect.top),
+          right: Math.round(hostRect.right),
+          bottom: Math.round(hostRect.bottom),
+          width: Math.round(hostRect.width),
+          height: Math.round(hostRect.height)
+        },
+        btnRect: {
+          left: Math.round(btnRect.left),
+          top: Math.round(btnRect.top),
+          right: Math.round(btnRect.right),
+          bottom: Math.round(btnRect.bottom),
+          width: Math.round(btnRect.width),
+          height: Math.round(btnRect.height)
+        },
+        btnPointerEvents: btnStyle.pointerEvents,
+        hostPointerEvents: hostStyle.pointerEvents,
+        parentOverflow: parentStyle.overflow,
+        parentPosition: parentStyle.position,
+        btnPosition: btnStyle.position,
+        btnZIndex: btnStyle.zIndex
+      });
+    } catch (metricsErr) {
+      logDebug(2, "⚠️ overlay metrics unavailable:", metricsErr?.message || metricsErr);
+    }
+    logDebug(3, "🧪 [II trace] overlay mounted:", overlayTargetImg?.currentSrc || overlayTargetImg?.src || "[no-src]");
   } catch (err) {
     logDebug(1, "❌ showOverlayForImage:", err?.message || err);
   }
 }
 
-// Remove overlay and cleanup, restoring parent position if needed
+// Remove the overlay and restore the state if needed.
 function removeOverlay() {
   clearOverlayRemovalTimer();
+  clearOverlayPositionRaf();
+  logDebug(3, "🧪 [II trace] removeOverlay() called");
   try {
     if (overlayParent && parentPointerEnterHandler) overlayParent.removeEventListener("pointerenter", parentPointerEnterHandler, true);
     if (overlayParent && parentPointerLeaveHandler) overlayParent.removeEventListener("pointerleave", parentPointerLeaveHandler, true);
-    if (overlayEl && overlayPointerEnterHandler) overlayEl.removeEventListener("pointerenter", overlayPointerEnterHandler, true);
-    if (overlayEl && overlayPointerLeaveHandler) overlayEl.removeEventListener("pointerleave", overlayPointerLeaveHandler, true);
+    if (overlayTriggerButton && overlayPointerEnterHandler) overlayTriggerButton.removeEventListener("pointerenter", overlayPointerEnterHandler, true);
+    if (overlayTriggerButton && overlayPointerLeaveHandler) overlayTriggerButton.removeEventListener("pointerleave", overlayPointerLeaveHandler, true);
+    if (overlayTriggerButton && overlayPointerCancelHandler) overlayTriggerButton.removeEventListener("pointercancel", overlayPointerCancelHandler, true);
+    if (overlayScrollHandler) window.removeEventListener("scroll", overlayScrollHandler, true);
+    if (overlayResizeHandler) window.removeEventListener("resize", overlayResizeHandler, true);
   } catch (_) {}
   try {
-    if (overlayEl && overlayEl._mdi_restorePositionParent && overlayParent) {
-      overlayParent.style.position = overlayParent._mdi_prevPos || "";
-      delete overlayParent._mdi_prevPos;
-    }
+    if (overlayEl) overlayEl.remove();
   } catch (_) {}
-  try { overlayEl && overlayEl.remove(); } catch (_) {}
   overlayEl = null; overlayTargetImg = null; overlayParent = null;
   parentPointerLeaveHandler = null; overlayPointerEnterHandler = null; overlayPointerLeaveHandler = null; parentPointerEnterHandler = null;
+  overlayTriggerButton = null;
+  overlayPointerCancelHandler = null;
+  overlayScrollHandler = null;
+  overlayResizeHandler = null;
+  overlayInteractionLocked = false;
+  logDebug(3, "🧪 [II trace] overlay cleared");
 }
 
-// Open inspector panel for given image
+// Open the inspector panel for a given image.
 function openInspectorPanelForImage(img) {
   try {
     removeInspectorPanel();
 
-    // Fixed host container (minimal inline footprint)
+    // Fixed host container.
     const host = document.createElement("div");
     host.id = "__mdi_inspectorHost";
     host.style.position = "fixed";
@@ -631,7 +929,7 @@ function openInspectorPanelForImage(img) {
     host.style.overflow = "hidden";
     host.style.cursor = "default";
 
-    // block mouse events to underlying page
+    // Block pointer events from reaching the page.
     try { host.addEventListener("mouseover", (ev) => ev.stopPropagation(), true); } catch (_) {}
     try { host.addEventListener("mouseout", (ev) => ev.stopPropagation(), true); } catch (_) {}
 
@@ -805,7 +1103,7 @@ function openInspectorPanelForImage(img) {
     const root = document.createElement("div");
     root.className = "root";
 
-    // Header
+    // Header.
     const header = document.createElement("div");
     header.className = "title-header";
     const icon = document.createElement("img");
@@ -817,12 +1115,12 @@ function openInspectorPanelForImage(img) {
     header.appendChild(icon);
     header.appendChild(h1);
 
-    // Description (1-2 lines)
+    // Description.
     const desc = document.createElement("p");
     desc.className = "description";
     desc.textContent = "Inspect a single image. Review metadata, preview safely, then open or save it using your global rules.";
 
-    // Close button, compact "✖"
+    // Compact close button.
     const closeBtn = document.createElement("button");
     closeBtn.textContent = "✖";
     closeBtn.className = "btn-sm icon-btn";
@@ -835,11 +1133,11 @@ function openInspectorPanelForImage(img) {
       showUserMsgSafe("Inspector panel closed.", "info");
     });
 
-    // Scroller
+    // Scroller.
     const scroll = document.createElement("div");
     scroll.className = "scroll";
 
-    // Image metadata extraction
+    // Image metadata.
     const src = String(img.currentSrc || img.src || "");
     const pageUrl = String(location.href);
     const titleAttr = img.getAttribute("title") || "[ No title ]";
@@ -852,7 +1150,7 @@ function openInspectorPanelForImage(img) {
     currentInspectorImage = img;
     currentInspectorSrc = src;
 
-    // Helper to add a labeled row
+    // Helper to add a labeled row.
     const addRow = (wrapper, labelText, valueText) => {
       const group = document.createElement("div");
       group.className = "option-group";
@@ -867,7 +1165,7 @@ function openInspectorPanelForImage(img) {
       return val; // Return value node so we can update it later
     };
 
-    // Visible Metadata
+    // Visible metadata.
     const s1Wrap = document.createElement("div");
     s1Wrap.className = "global-options-wrapper";
     const s1Title = document.createElement("h2");
@@ -881,13 +1179,13 @@ function openInspectorPanelForImage(img) {
     const metaImageUrlVal = addRow(s1Wrap, "Image URL", src);
     const metaPageUrlVal = addRow(s1Wrap, "Page URL", pageUrl);
 
-    // Developer info container (optional, only if iiDevMode is true)
+    // Optional developer metadata.
     let devWrap = null;
     let devNodeTypeVal = null;
     let devFullUrlVal = null;
     let devCorsVal = null;
 
-    // Developer Metadata
+    // Developer metadata.
     if (iiDevMode) {
       devWrap = document.createElement("div");
       devWrap.className = "global-options-wrapper";
@@ -898,18 +1196,15 @@ function openInspectorPanelForImage(img) {
       devNodeTypeVal = addRow(devWrap, "Node type", img.tagName);
       devFullUrlVal = addRow(devWrap, "Full URL (raw)", src);
       devCorsVal = addRow(devWrap, "CORS", "N/A");
-      // devWrap will be appended later in the desired order.
+      // Append later to preserve the layout order.
     }
 
-    // Navigation list: all relevant images in the page (for prev/next browsing)
+    // Navigation list for prev/next browsing.
     const allImages = Array.from(document.querySelectorAll("img"));
     const navigationList = allImages.filter((node) => {
       try {
         if (!node || !node.src) return false;
-        // Basic size filter to avoid tiny icons
-        const w = Number(node.naturalWidth || node.width || 0);
-        const h = Number(node.naturalHeight || node.height || 0);
-        return w >= 50 && h >= 50;
+        return isValidInspectorImageNode(node);
       } catch (_) {
         return false;
       }
@@ -921,7 +1216,7 @@ function openInspectorPanelForImage(img) {
       navigationIndex = directIndex >= 0 ? directIndex : 0;
     }
 
-    // Preview
+    // Preview.
     const s3Wrap = document.createElement("div");
     s3Wrap.className = "global-options-wrapper";
     const s3Title = document.createElement("h2");
@@ -962,7 +1257,7 @@ function openInspectorPanelForImage(img) {
     zoomResetBtn.className = "btn-sm icon-btn";
     attachTooltip(zoomResetBtn, "Original size");
 
-    // NEW — Navigation buttons (following EXACT same pattern)
+    // Navigation buttons.
     const prevBtn = document.createElement("button");
     prevBtn.textContent = "⬅️";
     attachTooltip(prevBtn, "Previous image");
@@ -973,7 +1268,7 @@ function openInspectorPanelForImage(img) {
     attachTooltip(nextBtn, "Next image");
     nextBtn.className = "btn-sm icon-btn";
 
-    // Order: ZoomIn / ZoomOut / Reset / Prev / Next
+    // Order: Zoom in, zoom out, reset, prev, next.
     rowZoom.appendChild(zoomInBtn);
     rowZoom.appendChild(zoomOutBtn);
     rowZoom.appendChild(zoomResetBtn);
@@ -1010,7 +1305,7 @@ function openInspectorPanelForImage(img) {
     s3Wrap.appendChild(zoomGroup);
     s3Wrap.appendChild(actionsGroup);
 
-    // Update metadata function
+    // Update metadata.
     function updateMetadataForImage(targetImg) {
       try {
         if (!targetImg) return;
@@ -1033,7 +1328,7 @@ function openInspectorPanelForImage(img) {
       }
     }
 
-    // Update developer info function
+    // Update developer metadata.
     function updateDeveloperForImage(targetImg) {
       if (!iiDevMode || !devWrap) return;
       try {
@@ -1046,7 +1341,7 @@ function openInspectorPanelForImage(img) {
       }
     }
 
-    // Keep the panel selection and preview synchronized to the active image.
+    // Keep the preview and selection in sync.
     function setActiveInspectorImage(targetImg, resetZoom = false) {
       try {
         if (!targetImg) return;
@@ -1076,7 +1371,7 @@ function openInspectorPanelForImage(img) {
       }
     }
 
-    // Navigation button handlers
+    // Navigation handlers.
     function navigateBy(delta) {
       if (!navigationList || navigationList.length === 0) {
         showUserMsgSafe("No other images found to navigate.", "info");
@@ -1087,15 +1382,15 @@ function openInspectorPanelForImage(img) {
       const total = navigationList.length;
       if (total <= 0) return;
 
-      // Defensive: avoid infinite loops in case of all broken nodes
+      // Avoid infinite loops.
       let attempts = 0;
 
-      // Cycle until a valid image is found or all have been tried
+      // Cycle until a valid image is found.
       while (attempts < total) {
         navigationIndex = (navigationIndex + delta + total) % total;
         const target = navigationList[navigationIndex];
 
-        // Check validity
+        // Check validity.
         if (target && target.src) {
           setActiveInspectorImage(target, true);
 
@@ -1106,12 +1401,12 @@ function openInspectorPanelForImage(img) {
         attempts++;
       }
 
-      // If we reached here, no valid image was found
+      // No valid image found.
       showUserMsgSafe("Could not navigate to another valid image.", "error");
       logDebug(1, "⚠ Image Inspector: no valid images found during navigation.");
     }
 
-    // Mounting order
+    // Mount panel sections.
     shadow.appendChild(css);
     root.appendChild(header);
     root.appendChild(desc);
@@ -1119,11 +1414,11 @@ function openInspectorPanelForImage(img) {
 
     const scrollContainer = scroll; // Alias for clarity
 
-    // New order: Preview → Metadata → Developer (if enabled)
+    // Render sections in the desired order.
     scrollContainer.appendChild(s3Wrap);
     scrollContainer.appendChild(s1Wrap);
 
-    // Developer block (if enabled)
+    // Developer block.
     if (devWrap) {
       scrollContainer.appendChild(devWrap);
     }
@@ -1136,34 +1431,34 @@ function openInspectorPanelForImage(img) {
 
     showUserMsgSafe("Inspector panel opened.", "info");
 
-    // Actions: open/save
+    // Open/save actions.
     openBtn.addEventListener("click", (e) => {
       e.preventDefault(); e.stopPropagation();
       tryOpenImageInNewTab(currentInspectorSrc);
     });
 
-    // Save action
+    // Save action.
     saveBtn.addEventListener("click", (e) => {
       e.preventDefault(); e.stopPropagation();
       trySaveImage(currentInspectorSrc);
     });
 
-    // Navigation: previous image
+    // Previous image.
     prevBtn.addEventListener("click", (e) => {
       e.preventDefault(); e.stopPropagation();
       navigateBy(-1);
     });
 
-    // Navigation: next image
+    // Next image.
     nextBtn.addEventListener("click", (e) => {
       e.preventDefault(); e.stopPropagation();
       navigateBy(+1);
     });
 
-    // Zoom/Pan
+    // Zoom and pan.
     attachZoomPanBehavior({ frame, previewImg, zoomHint, zoomInBtn, zoomOutBtn, zoomResetBtn });
 
-    // Keep the initial selection in sync with the active panel state.
+    // Sync the initial selection.
     setActiveInspectorImage(img, false);
 
   } catch (err) {
@@ -1172,7 +1467,7 @@ function openInspectorPanelForImage(img) {
   }
 }
 
-// Remove inspector panel if open
+// Remove the inspector panel.
 function removeInspectorPanel() {
   if (!inspectorPanelRoot) return;
   try { inspectorPanelRoot.remove(); } catch (_) {}
@@ -1181,7 +1476,7 @@ function removeInspectorPanel() {
   currentInspectorSrc = "";
 }
 
-// Refresh Dev Block if open (after iiDevMode change)
+// Refresh the developer block if open.
 function refreshDevBlockIfOpen() {
   if (inspectorPanelRoot && (currentInspectorImage || overlayTargetImg)) {
     const img = currentInspectorImage || overlayTargetImg;
@@ -1190,7 +1485,11 @@ function refreshDevBlockIfOpen() {
   }
 }
 
-// Open image in new tab, with URL scheme check
+/**
+ * Opens the current image in a new tab.
+ * @param {string} url - Image URL.
+ * @returns {void}
+ */
 function tryOpenImageInNewTab(url) {
   try {
     if (!/^https?:\/\//i.test(url)) {
@@ -1206,38 +1505,41 @@ function tryOpenImageInNewTab(url) {
   }
 }
 
-// Robust handling aligned with fallbackSave, using showUserMsgSafe + logDebug.
+/**
+ * Requests the background script to save the current image.
+ * @param {string} url - Image URL.
+ * @returns {void}
+ */
 function trySaveImage(url) {
   try {
     chrome.runtime.sendMessage(
       { action: "imageInspectorSaveImage", imageUrl: url, source: "imageInspector" },
       (resp) => {
 
-        // 1) Messaging error (MV3 may report port-close errors even after handling)
+        // 1) Messaging error.
         if (chrome.runtime.lastError) {
           const msg = chrome.runtime.lastError.message || "";
           logDebug(1, "❌ trySaveImage lastError:", msg);
 
-          // Some MV3 errors are benign: the background may have processed the request
-          // but the response channel was closed before we got a payload.
+          // Treat the port-close error as non-fatal.
           if (msg.includes("The message port closed before a response was received")) {
             logDebug(2, "ℹ️ Non-fatal messaging error; assuming download started correctly.");
             handleSaveSuccess();
             return;
           }
 
-          // For other errors, keep a clear user-facing error.
+          // Keep a clear user-facing error for other failures.
           showUserMsgSafe("Could not start download.", "error");
           return;
         }
 
-        // 2) Explicit success:true
+        // 2) Explicit success.
         if (resp && resp.success === true) {
           handleSaveSuccess();
           return;
         }
 
-        // 3) Explicit success:false
+        // 3) Explicit failure.
         if (resp && resp.success === false) {
           const errMsg = resp.errorMessage ? String(resp.errorMessage) : "Could not start download.";
           showUserMsgSafe(" " + errMsg, "error");
@@ -1245,36 +1547,35 @@ function trySaveImage(url) {
           return;
         }
 
-        // 4) No explicit response → assume success
-        // Many handlers start download but do not return payload.
-        // We do not show error; assume background started it.
+        // 4) No explicit response; assume success.
         logDebug(2, "ℹ️ No explicit response from background; assuming download started.");
         handleSaveSuccess();
       }
     );
   } catch (err) {
-    // Only catch truly unexpected exceptions in the content script.
     showUserMsgSafe("Could not start download.", "error");
     logDebug(1, "❌ trySaveImage error:", err?.message || err);
     logDebug(3, `🐛 Stacktrace: ${err.stack}`);
   }
 }
 
-// Robust fallbackSave (no false negatives on silent success)
-// Updated to use the dedicated Image Inspector action and avoid cross-flow interference.
+/**
+ * Fallback save path for silent-success handlers.
+ * @param {string} url - Image URL.
+ * @returns {void}
+ */
 function fallbackSave(url) {
   try {
-    // Send imageInspectorSaveImage message to background
     chrome.runtime.sendMessage(
       { action: "imageInspectorSaveImage", imageUrl: url, source: "imageInspector-fallback" },
       (resp2) => {
 
-        // 1) Messaging error
+        // 1) Messaging error.
         if (chrome.runtime.lastError) {
           const msg = chrome.runtime.lastError.message || "";
           logDebug(1, "❌ fallbackSave lastError:", msg);
 
-          // Same rationale as trySaveImage: avoid false negatives on benign MV3 errors.
+          // Treat the port-close error as non-fatal.
           if (msg.includes("The message port closed before a response was received")) {
             logDebug(2, "ℹ️ Non-fatal messaging error in fallback; assuming download started correctly.");
             handleSaveSuccess();
@@ -1285,13 +1586,13 @@ function fallbackSave(url) {
           return;
         }
 
-        // 2) Explicit response with success:true → success
+        // 2) Explicit success.
         if (resp2 && resp2.success === true) {
           handleSaveSuccess();
           return;
         }
 
-        // 3) Explicit response with success:false -> display the error message from background
+        // 3) Explicit failure.
         if (resp2 && resp2.success === false) {
           const errMsg = resp2.errorMessage ? String(resp2.errorMessage) : "Could not start download.";
           showUserMsgSafe(" " + errMsg, "error");
@@ -1299,9 +1600,7 @@ function fallbackSave(url) {
           return;
         }
 
-        // 4) No explicit response → assume success
-        // many handlers start download but do not return payload.
-        // we do not show error; assume background started it.
+        // 4) No explicit response; assume success.
         logDebug(2, "ℹ️ No explicit response from background; assuming download started.");
         handleSaveSuccess();
       }
@@ -1313,8 +1612,10 @@ function fallbackSave(url) {
   }
 }
 
-// Handle post-save success actions (UI-only for the inspector panel).
-// Tab closing is handled exclusively in background.js based on imageInspectorCloseOnSave.
+/**
+ * Handles post-save success actions in the panel.
+ * @returns {void}
+ */
 function handleSaveSuccess() {
   try {
     showUserMsgSafe("Image saved successfully.", "info");
@@ -1324,7 +1625,11 @@ function handleSaveSuccess() {
   }
 }
 
-// Infer file type from URL extension, with basic mapping
+/**
+ * Infers a file type from a URL.
+ * @param {string} url - Image URL.
+ * @returns {{ext: string, mime: string}}
+ */
 function inferFileType(url) {
   try {
     const u = new URL(url, location.href);
@@ -1342,12 +1647,16 @@ function inferFileType(url) {
   }
 }
 
-// Zoom/Pan helper, attached to preview image
+// Zoom and pan helpers for the preview image.
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 3.0;
 const ZOOM_STEP = 0.25;
 
-// Attach zoom and pan behavior to preview image
+/**
+ * Attaches zoom and pan behavior to the preview image.
+ * @param {object} params - Zoom and pan elements.
+ * @returns {void}
+ */
 function attachZoomPanBehavior({ frame, previewImg, zoomHint, zoomInBtn, zoomOutBtn, zoomResetBtn }) {
   let currentZoom = 1.0;
   let offsetX = 0;
@@ -1362,7 +1671,7 @@ function attachZoomPanBehavior({ frame, previewImg, zoomHint, zoomInBtn, zoomOut
   let frameW = 0;
   let frameH = 0;
 
-  // Initial measurement
+  // Initial measurement.
   function measureBaseGeometry() {
     if (!previewImg || !frame) return;
     const prev = previewImg.style.transform;
@@ -1376,10 +1685,10 @@ function attachZoomPanBehavior({ frame, previewImg, zoomHint, zoomInBtn, zoomOut
     previewImg.style.transform = prev;
   }
 
-  // Clamping helpers
+  // Clamping helpers.
   function clampZoom(z) { return Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z)); }
   
-  // Clamp offsets to prevent empty space in frame
+  // Clamp offsets to the frame bounds.
   function clampOffsets() {
     if (!frameW || !frameH || !baseImgW || !baseImgH) return;
     const scaledW = baseImgW * currentZoom;
@@ -1392,19 +1701,19 @@ function attachZoomPanBehavior({ frame, previewImg, zoomHint, zoomInBtn, zoomOut
     if (offsetY < -maxOffsetY) offsetY = -maxOffsetY;
   }
 
-  // Update zoom label
+  // Update the zoom label.
   function updateZoomLabel() {
     if (zoomHint) {
       zoomHint.textContent = `Zoom: ${currentZoom.toFixed(2)}× (min ${ZOOM_MIN.toFixed(2)}×, max ${ZOOM_MAX.toFixed(2)}×) — drag to pan when zoomed in`;
     }
   }
 
-  // Apply transform
+  // Apply transform.
   function applyTransform() {
     previewImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${currentZoom})`;
   }
 
-  // Apply zoom changes
+  // Apply zoom changes.
   function applyZoom() {
     clampOffsets();
     applyTransform();
@@ -1413,7 +1722,7 @@ function attachZoomPanBehavior({ frame, previewImg, zoomHint, zoomInBtn, zoomOut
     previewImg.style.cursor = pannable ? "grab" : "default";
   }
 
-  // Zoom by delta
+  // Zoom by delta.
   function zoomBy(delta) {
     const nz = clampZoom(currentZoom + delta);
     if (nz === currentZoom) return;
@@ -1421,7 +1730,7 @@ function attachZoomPanBehavior({ frame, previewImg, zoomHint, zoomInBtn, zoomOut
     applyZoom();
   }
 
-    if (zoomInBtn) {
+  if (zoomInBtn) {
     zoomInBtn.addEventListener("click", (ev) => {
       ev.preventDefault(); ev.stopPropagation();
       zoomBy(+ZOOM_STEP);
@@ -1435,18 +1744,18 @@ function attachZoomPanBehavior({ frame, previewImg, zoomHint, zoomInBtn, zoomOut
     });
   }
 
-  // Reset zoom to original size (1.0, no offsets)
+  // Reset zoom to the original size.
   if (zoomResetBtn) {
     zoomResetBtn.addEventListener("click", (ev) => {
       ev.preventDefault(); ev.stopPropagation();
       currentZoom = 1.0;
       offsetX = 0;
       offsetY = 0;
-      applyZoom(); // Reuses existing logic: label update + cursor state + clamping
-    });
+    applyZoom();
+  });
   }
 
-  // Mouse events
+  // Mouse events.
   function onMouseDown(e) {
     const pannable = currentZoom > 1;
     if (!pannable) return;
@@ -1459,7 +1768,7 @@ function attachZoomPanBehavior({ frame, previewImg, zoomHint, zoomInBtn, zoomOut
     e.preventDefault(); e.stopPropagation();
   }
 
-  // Mouse move
+  // Mouse move.
   function onMouseMove(e) {
     if (!isDragging) return;
     const dx = e.clientX - dragStartX;
@@ -1470,7 +1779,7 @@ function attachZoomPanBehavior({ frame, previewImg, zoomHint, zoomInBtn, zoomOut
     applyTransform();
   }
 
-  // Mouse up / leave
+  // Mouse up or leave.
   function onMouseUpLeave() {
     if (!isDragging) return;
     isDragging = false;
@@ -1478,14 +1787,14 @@ function attachZoomPanBehavior({ frame, previewImg, zoomHint, zoomInBtn, zoomOut
     previewImg.style.cursor = pannable ? "grab" : "default";
   }
 
-  // Touch events
+  // Touch events.
   function getTouchPoint(ev) {
     if (!ev.touches || ev.touches.length === 0) return null;
     const t = ev.touches[0];
     return { x: t.clientX, y: t.clientY };
   }
 
-  // Touch start
+  // Touch start.
   function onTouchStart(ev) {
     const pannable = currentZoom > 1;
     if (!pannable) return;
@@ -1497,7 +1806,7 @@ function attachZoomPanBehavior({ frame, previewImg, zoomHint, zoomInBtn, zoomOut
     ev.preventDefault(); ev.stopPropagation();
   }
 
-  // Touch move
+  // Touch move.
   function onTouchMove(ev) {
     if (!isDragging) return;
     const p = getTouchPoint(ev);
@@ -1511,13 +1820,13 @@ function attachZoomPanBehavior({ frame, previewImg, zoomHint, zoomInBtn, zoomOut
     ev.preventDefault(); ev.stopPropagation();
   }
 
-  // Touch end / cancel
+  // Touch end or cancel.
   function onTouchEndCancel() {
     if (!isDragging) return;
     isDragging = false;
   }
 
-  // Event listeners
+  // Event listeners.
   frame.addEventListener("mousedown", onMouseDown, { passive: false });
   window.addEventListener("mousemove", onMouseMove, { passive: true });
   window.addEventListener("mouseup", onMouseUpLeave, { passive: true });
@@ -1530,14 +1839,14 @@ function attachZoomPanBehavior({ frame, previewImg, zoomHint, zoomInBtn, zoomOut
   measureBaseGeometry();
   applyZoom();
 
-  // Re-measure on image load and window resize
+  // Re-measure on load and resize.
   if (previewImg && !previewImg.complete) {
     previewImg.addEventListener("load", () => { measureBaseGeometry(); applyZoom(); }, { once: true });
   }
   window.addEventListener("resize", () => { measureBaseGeometry(); applyZoom(); }, { passive: true });
 }
 
-// Boot script, initialize config and attach keydown listener
+// Boot the script, load config, and attach listeners.
 (async function boot() {
   try {
     await initConfig();
