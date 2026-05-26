@@ -6,13 +6,30 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed extended image URL handling across the download pipeline so valid image URLs with query parameters, CDN suffixes, and wrapped variants are accepted when the corresponding support options are enabled.
+- Bulk Image Download, One-click Download Icon, and manual download now normalize supported image URLs consistently, including cases such as `?format=jpg`, `?resize=...`, `?name=...`, and other CDN-style variants that still resolve to the same image asset.
+- Filename inference now follows the normalized image URL so the saved file name remains consistent with the actual media source instead of the decorated URL wrapper.
+- Restored the normal One-click post-save behavior so the source tab closes again after a successful save.
+
+### Changed
+
+- Reordered `Extended Image URL Support` in Options so it appears after `File system`, matching the current Settings Peek layout.
+- Updated the `Extended Image URL Support` section emoji to `🔗`.
+- Unified One-click overlay positioning so direct image pages and HTML pages use the same top-right placement logic.
+- Kept the One-click flow focused on a manual, explicit download icon rather than expanding the clickable area to the full image.
+
+### Documentation
+
+- Updated the hotkey policy with browser shortcut assignment guidance for Edge, Opera, Brave, and Chrome-based shortcut managers in general.
+- Documented that `Ctrl + Shift + M` for Image Inspector is confirmed in Brave and Edge, and may be intercepted by Opera depending on browser/profile configuration.
+- Added the same browser-specific hotkey warning to the extended project overview under edge cases and warnings.
+
+### QA
+
 - QA was completed on Microsoft Edge 148.0.3967.54 and Opera One 131.0.5877.24 with no failures reported in flows, downloads, hotkeys, or configuration behavior.
 - No regression warnings were observed during the final review pass for the release branch.
-- Fixed query-parameter image URL handling so Bulk Image Download, One-click Download Icon, manual download, and related filename inference accept valid image URLs such as `?format=jpg` and `?resize=...`.
-- Reordered `Extended Image URL Support` in Options to follow `File System`, and updated the section emoji to `🔗` to match the current Settings Peek layout.
-- Unified One-click overlay positioning so direct image pages and HTML pages use the same top-right placement logic.
-- Documented the browser-specific behavior of `Ctrl+Shift+M` for Image Inspector, which is confirmed on Brave and Edge and may be intercepted by Opera in some profiles.
-- Updated the hotkey policy and project overview references to reflect manual shortcut assignment paths and current browser compatibility notes.
 
 ---
 
