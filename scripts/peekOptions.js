@@ -24,9 +24,10 @@
             // ⌨️ Virtual values for known hotkeys (read-only in Peek)
             configCache.peekHotkey = "Alt+Shift+S";
             configCache.bulkHotkey = "Alt+Shift+D";
-            configCache.galleryDirectHotkey = "Alt+Shift+G";
-            configCache.galleryVisualHotkey = "Alt+Shift+V";
-            configCache.oneClickIconHotkey = "Alt+Shift+I";
+    configCache.galleryDirectHotkey = "Alt+Shift+G";
+    configCache.galleryVisualHotkey = "Alt+Shift+V";
+    configCache.webLinkedGalleryHotkey = "Alt+Shift+W";
+    configCache.oneClickIconHotkey = "Alt+Shift+I";
             configCache.prefixHotkey = "Ctrl+Shift+P";
             configCache.suffixHotkey = "Ctrl+Shift+S";
             
@@ -207,7 +208,8 @@
                 bulkHotkey: "Bulk Image Download",
                 galleryDirectHotkey: "Extract Gallery (direct links)",
                 galleryVisualHotkey: "Extract Gallery (visual / no links)",
-                oneClickIconHotkey: "One-click Download Icon",
+            webLinkedGalleryHotkey: "Extract images from galleries (web-linked)",
+            oneClickIconHotkey: "One-click Download Icon",
                 prefixHotkey: "Set Prefix (Clipboard)",
                 suffixHotkey: "Set Suffix (Clipboard)"
             },

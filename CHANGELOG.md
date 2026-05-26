@@ -9,6 +9,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 - QA was completed on Microsoft Edge 148.0.3967.54 and Opera One 131.0.5877.24 with no failures reported in flows, downloads, hotkeys, or configuration behavior.
 - No regression warnings were observed during the final review pass for the release branch.
 - Fixed query-parameter image URL handling so Bulk Image Download, One-click Download Icon, manual download, and related filename inference accept valid image URLs such as `?format=jpg` and `?resize=...`.
+- Reordered `Extended Image URL Support` in Options to follow `File System`, and updated the section emoji to `🔗` to match the current Settings Peek layout.
+- Unified One-click overlay positioning so direct image pages and HTML pages use the same top-right placement logic.
+- Documented the browser-specific behavior of `Ctrl+Shift+M` for Image Inspector, which is confirmed on Brave and Edge and may be intercepted by Opera in some profiles.
+- Updated the hotkey policy and project overview references to reflect manual shortcut assignment paths and current browser compatibility notes.
 
 ---
 

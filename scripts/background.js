@@ -45,6 +45,51 @@
         logDebug(1, "📦 Background configuration initialized.");
     });
 
+    /**
+     * Logs the effective browser command bindings so hotkey issues can be diagnosed
+     * without guessing whether the browser assigned the shortcut at all.
+     * @returns {Promise<void>}
+     */
+    async function logRegisteredCommands() {
+        try {
+            if (!chrome.commands?.getAll) {
+                logDebug(2, "⚠️ chrome.commands.getAll is not available in this context.");
+                return;
+            }
+
+            chrome.commands.getAll((commands) => {
+                if (chrome.runtime.lastError) {
+                    logDebug(1, `❌ Failed to read registered commands: ${chrome.runtime.lastError.message}`);
+                    return;
+                }
+
+                const normalized = Array.isArray(commands) ? commands : [];
+                const oneClickCommand = normalized.find((cmd) => cmd?.name === "open-oneclick-icon");
+
+                logDebug(2, "⌨️ Registered commands snapshot:", normalized.map((cmd) => ({
+                    name: cmd?.name || "[unknown]",
+                    shortcut: cmd?.shortcut || "",
+                    description: cmd?.description || ""
+                })));
+
+                if (oneClickCommand) {
+                    logDebug(1, `🖱️ One-click command binding: ${oneClickCommand.shortcut || "[unassigned]"}`);
+                    if (!oneClickCommand.shortcut) {
+                        logDebug(1, "⚠️ One-click command has no assigned shortcut in this browser profile.");
+                    }
+                } else {
+                    logDebug(1, "⚠️ One-click command open-oneclick-icon is missing from registered commands.");
+                }
+            });
+        } catch (err) {
+            logDebug(2, `⚠️ Could not inspect registered commands: ${err.message}`);
+        }
+    }
+
+    configReady.then(() => {
+        logRegisteredCommands();
+    });
+
     // 🔒 Enforce final filename/path for every download
     // Reason: Chromium/servers can override suggested names; this listener cements our choice.
     const pendingDownloadPaths = new Map(); // key: download URL, value: desired relative path
@@ -1240,7 +1285,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                                 if (tabId) {
                                     setBadgeFinished();
                                     closeTabSafely(tabId);
-                                    logDebug(2, '💾 END: Manual image download.');
+                                    logDebug(2, `💾 END: Manual image download. Source tab ${tabId} closed after save.`);
                                     logDebug(3, '');
                                 }
                             } else {

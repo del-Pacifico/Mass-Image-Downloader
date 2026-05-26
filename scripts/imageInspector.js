@@ -375,8 +375,27 @@ function attachTooltip(element, text) {
 function onKeyDown(evt) {
   try {
     if (!evt || evt.repeat) return;
-    const isCtrlShiftM = (evt.ctrlKey || evt.metaKey) && evt.shiftKey && (evt.key === "M" || evt.key === "m");
+    const isCtrlOrMeta = Boolean(evt.ctrlKey || evt.metaKey);
+    const isShift = Boolean(evt.shiftKey);
+    const keyLabel = typeof evt.key === "string" ? evt.key : "";
+    const isCtrlShiftM = isCtrlOrMeta && isShift && (keyLabel === "M" || keyLabel === "m");
+
+    if (isCtrlOrMeta && isShift) {
+      logDebug(3, "🧪 [II trace] onKeyDown() candidate:", {
+        key: keyLabel,
+        code: evt.code,
+        ctrlKey: evt.ctrlKey,
+        metaKey: evt.metaKey,
+        shiftKey: evt.shiftKey,
+        altKey: evt.altKey,
+        repeat: evt.repeat,
+        target: evt.target?.tagName || "[unknown]"
+      });
+    }
+
     if (!isCtrlShiftM) return;
+
+    logDebug(2, "🧪 [II trace] onKeyDown() matched Ctrl+Shift+M");
     evt.preventDefault();
     evt.stopPropagation();
 
@@ -389,6 +408,11 @@ function onKeyDown(evt) {
 
 // Attach the keydown listener in capture phase.
 function toggleInspectorViaHotkey() {
+  logDebug(3, "🧪 [II trace] toggleInspectorViaHotkey() entry:", {
+    enabled: iiEnabledFromOptions,
+    active: iiActiveInPage
+  });
+
   if (!iiEnabledFromOptions) {
     logDebug(1, "🔔 INFO 🕵️ Image Inspector is disabled in Options.");
     showUserMsgSafe("Image Inspector is disabled in Options.", "info");
@@ -396,9 +420,11 @@ function toggleInspectorViaHotkey() {
   }
   // Toggle activation.
   if (!iiActiveInPage) {
+    logDebug(3, "🧪 [II trace] toggleInspectorViaHotkey() activating inspector");
     activateImageInspector();
     showUserMsgSafe("Image Inspector enabled.", "info");
   } else {
+    logDebug(3, "🧪 [II trace] toggleInspectorViaHotkey() tearing down inspector");
     teardownImageInspector("user-toggle-off");
     showUserMsgSafe("Image Inspector disabled.", "info");
   }

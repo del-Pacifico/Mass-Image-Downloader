@@ -236,6 +236,32 @@ function attachTooltipForIcon(element, text) {
     }
 }
 
+/**
+ * Computes the top-right overlay coordinates for an image element.
+ * @param {HTMLElement|null} imageElement - Image element used as anchor.
+ * @returns {{ top: number, left: number }|null} Absolute overlay coordinates or null when unavailable.
+ */
+function getTopRightOverlayPositionOptions(imageElement) {
+    try {
+        if (!imageElement || typeof imageElement.getBoundingClientRect !== "function") {
+            return null;
+        }
+
+        const rect = imageElement.getBoundingClientRect();
+        if (!rect || rect.width <= 0 || rect.height <= 0) {
+            return null;
+        }
+
+        return {
+            top: window.scrollY + rect.top + 6,
+            left: window.scrollX + rect.left + Math.max(6, rect.width - 42)
+        };
+    } catch (err) {
+        logDebug(2, `⚠️ getTopRightOverlayPositionOptions failed: ${err.message}`);
+        return null;
+    }
+}
+
 // 🔧 Local config cache for injectSaveIcon.js
 // Avoid re-declaration across multiple injections in the same page.
 if (typeof configCache === 'undefined') {
@@ -372,8 +398,16 @@ function detectContextAndProceed() {
 
                 logDebug(2, `✅ Direct image URL accepted: ${url}`);
 
-                // 🧩 Use unified function for icon injection (top-right for direct image)
-                createAndShowSaveIcon(url, normalizedUrl, "fixed");
+                // 🧩 Use the same top-right anchoring logic as the HTML flow when the DOM exposes an image element.
+                const directImageElement = document.querySelector("img");
+                const directPositionOptions = getTopRightOverlayPositionOptions(directImageElement);
+
+                if (directPositionOptions) {
+                    createAndShowSaveIcon(url, normalizedUrl, "absolute", directPositionOptions);
+                } else {
+                    logDebug(2, "ℹ️ Direct image anchor unavailable. Falling back to viewport placement.");
+                    createAndShowSaveIcon(url, normalizedUrl, "fixed");
+                }
 
             } catch (err) {
                 logDebug(1, `❌ Error validating direct image URL: ${err.message}`);
@@ -551,17 +585,13 @@ function proceedWithInjection() {
     logDebug(2, `✅ Image selected for 💾 overlay: ${bestImage.originalSrc}`);
     logDebug(2, `📐 Resolution: ${bestImage.img.naturalWidth}x${bestImage.img.naturalHeight}`);
 
-    const rect = bestImage.img.getBoundingClientRect();
-    const positionOptions = {
-        top: window.scrollY + rect.top + 6,
-        left: window.scrollX + rect.left + bestImage.img.width - 42
-    };
+    const positionOptions = getTopRightOverlayPositionOptions(bestImage.img);
 
     createAndShowSaveIcon(
         bestImage.originalSrc,
         bestImage.normalizedSrc,
-        "absolute",
-        positionOptions
+        positionOptions ? "absolute" : "fixed",
+        positionOptions || {}
     );
 
 

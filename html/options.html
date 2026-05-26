@@ -216,31 +216,6 @@
     <!-- options.html - Mass Image Downloader (restructured with global sections) -->
     <div class="global-options-wrapper">
 
-    <!-- 🌐 Global Settings: Extended Image URL Support -->
-    <h2>🌐 Extended Image URL Support</h2>
-    <p class="description">Choose which extended image URL patterns the extension should treat as valid when the selected image format is enabled.</p>
-    <div class="option-group">
-        <label>Supported extended URL patterns:</label>
-        <label class="inline-checkbox" for="allowTwitterXQueryParams">
-            <input type="checkbox" id="allowTwitterXQueryParams">
-            <span>Twitter/X image URLs with query parameters</span>
-        </label>
-        <label class="inline-checkbox" for="allowRedditCdnQueryParams">
-            <input type="checkbox" id="allowRedditCdnQueryParams">
-            <span>Reddit CDN image URLs with query parameters</span>
-        </label>
-        <label class="inline-checkbox" for="allowParameterizedCdnUrls">
-            <input type="checkbox" id="allowParameterizedCdnUrls">
-            <span>Parameterized CDN-style image URLs</span>
-        </label>
-        <label class="inline-checkbox" for="allowWrappedImageUrls">
-            <input type="checkbox" id="allowWrappedImageUrls">
-            <span>Wrapped URLs that still resolve to a valid image</span>
-        </label>
-        <p class="info-text">All of these options are disabled by default. Enable only the URL shapes you want the extension to accept.</p>
-        <p class="info-text">Rule: <em>Does this URL resolve to an image format that the user has enabled, even if it is decorated with suffixes or query parameters?</em></p>
-    </div>
-
     <!-- 📁 Global Settings: File system -->
     <h2>📁 File system</h2>
     <p class="description">Configure how and where images are stored on your system, including folder selection and supported formats.</p>
@@ -285,6 +260,31 @@
         </div>
         <p class="info-text">Define how filenames are modified when saving (optional).</p>
         <p class="info-text">Allows you to prepend or append a string to filenames (e.g., prefix_001.jpg or 001_suffix.jpg). You can also use timestamp mode for unique naming. Default: None.</p>
+    </div>
+
+    <!-- 🔗 Global Settings: Extended Image URL Support -->
+    <h2>🔗 Extended Image URL Support</h2>
+    <p class="description">Choose which extended image URL patterns the extension should treat as valid when the selected image format is enabled.</p>
+    <div class="option-group">
+        <label>Supported extended URL patterns:</label>
+        <label class="inline-checkbox" for="allowTwitterXQueryParams">
+            <input type="checkbox" id="allowTwitterXQueryParams">
+            <span>Twitter/X image URLs with query parameters</span>
+        </label>
+        <label class="inline-checkbox" for="allowRedditCdnQueryParams">
+            <input type="checkbox" id="allowRedditCdnQueryParams">
+            <span>Reddit CDN image URLs with query parameters</span>
+        </label>
+        <label class="inline-checkbox" for="allowParameterizedCdnUrls">
+            <input type="checkbox" id="allowParameterizedCdnUrls">
+            <span>Parameterized CDN-style image URLs</span>
+        </label>
+        <label class="inline-checkbox" for="allowWrappedImageUrls">
+            <input type="checkbox" id="allowWrappedImageUrls">
+            <span>Wrapped URLs that still resolve to a valid image</span>
+        </label>
+        <p class="info-text">All of these options are disabled by default. Enable only the URL shapes you want the extension to accept.</p>
+        <p class="info-text">Rule: <em>Does this URL resolve to an image format that the user has enabled, even if it is decorated with suffixes or query parameters?</em></p>
     </div>
     
     <!-- 📋 Global Settings: Clipboard Hotkeys (NEW) -->

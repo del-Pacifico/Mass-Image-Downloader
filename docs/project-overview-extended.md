@@ -1299,6 +1299,9 @@ Situations and caveats that can affect extraction/downloading. Review this list 
   This is a visual-only condition: hover detection, click handling, and Inspector workflows remain fully functional.  
   The condition is documented and scheduled for a future refinement alongside existing Inspector edge cases (`NestedFigureResponsiveImg`, `DirectImageOverlayPosition`).
 
+- **Browser-specific hotkey behavior**
+  `Ctrl + Shift + M` for Image Inspector works in Brave and Edge, but Opera may intercept or block the combination in some browser/profile configurations before the content script receives it. When that happens, the keydown handler never sees the final `M`, so the inspector does not toggle even though the page is otherwise compatible.
+
 - **Inspector metadata redaction**  
   For security and privacy reasons, the inspector hides local/blob/data URLs in its metadata view. The underlying validation and download pipeline can still operate on them when permitted, but raw values are not exposed in the panel.  
 
