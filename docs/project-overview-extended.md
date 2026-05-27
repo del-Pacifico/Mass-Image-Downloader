@@ -186,44 +186,32 @@ From there, you can access:
 
 ## 🔥 Release Highlights
 
-- Added and validated **core hotkeys** for the main workflows:
-  - **Alt + Shift + D** — Bulk Image Download
-  - **Alt + Shift + G** — Extract galleries (direct links)
-  - **Alt + Shift + V** — Extract galleries (visual / no links)
-  - **Alt + Shift + W** — Extract galleries (web-linked)
-  - **Alt + Shift + S** — View Settings (Peek)
+- Unified **extended image URL validation** across the main download flows so valid image URLs with query parameters, CDN suffixes, and wrapped variants can be accepted when the corresponding support options are enabled.
 
-- Introduced a **fully standardized toast notification system** across the extension.
-
-- Added a new configurable option:
-  - **Toast Minimum Visible Time (ms)**
-
-- Normalized user feedback messages under the `MID:` format and removed emoji-based UI noise from user-facing toasts.
-
-- Improved toast timing behavior to prevent overlapping messages during rapid workflows.
-
-- Stabilized feedback flows for:
-  - Bulk Download
-  - Gallery (direct links)
-  - Gallery (visual / no links)
-  - Gallery (web-linked)
-  - One-click download icon
+- Aligned validation behavior for:
+  - Bulk Image Download
+  - One-click Download Icon
   - Image Inspector
-  - Settings Peek
+  - Manual download
+  - Shared URL parsing and image-format helpers
 
-- Improved **Web-linked Gallery** reliability for the `Alt + Shift + W` workflow:
-  - stronger grouping for sequential gallery pages
-  - structural fallback when similarity is too strict
-  - more reliable handoff to the background process
+- Improved support for real-world image URL patterns, including:
+  - X/Twitter image URLs that expose the format through query parameters such as `?format=jpg`
+  - CDN and WordPress-style image URLs such as `?resize=...`
+  - suffix-based variants such as `:large` and `:orig`
+  - wrapped image URLs that still resolve to valid image resources
 
-- Fixed false user-facing error reporting caused by **ephemeral MV3 callback errors** during Web-linked Gallery handoff.
+- Added a dedicated **Extended Image URL Support** section in Options and reflected the same status in Settings Peek, so users can clearly manage query-parameter, suffix-based, CDN-style, and wrapped image URL handling.
 
-- Improved background configuration traceability:
-  - **Toast Minimum Visible Time (ms)** is now loaded and logged by the background service worker
+- Restored expected **One-click Download Icon** behavior after save and kept the flow focused on an explicit manual download action.
 
-- Cleaned internal default settings initialization by removing a duplicated `enableClipboardHotkeys` entry.
+- Fixed a QA-reported false Web-linked Gallery error toast in Brave and Edge by acknowledging the MV3 background handoff immediately after grouped URL validation.
 
-- Fixed additional QA-discovered runtime, messaging, and configuration consistency issues across Bulk and gallery flows.
+- Expanded browser QA documentation:
+  - Brave remains the primary QA-tested browser.
+  - Microsoft Edge and Opera One now have documented additional QA coverage.
+  - Google Chrome is explicitly marked as not validated by the project QA process.
+  - Browser-level shortcut conflicts or restrictions are documented as potentially requiring manual configuration.
 
 ---
 
