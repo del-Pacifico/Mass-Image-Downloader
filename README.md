@@ -3,7 +3,9 @@
 ![Chromium 93+](https://img.shields.io/badge/Chromium-93%2B-4285F4?logo=google-chrome&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-FF9800)
 ![GitHub Release](https://img.shields.io/github/v/release/del-Pacifico/Mass-Image-Downloader?display_name=tag)
-![Brave](https://img.shields.io/badge/Brave-Tested-FB542B?logo=brave&logoColor=white)
+![Brave QA Tested](https://img.shields.io/badge/Brave-QA%20Tested-FB542B?logo=brave&logoColor=white)
+![Edge QA Tested](https://img.shields.io/badge/Edge-QA%20Tested-0078D7?logo=microsoftedge&logoColor=white)
+![Opera QA Tested](https://img.shields.io/badge/Opera-QA%20Tested-FF1B2D?logo=opera&logoColor=white)
 ![License](https://img.shields.io/badge/license-MPL--2.0-green?style=flat-square)
 ![Status](https://img.shields.io/badge/status-active-brightgreen?style=flat-square)
 ![GitHub community standards](https://img.shields.io/badge/community%20standards-100%25-brightgreen?style=flat-square&logo=github)
@@ -69,7 +71,9 @@ These commands validate the extension manifest, declared paths, version alignmen
 - Chromium-based browser.
 - Minimum Chromium version: `93`.
 - Manifest version: `3`.
-- Tested primarily on Brave.
+- QA tested primarily on Brave, with additional QA coverage on Microsoft Edge and Opera One.
+- Google Chrome has not been validated by the project QA process.
+- Browser-level shortcut conflicts or restrictions may require manual configuration.
 
 ## Version
 

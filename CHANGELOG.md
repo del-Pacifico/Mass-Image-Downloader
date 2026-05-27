@@ -25,6 +25,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Updated the hotkey policy with browser shortcut assignment guidance for Edge, Opera, Brave, and Chrome-based shortcut managers in general.
 - Documented that `Ctrl + Shift + M` for Image Inspector is confirmed in Brave and Edge, and may be intercepted by Opera depending on browser/profile configuration.
 - Added the same browser-specific hotkey warning to the extended project overview under edge cases and warnings.
+- Updated browser QA badges and browser testing status to reflect QA coverage on Brave, Microsoft Edge, and Opera One, and to clarify that Google Chrome has not been validated by the project QA process.
 
 ### QA
 
