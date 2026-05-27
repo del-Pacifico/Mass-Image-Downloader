@@ -918,6 +918,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             // ✅ Toast target (tab-origin)
             const tabId = sender?.tab?.id;
             const isTabOrigin = (typeof tabId === "number");
+            let handoffAcknowledged = false;
 
             // ✅ UX: Start toast (web-linked)
             if (isTabOrigin) {
@@ -935,11 +936,20 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
                 const urls = candidates.filter(url => typeof url === 'string' && url.startsWith('http'));
                 const total = urls.length;
+                if (total === 0) {
+                    throw new Error("No valid web-linked gallery URLs were received.");
+                }
 
                 // ✅ UX: b) MID: Web-linked Gallery - analyzing / send to download
                 if (isTabOrigin) {
                     sendUserToastToTab(tabId, `MID: Web-linked gallery: found ${total} page(s). Opening...`, "info");
                 }
+
+                // Acknowledge the content-script handoff immediately. Opening many tabs can
+                // outlive the MV3 message callback in some Chromium browsers, producing a
+                // false "unexpected response" toast even though the background flow succeeds.
+                respondSafe(sendResponse, { success: true, ack: true, pages: total });
+                handoffAcknowledged = true;
 
                 const concurrencyLimit = Math.max(1, Math.min(10, maxOpenTabs));
                 let opened = 0;
@@ -994,8 +1004,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                                                     "success"
                                                 );
                                             }
-
-                                            respondSafe(sendResponse, { success: true });
                                         }
                                         return;
                                     }
@@ -1081,7 +1089,9 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                             sendUserToastToTab(tabId, `MID: Web-linked gallery failed: ${errMsg}`, "error");
                         }
 
-                        respondSafe(sendResponse, { success: false, error: errMsg });
+                        if (!handoffAcknowledged) {
+                            respondSafe(sendResponse, { success: false, error: errMsg });
+                        }
                     }
                 }
 
@@ -1100,7 +1110,9 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                     sendUserToastToTab(tabId, `MID: Gallery (web-linked): failed. ${errMsg}`, "error");
                 }
 
-                respondSafe(sendResponse, { success: false, error: errMsg });
+                if (!handoffAcknowledged) {
+                    respondSafe(sendResponse, { success: false, error: errMsg });
+                }
             }
 
             return true;
