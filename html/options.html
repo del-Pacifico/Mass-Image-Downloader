@@ -295,9 +295,9 @@
             <input type="checkbox" id="enableClipboardHotkeys">
             <span>Enable clipboard shortcuts for prefix/suffix</span>
         </label>
-        <p class="info-text">Use Ctrl+Shift+P to set new prefix. Only if prefix. Is available.<br>
-            Use Ctrl+Shift+S to set new suffix. Only if suffix. Is available.<br>
-            Only on active tabs.</p>
+        <p class="info-text">Use Ctrl+Alt+P to set the prefix from clipboard text.<br>
+            Use Ctrl+Alt+S to set the suffix from clipboard text.<br>
+            These shortcuts work on active tabs when Clipboard Hotkeys are enabled.</p>
     </div>
 
     <!-- 🕵️ Interface: Image Inspector -->
@@ -553,30 +553,40 @@
 
     <!-- 📘 User Guide (Quick Reference) -->
     <h2>📘 How to Use & Optimize</h2>
-    <p class="description">Quick tips to help you get the best out of Mass Image Downloader.</p>
+    <p class="description">Quick reference for choosing the right workflow and validating your active settings.</p>
     <div class="option-group">
         <p class="info-text"><strong>What it does:</strong><br>
-        ☕ This extension allows you to extract and download images in bulk, either from open tabs or grouped galleries. It supports automatic filtering, customizable filenames, batch control, and clipboard shortcuts.</p>
+        Mass Image Downloader collects and saves images from open tabs, direct galleries, visual galleries, and web-linked galleries. It applies your selected formats, size filters, naming rules, URL support options, pacing, and feedback settings.</p>
 
-        <p class="info-text"><strong>🧰 Feature overview:</strong><br>
-        📸 <strong>Download images directly in tabs</strong>: Download open images in tabs filtering and downloading valid images (currently open in the browser window).<br>
-        🌄 <strong>Extract images from galleries (with direct links)</strong>: Extract images from galleries with direct image links (via HTML anchor tags).<br>
-        🖼️ <strong>Extract visual galleries</strong>: Extracts images from galleries (without link), detecting by grouping and similarity of paths.<br>
-        🔗 <strong>Extract Web-Linked Galleries</strong>: Analyzes images from linked galleries (to web pages), opening associated web pages, selecting the high resolution image found on each page (adding icon for download).<br>
-        📋 <strong>Clipboard hotkeys</strong>: Press Ctrl+Shift+P or Ctrl+Shift+S to paste and set new prefix/suffix quickly from clipboard.</p>
+        <p class="info-text"><strong>🧰 Main workflows:</strong><br>
+        📸 <strong>Bulk Image Download</strong>: Scans open tabs and downloads valid image URLs using the global filters.<br>
+        🌄 <strong>Galleries with direct links</strong>: Extracts images when thumbnails or anchors point directly to image files.<br>
+        🖼️ <strong>Visual galleries without links</strong>: Detects visible image groups when pages do not expose direct image anchors.<br>
+        🔗 <strong>Web-linked galleries</strong>: Opens linked detail pages with controlled pacing and extracts the best image candidate from each page.<br>
+        🖱️ <strong>One-click Download Icon</strong>: Use <strong>Alt+Shift+I</strong> to place a manual save icon over the best image candidate.<br>
+        🕵️ <strong>Image Inspector</strong>: Use <strong>Ctrl+Shift+M</strong> to inspect images with preview, metadata, navigation, and save controls.<br>
+        👁️ <strong>Settings Peek</strong>: Use <strong>Alt+Shift+S</strong> or the popup menu to review active settings without changing them.</p>
+
+        <p class="info-text"><strong>🔗 Extended image URLs:</strong><br>
+        Enable only the extended URL patterns you need. These options help the extension accept valid images from X/Twitter, Reddit CDN, parameterized CDN URLs, and wrapped image URLs when the resolved image format is enabled.</p>
+
+        <p class="info-text"><strong>📋 Naming shortcuts:</strong><br>
+        Enable Clipboard Hotkeys, then use <strong>Ctrl+Alt+P</strong> to set the prefix and <strong>Ctrl+Alt+S</strong> to set the suffix from clipboard text.</p>
 
         <p class="info-text"><strong>🚀 Performance tips:</strong><br>
-        🔴 <u>Low-end PCs</u>: Set <code>Max images per batch</code> = 1 or 2, avoid auto-closing tabs.<br>
-        🟡 <u>Mid-range PCs</u>: Use batching (2–3), smart grouping, and keep visual filters enabled.<br>
-        🟢 <u>High-end PCs</u>: Enable fallback grouping, open tabs concurrently (max 5–10), and allow all formats.</p>        
+        🔴 <u>Low-end PCs</u>: Use smaller batches, fewer open web-linked tabs, and longer delays between tab openings.<br>
+        🟡 <u>Mid-range PCs</u>: Use balanced batching, smart grouping, and moderate web-linked pacing.<br>
+        🟢 <u>High-end PCs</u>: Use larger batches, fallback grouping, and higher web-linked concurrency only when the target site remains stable.</p>
 
         <p class="info-text"><strong>🔧 Troubleshooting:</strong><br>
-        • Ensure gallery images are large enough (check min width/height).<br>
-        • Confirm image formats (JPG/PNG/WEBP) are enabled in File system section.<br>
-        • Logs can be enabled under Debugging (choose log level).<br>
-        • Reload the extension if options are not applied correctly.</p>
+        • Check that the image format is enabled under File system.<br>
+        • Check Extended Image URL Support when valid images include query parameters, suffixes, CDN parameters, or wrappers.<br>
+        • Confirm minimum width and height are not filtering out expected images.<br>
+        • Use Settings Peek before long runs to verify the active configuration.<br>
+        • Increase Console log level under Debugging when collecting QA evidence.<br>
+        • Browser-level shortcut conflicts may require manual shortcut configuration.</p>
 
-        <p class="info-text">📚 For technical details, advanced use, usage examples, troubleshooting, or to contribute: visit <a href="https://github.com/del-Pacifico/" target="_blank">Del-Pacifico Organization on Github</a>.</p>        
+        <p class="info-text">📚 For technical details, advanced usage, troubleshooting, or contribution guidance, visit the <a href="https://github.com/del-Pacifico/Mass-Image-Downloader" target="_blank" rel="noopener">Mass Image Downloader repository</a>.</p>        
     </div>
 
     <hr>
@@ -589,7 +599,7 @@
     <div class="footer">
         <p>Version: <strong id="extension-version">Loading...</strong></p>
         <p>Concept & Development by <strong>💻 Sergio Palma Hidalgo</strong></p>
-        <p>Powered by AI: 🤖 Copilot, ChatGPT, Gemini & DeepSeek</p>
+        <p>Powered by AI: 🤖 Codex, Copilot, ChatGPT, Gemini & DeepSeek</p>
         <p>Check out the sources at the: <a href="https://github.com/del-Pacifico/" target="_blank" rel="noopener">🔗 Del-Pacifico Organization on Github</a></p>
     </div>
 

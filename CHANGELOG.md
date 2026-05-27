@@ -26,6 +26,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Documented that `Ctrl + Shift + M` for Image Inspector is confirmed in Brave and Edge, and may be intercepted by Opera depending on browser/profile configuration.
 - Added the same browser-specific hotkey warning to the extended project overview under edge cases and warnings.
 - Updated browser QA badges and browser testing status to reflect QA coverage on Brave, Microsoft Edge, and Opera One, and to clarify that Google Chrome has not been validated by the project QA process.
+- Refreshed the Options page `How to Use & Optimize` quick reference so it reflects Extended Image URL Support, current workflows, Settings Peek, and active shortcut guidance.
 
 ### QA
 
