@@ -29,14 +29,22 @@ Mass Image Downloader is a Chromium Manifest V3 extension for collecting and dow
 
 ## Installation
 
-1. Clone or download this repository.
+1. Clone this repository using HTTPS or SSH:
+   ```bash
+   git clone https://github.com/del-Pacifico/Mass-Image-Downloader.git
+   ```
+   ```bash
+   git clone git@github.com:del-Pacifico/Mass-Image-Downloader.git
+   ```
 2. Open a Chromium-based browser and go to the extensions page:
    - Chrome: `chrome://extensions`
    - Edge: `edge://extensions`
    - Brave: `brave://extensions`
 3. Enable Developer Mode.
 4. Select **Load unpacked**.
-5. Choose the repository root folder.
+5. Choose the cloned repository root folder, the one containing `manifest.json`.
+
+For the long-form unpacked installation notes, see the [Extended Project Overview](docs/project-overview-extended.md#-installation-developer-mode--unpacked).
 
 ## Quick Start
 
@@ -63,7 +71,7 @@ These commands validate the extension manifest, declared paths, version alignmen
 - [Configuration Guides](docs/configuration-guides/configuration-guides.md) - scenario-based setup.
 - [Technical Manual](docs/technical-manual/README.md) - internal behavior and execution flow.
 - [Advanced Manual](docs/advanced-manual/README.md) - design rationale, trade-offs, and edge cases.
-- [Extended Project Overview](docs/project-overview-extended.md) - the previous long-form README preserved as a reference.
+- [Extended Project Overview](docs/project-overview-extended.md) - the previous long-form README preserved as a reference, including [Release Highlights](docs/project-overview-extended.md#-release-highlights).
 - [Hotkeys Policy](docs/hotkeys/hotkeys.md) - official shortcut policy.
 
 ## Requirements
