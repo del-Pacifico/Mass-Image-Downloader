@@ -45,6 +45,147 @@ function logDebug(levelOfLog, ...args) {
     }
 } 
 
+const SUPPORTED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".avif", ".bmp"];
+const EXTENDED_IMAGE_URL_FLAG_KEYS = [
+    "allowTwitterXQueryParams",
+    "allowRedditCdnQueryParams",
+    "allowParameterizedCdnUrls",
+    "allowWrappedImageUrls"
+];
+
+/**
+ * Escapes a string for safe use inside a RegExp pattern.
+ * @param {string} text - Raw text to escape.
+ * @returns {string} Escaped text.
+ */
+function escapeRegex(text) {
+    return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Returns the image extensions currently enabled in Options.
+ * @returns {string[]} Enabled extensions with leading dots.
+ */
+function getAllowedImageExtensions() {
+    const allowedExts = [];
+    if (configCache.allowJPG) allowedExts.push(".jpg");
+    if (configCache.allowJPEG) allowedExts.push(".jpeg");
+    if (configCache.allowPNG) allowedExts.push(".png");
+    if (configCache.allowWEBP) allowedExts.push(".webp");
+    if (configCache.allowAVIF) allowedExts.push(".avif");
+    if (configCache.allowBMP) allowedExts.push(".bmp");
+    return allowedExts;
+}
+
+/**
+ * Checks whether any extended image URL rule is enabled in Options.
+ * @returns {boolean} True when at least one extended URL checkbox is enabled.
+ */
+function hasEnabledExtendedImageUrlSupport() {
+    return EXTENDED_IMAGE_URL_FLAG_KEYS.some((key) => configCache[key] === true);
+}
+
+/**
+ * Splits an image URL into filename and extension parts.
+ * @param {string} url - Absolute URL to inspect.
+ * @returns {{
+ *   pathname: string,
+ *   lastSegment: string,
+ *   baseName: string,
+ *   extension: string,
+ *   hasPathExtension: boolean,
+ *   hasExtendedSuffix: boolean
+ * }} Parsed URL parts used by the one-click flow.
+ */
+function getImageUrlParts(url) {
+    try {
+        const parsed = new URL(url, location.href);
+        const pathname = parsed.pathname.replace(/\/+$/g, "");
+        const lastSegment = pathname.split("/").pop() || "image";
+        const extensionPattern = SUPPORTED_IMAGE_EXTENSIONS.map((ext) => escapeRegex(ext.slice(1))).join("|");
+        const pathExtMatch = lastSegment.match(new RegExp(`^(.*?)(\\.(?:${extensionPattern}))(:[a-zA-Z0-9]{2,10})?$`, "i"));
+        const queryFormat = String(
+            parsed.searchParams.get("format")
+            || parsed.searchParams.get("ext")
+            || parsed.searchParams.get("type")
+            || ""
+        ).trim().toLowerCase();
+
+        let baseName = lastSegment;
+        let extension = "";
+        let hasExtendedSuffix = false;
+
+        if (pathExtMatch) {
+            baseName = pathExtMatch[1] || "image";
+            extension = pathExtMatch[2].toLowerCase();
+            hasExtendedSuffix = Boolean(pathExtMatch[4]);
+        } else if (queryFormat) {
+            const normalized = queryFormat.startsWith(".") ? queryFormat : `.${queryFormat}`;
+            if (SUPPORTED_IMAGE_EXTENSIONS.some((ext) => ext.toLowerCase() === normalized.toLowerCase())) {
+                extension = normalized;
+            }
+        }
+
+        return {
+            pathname,
+            lastSegment,
+            baseName,
+            extension,
+            hasPathExtension: Boolean(pathExtMatch),
+            hasExtendedSuffix
+        };
+    } catch (_) {
+        return {
+            pathname: "",
+            lastSegment: "image",
+            baseName: "image",
+            extension: "",
+            hasPathExtension: false,
+            hasExtendedSuffix: false
+        };
+    }
+}
+
+/**
+ * Validates a direct image source against the enabled formats and extended rules.
+ * @param {string} url - URL to validate.
+ * @param {string[]} allowedExts - Enabled image extensions from Options.
+ * @param {boolean} allowExtended - Whether extended suffix handling is enabled.
+ * @returns {{
+ *   isValid: boolean,
+ *   normalizedUrl: string,
+ *   pathname: string,
+ *   lastSegment: string,
+ *   baseName: string,
+ *   extension: string,
+ *   hasPathExtension: boolean,
+ *   hasExtendedSuffix: boolean
+ * }} Validation result and parsed URL parts.
+ */
+function isAllowedImageSource(url, allowedExts, allowExtended) {
+    const info = getImageUrlParts(url);
+    let normalizedUrl = url;
+
+    if (allowExtended && info.hasPathExtension && info.hasExtendedSuffix) {
+        const extensionPattern = SUPPORTED_IMAGE_EXTENSIONS.map((ext) => escapeRegex(ext.slice(1))).join("|");
+        normalizedUrl = url.replace(new RegExp(`(\\.(?:${extensionPattern}))(:[a-zA-Z0-9]{2,10})$`, "i"), "$1");
+    }
+
+    let isValid = false;
+    if (info.hasPathExtension) {
+        isValid = allowedExts.some(ext => {
+            const pattern = info.hasExtendedSuffix && allowExtended
+                ? new RegExp(`${ext}(:[a-zA-Z0-9]{2,10})?$`, 'i')
+                : new RegExp(`${ext}$`, 'i');
+            return pattern.test(info.lastSegment);
+        });
+    } else if (info.extension) {
+        isValid = allowedExts.includes(info.extension.toLowerCase());
+    }
+
+    return { isValid, normalizedUrl, ...info };
+}
+
 // Local tooltip helper for the one-click icon.
 // Shows a small bubble above the icon instead of relying on native title behavior.
 function attachTooltipForIcon(element, text) {
@@ -95,6 +236,32 @@ function attachTooltipForIcon(element, text) {
     }
 }
 
+/**
+ * Computes the top-right overlay coordinates for an image element.
+ * @param {HTMLElement|null} imageElement - Image element used as anchor.
+ * @returns {{ top: number, left: number }|null} Absolute overlay coordinates or null when unavailable.
+ */
+function getTopRightOverlayPositionOptions(imageElement) {
+    try {
+        if (!imageElement || typeof imageElement.getBoundingClientRect !== "function") {
+            return null;
+        }
+
+        const rect = imageElement.getBoundingClientRect();
+        if (!rect || rect.width <= 0 || rect.height <= 0) {
+            return null;
+        }
+
+        return {
+            top: window.scrollY + rect.top + 6,
+            left: window.scrollX + rect.left + Math.max(6, rect.width - 42)
+        };
+    } catch (err) {
+        logDebug(2, `⚠️ getTopRightOverlayPositionOptions failed: ${err.message}`);
+        return null;
+    }
+}
+
 // 🔧 Local config cache for injectSaveIcon.js
 // Avoid re-declaration across multiple injections in the same page.
 if (typeof configCache === 'undefined') {
@@ -106,16 +273,28 @@ if (typeof configCache === 'undefined') {
         showUserFeedbackMessages: false,
         toastMinVisibleMs: 2000, // Default: 2000ms
         allowExtendedImageUrls: false,
+        allowTwitterXQueryParams: false,
+        allowRedditCdnQueryParams: false,
+        allowParameterizedCdnUrls: false,
+        allowWrappedImageUrls: false,
         enableOneClickIcon: false
     };
 }
 
 // 🔧 Initialize local config for this script only
+/**
+ * Loads the local configuration cache for the one-click overlay.
+ * @param {Function} callback - Called once configuration is ready and the feature is enabled.
+ * @returns {void}
+ */
 function initConfigForInjectSaveIcon(callback) {
     chrome.storage.sync.get(
         ["debugLogLevel", "minWidth", "minHeight", "allowJPG", "allowJPEG", 
             "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", "enableOneClickIcon", 
-            "showUserFeedbackMessages", "toastMinVisibleMs", "allowExtendedImageUrls"],
+            "showUserFeedbackMessages", "toastMinVisibleMs",
+            "allowTwitterXQueryParams", "allowRedditCdnQueryParams",
+            "allowParameterizedCdnUrls", "allowWrappedImageUrls",
+            "allowExtendedImageUrls"],
         (data) => {
             debugLogLevelCache = parseInt(data.debugLogLevel ?? 1);
 
@@ -137,8 +316,24 @@ function initConfigForInjectSaveIcon(callback) {
                 ? rawToastMinVisibleMs
                 : 2000;
 
-                if (data.allowExtendedImageUrls) configCache.allowExtendedImageUrls = true;
-            else configCache.allowExtendedImageUrls = false;
+            const hasGranularExtendedFlags = EXTENDED_IMAGE_URL_FLAG_KEYS.some((key) => Object.prototype.hasOwnProperty.call(data, key));
+            const legacyExtendedUrlsEnabled = data.allowExtendedImageUrls === true;
+
+            configCache.allowTwitterXQueryParams = hasGranularExtendedFlags
+                ? data.allowTwitterXQueryParams === true
+                : legacyExtendedUrlsEnabled;
+            configCache.allowRedditCdnQueryParams = hasGranularExtendedFlags
+                ? data.allowRedditCdnQueryParams === true
+                : legacyExtendedUrlsEnabled;
+            configCache.allowParameterizedCdnUrls = hasGranularExtendedFlags
+                ? data.allowParameterizedCdnUrls === true
+                : legacyExtendedUrlsEnabled;
+            configCache.allowWrappedImageUrls = hasGranularExtendedFlags
+                ? data.allowWrappedImageUrls === true
+                : legacyExtendedUrlsEnabled;
+            configCache.allowExtendedImageUrls = hasGranularExtendedFlags
+                ? EXTENDED_IMAGE_URL_FLAG_KEYS.some((key) => configCache[key] === true)
+                : legacyExtendedUrlsEnabled;
             if (data.enableOneClickIcon) configCache.enableOneClickIcon = true;
             else configCache.enableOneClickIcon = false;
 
@@ -174,6 +369,10 @@ function initConfigForInjectSaveIcon(callback) {
 })();
 
 // 🧠 New function to detect execution context
+/**
+ * Chooses the correct injection path based on the current document type.
+ * @returns {void}
+ */
 function detectContextAndProceed() {
     try {
         const contentType = document.contentType || '';
@@ -185,24 +384,11 @@ function detectContextAndProceed() {
             logDebug(1, "🖼️ Direct image URL detected. (window.location.href mode)");
 
             const url = window.location.href;
-            let isValid = false;
 
             try {
                 const allowedExts = configCache.allowedExts || [];
-                const allowExtended = configCache.allowExtendedImageUrls ?? false;
-
-                const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|gif|avif))(:[a-zA-Z0-9]{2,10})$/i;
-                const hasExtendedSuffix = extendedSuffixPattern.test(url.toLowerCase());
-
-                let normalizedUrl = url;
-
-                // Normalize URL if it has an extended suffix
-                if (allowExtended && hasExtendedSuffix) {
-                    normalizedUrl = url.replace(extendedSuffixPattern, '.$2');
-                    isValid = allowedExts.some(ext => normalizedUrl.toLowerCase().endsWith(ext));
-                } else {
-                    isValid = allowedExts.some(ext => url.toLowerCase().endsWith(ext));
-                }
+                const allowExtended = hasEnabledExtendedImageUrlSupport();
+                const { isValid, normalizedUrl } = isAllowedImageSource(url, allowedExts, allowExtended);
 
                 if (!isValid) {
                     logDebug(1, `❌ Direct image URL does not match allowed formats: ${url}`);
@@ -212,8 +398,16 @@ function detectContextAndProceed() {
 
                 logDebug(2, `✅ Direct image URL accepted: ${url}`);
 
-                // 🧩 Use unified function for icon injection (top-right for direct image)
-                createAndShowSaveIcon(url, normalizedUrl, "fixed");
+                // 🧩 Use the same top-right anchoring logic as the HTML flow when the DOM exposes an image element.
+                const directImageElement = document.querySelector("img");
+                const directPositionOptions = getTopRightOverlayPositionOptions(directImageElement);
+
+                if (directPositionOptions) {
+                    createAndShowSaveIcon(url, normalizedUrl, "absolute", directPositionOptions);
+                } else {
+                    logDebug(2, "ℹ️ Direct image anchor unavailable. Falling back to viewport placement.");
+                    createAndShowSaveIcon(url, normalizedUrl, "fixed");
+                }
 
             } catch (err) {
                 logDebug(1, `❌ Error validating direct image URL: ${err.message}`);
@@ -343,6 +537,10 @@ function createAndShowSaveIcon(targetUrl, normalizedUrl, position = "fixed", pos
 }
 
 // 🔧 Function to proceed with the image evaluation and icon injection
+/**
+ * Scans visible images and injects the save icon onto the best candidate.
+ * @returns {void}
+ */
 function proceedWithInjection() {
     try {
         logDebug(1, "💾 Script injected: injectSaveIcon.js (optimized)");
@@ -360,20 +558,8 @@ function proceedWithInjection() {
             const hasMinSize = img.naturalWidth >= configCache.minWidth && img.naturalHeight >= configCache.minHeight;
 
             // ✅ Advanced logic: normal vs extended suffix
-            const allowExtended = configCache.allowExtendedImageUrls === true;
-            const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|gif|avif))(:[a-zA-Z0-9]{2,10})$/i;
-            const hasExtendedSuffix = extendedSuffixPattern.test(src.toLowerCase());
-
-            let isAllowedFormat = false;
-            let normalizedSrc = src;
-
-            // Normalize the URL if it has an extended suffix
-            if (allowExtended && hasExtendedSuffix) {
-                normalizedSrc = src.replace(extendedSuffixPattern, '.$2');
-                isAllowedFormat = configCache.allowedExts.some(ext => normalizedSrc.toLowerCase().endsWith(ext));
-            } else {
-                isAllowedFormat = configCache.allowedExts.some(ext => src.toLowerCase().endsWith(ext));
-            }
+            const allowExtended = hasEnabledExtendedImageUrlSupport();
+            const { isValid: isAllowedFormat, normalizedUrl: normalizedSrc } = isAllowedImageSource(src, configCache.allowedExts || [], allowExtended);
             return visible && hasMinSize && isAllowedFormat
                 ? { img, originalSrc: src, normalizedSrc }
                 : null;
@@ -399,17 +585,13 @@ function proceedWithInjection() {
     logDebug(2, `✅ Image selected for 💾 overlay: ${bestImage.originalSrc}`);
     logDebug(2, `📐 Resolution: ${bestImage.img.naturalWidth}x${bestImage.img.naturalHeight}`);
 
-    const rect = bestImage.img.getBoundingClientRect();
-    const positionOptions = {
-        top: window.scrollY + rect.top + 6,
-        left: window.scrollX + rect.left + bestImage.img.width - 42
-    };
+    const positionOptions = getTopRightOverlayPositionOptions(bestImage.img);
 
     createAndShowSaveIcon(
         bestImage.originalSrc,
         bestImage.normalizedSrc,
-        "absolute",
-        positionOptions
+        positionOptions ? "absolute" : "fixed",
+        positionOptions || {}
     );
 
 

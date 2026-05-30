@@ -4,7 +4,32 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased]
+## [2.8.185] - 2026-05-30
+
+### Fixed
+
+- Fixed extended image URL handling across the download pipeline so valid image URLs with query parameters, CDN suffixes, and wrapped variants are accepted when the corresponding support options are enabled.
+- Bulk Image Download, One-click Download Icon, and manual download now normalize supported image URLs consistently, including cases such as `?format=jpg`, `?resize=...`, `?name=...`, and other CDN-style variants that still resolve to the same image asset.
+- Filename inference now follows the normalized image URL so the saved file name remains consistent with the actual media source instead of the decorated URL wrapper.
+- Restored the normal One-click post-save behavior so the source tab closes again after a successful save.
+
+### Changed
+
+- Reordered `Extended Image URL Support` in Options so it appears after `File system`, matching the current Settings Peek layout.
+- Updated the `Extended Image URL Support` section emoji to `🔗`.
+- Unified One-click overlay positioning so direct image pages and HTML pages use the same top-right placement logic.
+- Kept the One-click flow focused on a manual, explicit download icon rather than expanding the clickable area to the full image.
+
+### Documentation
+
+- Updated the hotkey policy with browser shortcut assignment guidance for Edge, Opera, Brave, and Chrome-based shortcut managers in general.
+- Documented that `Ctrl + Shift + M` for Image Inspector is confirmed in Brave and Edge, and may be intercepted by Opera depending on browser/profile configuration.
+- Added the same browser-specific hotkey warning to the extended project overview under edge cases and warnings.
+- Updated browser QA badges and browser testing status to reflect QA coverage on Brave, Microsoft Edge, and Opera One, and to clarify that Google Chrome has not been validated by the project QA process.
+- Refreshed the Options page `How to Use & Optimize` quick reference so it reflects Extended Image URL Support, current workflows, Settings Peek, and active shortcut guidance.
+- Clarified README installation steps with HTTPS/SSH clone commands, linked the Extended Project Overview Release Highlights, and expanded CONTRIBUTING setup steps for fork, clone, upstream sync, and PR branch creation.
+
+### QA
 
 - QA was completed on Microsoft Edge 148.0.3967.54 and Opera One 131.0.5877.24 with no failures reported in flows, downloads, hotkeys, or configuration behavior.
 - No regression warnings were observed during the final review pass for the release branch.

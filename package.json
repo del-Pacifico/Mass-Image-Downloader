@@ -1,6 +1,6 @@
 {
   "name": "mass-image-downloader",
-  "version": "2.8.184",
+  "version": "2.8.185",
   "private": true,
   "type": "module",
   "description": "Validation tooling for the Mass Image Downloader Chromium extension.",

@@ -4,7 +4,9 @@
 ![Chromium 93+](https://img.shields.io/badge/Chromium-93%2B-4285F4?logo=google-chrome&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-FF9800)
 ![GitHub Release](https://img.shields.io/github/v/release/del-Pacifico/Mass-Image-Downloader?display_name=tag)
-![Brave](https://img.shields.io/badge/Brave-Tested-FB542B?logo=brave&logoColor=white)
+![Brave QA Tested](https://img.shields.io/badge/Brave-QA%20Tested-FB542B?logo=brave&logoColor=white)
+![Edge QA Tested](https://img.shields.io/badge/Edge-QA%20Tested-0078D7?logo=microsoftedge&logoColor=white)
+![Opera QA Tested](https://img.shields.io/badge/Opera-QA%20Tested-FF1B2D?logo=opera&logoColor=white)
 <!--Standards-->
 ![License](https://img.shields.io/badge/license-MPL--2.0-green?style=flat-square)
 ![Status](https://img.shields.io/badge/status-active-brightgreen?style=flat-square)
@@ -140,8 +142,11 @@ Mass Image Downloader is a Chromium (MV3) extension that helps you **collect and
 
 ### Environment
 
-- Chromium-based browsers: Google Chrome, Microsoft Edge, Brave  
+- Chromium-based browsers: Brave, Microsoft Edge, Opera One, and Google Chrome  
 - Minimum Chromium version: **93+** · Manifest: **V3**
+- QA tested primarily on Brave, with additional QA coverage on Microsoft Edge and Opera One.
+- Google Chrome has not been validated by the project QA process.
+- Browser-level shortcut conflicts or restrictions may require manual configuration.
 
 > Full breakdown of options is available in the **Options Page** of the extension.
 
@@ -181,44 +186,32 @@ From there, you can access:
 
 ## 🔥 Release Highlights
 
-- Added and validated **core hotkeys** for the main workflows:
-  - **Alt + Shift + D** — Bulk Image Download
-  - **Alt + Shift + G** — Extract galleries (direct links)
-  - **Alt + Shift + V** — Extract galleries (visual / no links)
-  - **Alt + Shift + W** — Extract galleries (web-linked)
-  - **Alt + Shift + S** — View Settings (Peek)
+- Unified **extended image URL validation** across the main download flows so valid image URLs with query parameters, CDN suffixes, and wrapped variants can be accepted when the corresponding support options are enabled.
 
-- Introduced a **fully standardized toast notification system** across the extension.
-
-- Added a new configurable option:
-  - **Toast Minimum Visible Time (ms)**
-
-- Normalized user feedback messages under the `MID:` format and removed emoji-based UI noise from user-facing toasts.
-
-- Improved toast timing behavior to prevent overlapping messages during rapid workflows.
-
-- Stabilized feedback flows for:
-  - Bulk Download
-  - Gallery (direct links)
-  - Gallery (visual / no links)
-  - Gallery (web-linked)
-  - One-click download icon
+- Aligned validation behavior for:
+  - Bulk Image Download
+  - One-click Download Icon
   - Image Inspector
-  - Settings Peek
+  - Manual download
+  - Shared URL parsing and image-format helpers
 
-- Improved **Web-linked Gallery** reliability for the `Alt + Shift + W` workflow:
-  - stronger grouping for sequential gallery pages
-  - structural fallback when similarity is too strict
-  - more reliable handoff to the background process
+- Improved support for real-world image URL patterns, including:
+  - X/Twitter image URLs that expose the format through query parameters such as `?format=jpg`
+  - CDN and WordPress-style image URLs such as `?resize=...`
+  - suffix-based variants such as `:large` and `:orig`
+  - wrapped image URLs that still resolve to valid image resources
 
-- Fixed false user-facing error reporting caused by **ephemeral MV3 callback errors** during Web-linked Gallery handoff.
+- Added a dedicated **Extended Image URL Support** section in Options and reflected the same status in Settings Peek, so users can clearly manage query-parameter, suffix-based, CDN-style, and wrapped image URL handling.
 
-- Improved background configuration traceability:
-  - **Toast Minimum Visible Time (ms)** is now loaded and logged by the background service worker
+- Restored expected **One-click Download Icon** behavior after save and kept the flow focused on an explicit manual download action.
 
-- Cleaned internal default settings initialization by removing a duplicated `enableClipboardHotkeys` entry.
+- Fixed a QA-reported false Web-linked Gallery error toast in Brave and Edge by acknowledging the MV3 background handoff immediately after grouped URL validation.
 
-- Fixed additional QA-discovered runtime, messaging, and configuration consistency issues across Bulk and gallery flows.
+- Expanded browser QA documentation:
+  - Brave remains the primary QA-tested browser.
+  - Microsoft Edge and Opera One now have documented additional QA coverage.
+  - Google Chrome is explicitly marked as not validated by the project QA process.
+  - Browser-level shortcut conflicts or restrictions are documented as potentially requiring manual configuration.
 
 ---
 
@@ -760,7 +753,7 @@ To match logs that **start** with the prefix.
 ## ✅ Requirements
 
 - **Browsers**  
-  Chromium-based: Google Chrome, Microsoft Edge, Brave
+  Chromium-based: Brave, Microsoft Edge, Opera One, and Google Chrome
 
 - **Engine & Platform**  
   Minimum Chromium version: **93+** · Manifest: **V3**
@@ -781,11 +774,12 @@ To match logs that **start** with the prefix.
 
 ### Browser testing status
 
-- **Brave** → Fully tested 👍🏼
-- **Chrome** → Not fully tested on this release 🚨 
-- **Edge** → Not fully tested on this release  🚨
+- **Brave** -> Primary QA-tested browser.
+- **Microsoft Edge** -> Additional QA coverage completed; some browser-level shortcut conflicts may require manual configuration.
+- **Opera One** -> Additional QA coverage completed for supported flows; Image Inspector remains limited by known browser-specific behavior.
+- **Google Chrome** -> Not validated by the project QA process.
 
-The extension should run normally across all Chromium-based browsers, but this version has only been validated on Brave during QA. Additional cross-browser verification is planned for the next iteration.  
+The extension targets Chromium-based browsers, but QA coverage is explicitly limited to the browsers listed above. Browser-specific shortcut handling can differ by browser or profile configuration.
 
 - **Notes**  
   - Enterprise/managed browsers may restrict the Downloads API or filename handling  
@@ -1298,6 +1292,9 @@ Situations and caveats that can affect extraction/downloading. Review this list 
   On certain pages that use complex responsive wrappers (nested `<figure>` blocks, aspect-ratio containers, or captioned layouts), the 🕵️ overlay may appear slightly offset relative to the true top-right corner of the image.  
   This is a visual-only condition: hover detection, click handling, and Inspector workflows remain fully functional.  
   The condition is documented and scheduled for a future refinement alongside existing Inspector edge cases (`NestedFigureResponsiveImg`, `DirectImageOverlayPosition`).
+
+- **Browser-specific hotkey behavior**
+  `Ctrl + Shift + M` for Image Inspector works in Brave and Edge, but Opera may intercept or block the combination in some browser/profile configurations before the content script receives it. When that happens, the keydown handler never sees the final `M`, so the inspector does not toggle even though the page is otherwise compatible.
 
 - **Inspector metadata redaction**  
   For security and privacy reasons, the inspector hides local/blob/data URLs in its metadata view. The underlying validation and download pipeline can still operate on them when permitted, but raw values are not exposed in the panel.  

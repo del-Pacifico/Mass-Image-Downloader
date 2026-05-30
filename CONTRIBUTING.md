@@ -20,17 +20,32 @@ This guide provides everything you need to know to start contributing effectivel
 ### 🛠 Submit a Code Contribution
 
 1. Fork the repository
-2. Create a new branch from `dev`
+2. Clone your fork locally using HTTPS or SSH
+   ```bash
+   git clone https://github.com/<your-user>/Mass-Image-Downloader.git
+   ```
+   ```bash
+   git clone git@github.com:<your-user>/Mass-Image-Downloader.git
+   ```
+3. Add the upstream repository and update `dev`
+   ```bash
+   cd Mass-Image-Downloader
+   git remote add upstream https://github.com/del-Pacifico/Mass-Image-Downloader.git
+   git fetch upstream
+   git checkout dev
+   git pull --ff-only upstream dev
+   ```
+4. Create a new branch from `dev`
    ```bash
    git checkout -b feature/your-description
    ```
-3. Make your changes following the coding style and structure
-4. Test your changes locally
+5. Make your changes following the coding style and structure
+6. Test your changes locally
    ```bash
    npm run check
    npm test
    ```
-5. Submit a pull request using the [PR Template](.github/PULL_REQUEST_TEMPLATE.md)
+7. Push your branch and submit a pull request to `dev` using the [PR Template](.github/PULL_REQUEST_TEMPLATE.md)
 
 ---
 
@@ -50,6 +65,28 @@ feature/chore branch -> dev -> main -> tag/release
 
 ---
 
+## 🏷️ Issue Title Prefixes
+
+All issues must start with a bracketed prefix that clearly identifies the nature of the report.
+
+Use one of the following prefixes:
+
+- `[Bug]` for confirmed defects that break or degrade expected behavior.
+- `[Investigation]` for unclear, hard-to-reproduce, or not-yet-classified problems.
+- `[EdgeCase]` for narrow, reproducible cases with limited impact, often visual or layout-related.
+- `[Enhancement]` for functional or UX improvements that are not regressions.
+- `[Docs]` for documentation-only work.
+- `[Chore]` for maintenance, tooling, CI, repo cleanup, or non-functional refactors.
+- `[Question]` for support requests or open questions that are not yet actionable work.
+
+Examples:
+
+- `[Bug] Valid X/Twitter image URLs with query parameters are rejected`
+- `[Investigation] Align One-click icon with shared validation`
+- `[EdgeCase] Inspector overlay offset in nested responsive layouts`
+
+---
+
 ## 📐 Code Standards
 
 - Use **JavaScript ES6+**
@@ -57,6 +94,7 @@ feature/chore branch -> dev -> main -> tag/release
 - Follow modular principles (1 file = 1 concern)
 - Keep logging consistent: `[Mass image downloader]: emoji + message` (use `logDebug()` from `utils.js`)
 - Comment blocks using clear, concise English
+- Add JSDoc or a concise header comment to every new or changed function, including its purpose, parameters, and return value when applicable
 
 ## 🧪 Local Validation
 
