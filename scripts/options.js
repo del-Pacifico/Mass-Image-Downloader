@@ -117,7 +117,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const allowAVIFCheckbox = document.getElementById("allowAVIF");
     const allowBMPCheckbox = document.getElementById("allowBMP");
 
-    const allowExtendedImageUrls = document.getElementById("allowExtendedImageUrls");
+    const allowTwitterXQueryParamsCheckbox = document.getElementById("allowTwitterXQueryParams");
+    const allowRedditCdnQueryParamsCheckbox = document.getElementById("allowRedditCdnQueryParams");
+    const allowParameterizedCdnUrlsCheckbox = document.getElementById("allowParameterizedCdnUrls");
+    const allowWrappedImageUrlsCheckbox = document.getElementById("allowWrappedImageUrls");
 
     const maxBulkBatchInput = document.getElementById("maxBulkBatch");
     const continueBulkLoopCheckbox = document.getElementById("continueFromLastBulkBatch");
@@ -137,6 +140,49 @@ document.addEventListener("DOMContentLoaded", () => {
     const imageInspectorCloseOnSaveCheckbox = document.getElementById("imageInspectorCloseOnSave");
 
     let applyingPreset = false;
+
+    const extendedImageUrlControls = [
+        allowTwitterXQueryParamsCheckbox,
+        allowRedditCdnQueryParamsCheckbox,
+        allowParameterizedCdnUrlsCheckbox,
+        allowWrappedImageUrlsCheckbox
+    ];
+
+    function setExtendedImageUrlControls(data = {}) {
+        const legacyExtendedImageUrls = data.allowExtendedImageUrls === true;
+
+        if (allowTwitterXQueryParamsCheckbox) {
+            allowTwitterXQueryParamsCheckbox.checked = data.allowTwitterXQueryParams ?? legacyExtendedImageUrls ?? false;
+        }
+        if (allowRedditCdnQueryParamsCheckbox) {
+            allowRedditCdnQueryParamsCheckbox.checked = data.allowRedditCdnQueryParams ?? legacyExtendedImageUrls ?? false;
+        }
+        if (allowParameterizedCdnUrlsCheckbox) {
+            allowParameterizedCdnUrlsCheckbox.checked = data.allowParameterizedCdnUrls ?? legacyExtendedImageUrls ?? false;
+        }
+        if (allowWrappedImageUrlsCheckbox) {
+            allowWrappedImageUrlsCheckbox.checked = data.allowWrappedImageUrls ?? legacyExtendedImageUrls ?? false;
+        }
+    }
+
+    function getExtendedImageUrlSettings() {
+        const allowTwitterXQueryParams = allowTwitterXQueryParamsCheckbox ? allowTwitterXQueryParamsCheckbox.checked : false;
+        const allowRedditCdnQueryParams = allowRedditCdnQueryParamsCheckbox ? allowRedditCdnQueryParamsCheckbox.checked : false;
+        const allowParameterizedCdnUrls = allowParameterizedCdnUrlsCheckbox ? allowParameterizedCdnUrlsCheckbox.checked : false;
+        const allowWrappedImageUrls = allowWrappedImageUrlsCheckbox ? allowWrappedImageUrlsCheckbox.checked : false;
+
+        return {
+            allowTwitterXQueryParams,
+            allowRedditCdnQueryParams,
+            allowParameterizedCdnUrls,
+            allowWrappedImageUrls,
+            allowExtendedImageUrls:
+                allowTwitterXQueryParams ||
+                allowRedditCdnQueryParams ||
+                allowParameterizedCdnUrls ||
+                allowWrappedImageUrls
+        };
+    }
 
     galleryMaxImagesInput = document.getElementById("galleryMaxImages");
 
@@ -191,6 +237,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     allowWEBP: false,
                     allowAVIF: false,
                     allowBMP: false,
+                    allowTwitterXQueryParams: false,
+                    allowRedditCdnQueryParams: false,
+                    allowParameterizedCdnUrls: false,
+                    allowWrappedImageUrls: false,
                     minWidth: 600,
                     minHeight: 400,
                     gallerySimilarityLevel: 60,
@@ -215,6 +265,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     allowWEBP: true,
                     allowAVIF: true,
                     allowBMP: true,
+                    allowTwitterXQueryParams: false,
+                    allowRedditCdnQueryParams: false,
+                    allowParameterizedCdnUrls: false,
+                    allowWrappedImageUrls: false,
                     minWidth: 800,
                     minHeight: 600,
                     gallerySimilarityLevel: 70,
@@ -239,6 +293,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     allowWEBP: true,
                     allowAVIF: true,
                     allowBMP: true,
+                    allowTwitterXQueryParams: false,
+                    allowRedditCdnQueryParams: false,
+                    allowParameterizedCdnUrls: false,
+                    allowWrappedImageUrls: false,
                     minWidth: 1000,
                     minHeight: 800,
                     gallerySimilarityLevel: 85,
@@ -287,9 +345,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (allowPNGCheckbox) allowPNGCheckbox.checked = config.allowPNG;
             if (allowAVIFCheckbox) allowAVIFCheckbox.checked = config.allowAVIF;
             if (allowBMPCheckbox) allowBMPCheckbox.checked = config.allowBMP;
-            if (allowExtendedImageUrls) { // New
-                allowExtendedImageUrls.checked = config.allowExtendedImageUrls ?? false;
-            }
+            if (allowTwitterXQueryParamsCheckbox) allowTwitterXQueryParamsCheckbox.checked = config.allowTwitterXQueryParams ?? false;
+            if (allowRedditCdnQueryParamsCheckbox) allowRedditCdnQueryParamsCheckbox.checked = config.allowRedditCdnQueryParams ?? false;
+            if (allowParameterizedCdnUrlsCheckbox) allowParameterizedCdnUrlsCheckbox.checked = config.allowParameterizedCdnUrls ?? false;
+            if (allowWrappedImageUrlsCheckbox) allowWrappedImageUrlsCheckbox.checked = config.allowWrappedImageUrls ?? false;
             if (enableClipboardHotkeysCheckbox) {
                 enableClipboardHotkeysCheckbox.checked = config.enableClipboardHotkeys ?? false;
                 logDebug(2, "🔤 Clipboard hotkeys enabled?:", config.enableClipboardHotkeys);
@@ -322,7 +381,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 allowAVIFCheckbox,
                 allowBMPCheckbox,
                 allowWEBPCheckbox,
-                allowExtendedImageUrls,
+                ...extendedImageUrlControls,
                 minWidthInput,
                 minHeightInput,
                 document.getElementById("gallerySimilarityLevel"),
@@ -394,6 +453,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "minWidth", "minHeight", "galleryMaxImages",
             "maxBulkBatch", "continueFromLastBulkBatch",
             "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "allowAVIF", "allowBMP", 
+            "allowTwitterXQueryParams", "allowRedditCdnQueryParams", "allowParameterizedCdnUrls", "allowWrappedImageUrls",
             "allowExtendedImageUrls", "toastMinVisibleMs", 
             "gallerySimilarityLevel", "galleryMinGroupSize",
             "galleryEnableSmartGrouping", "galleryEnableFallback",
@@ -563,10 +623,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     allowBMPCheckbox.checked = data.allowBMP !== false;
                 }
 
-                // 🆕 Extended Image URLs setting
-                if (allowExtendedImageUrls) { // New
-                    allowExtendedImageUrls.checked = data.allowExtendedImageUrls ?? false;
-                }   
+                // 🌐 Extended Image URL patterns
+                setExtendedImageUrlControls(data);
     
                 // 📸 Download images directly in tabs
                 if (maxBulkBatchInput) {
@@ -778,15 +836,14 @@ document.addEventListener("DOMContentLoaded", () => {
             const allowWEBPCheckbox = document.getElementById("allowWEBP");
             const allowAVIFCheckbox = document.getElementById("allowAVIF");
             const allowBMPCheckbox = document.getElementById("allowBMP");
-            const allowExtendedImageUrls = document.getElementById("allowExtendedImageUrls"); // New
-    
+
             const allowJPG = allowJPGCheckbox ? allowJPGCheckbox.checked : false;
             const allowJPEG = allowJPEGCheckbox ? allowJPEGCheckbox.checked : false;
             const allowPNG = allowPNGCheckbox ? allowPNGCheckbox.checked : false;
             const allowWEBP = allowWEBPCheckbox ? allowWEBPCheckbox.checked : false;
             const allowAVIF = allowAVIFCheckbox ? allowAVIFCheckbox.checked : false;
             const allowBMP = allowBMPCheckbox ? allowBMPCheckbox.checked : false;
-            const allowExtendedImageUrlsChecked = allowExtendedImageUrls ? allowExtendedImageUrls.checked : false; // New   
+            const extendedImageUrlSettings = getExtendedImageUrlSettings();
                 
             // 📸 Download images directly in tabs
             const maxBulkBatch = maxBulkBatchInput ? (parseInt(maxBulkBatchInput.value, 10) || 10) : 10;
@@ -840,7 +897,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 allowWEBP,
                 allowAVIF,
                 allowBMP,
-                allowExtendedImageUrls: allowExtendedImageUrlsChecked, // New
+                ...extendedImageUrlSettings,
                 maxBulkBatch,
                 continueFromLastBulkBatch,
                 showUserFeedbackMessages,

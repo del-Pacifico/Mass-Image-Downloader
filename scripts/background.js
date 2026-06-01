@@ -45,6 +45,51 @@
         logDebug(1, "📦 Background configuration initialized.");
     });
 
+    /**
+     * Logs the effective browser command bindings so hotkey issues can be diagnosed
+     * without guessing whether the browser assigned the shortcut at all.
+     * @returns {Promise<void>}
+     */
+    async function logRegisteredCommands() {
+        try {
+            if (!chrome.commands?.getAll) {
+                logDebug(2, "⚠️ chrome.commands.getAll is not available in this context.");
+                return;
+            }
+
+            chrome.commands.getAll((commands) => {
+                if (chrome.runtime.lastError) {
+                    logDebug(1, `❌ Failed to read registered commands: ${chrome.runtime.lastError.message}`);
+                    return;
+                }
+
+                const normalized = Array.isArray(commands) ? commands : [];
+                const oneClickCommand = normalized.find((cmd) => cmd?.name === "open-oneclick-icon");
+
+                logDebug(2, "⌨️ Registered commands snapshot:", normalized.map((cmd) => ({
+                    name: cmd?.name || "[unknown]",
+                    shortcut: cmd?.shortcut || "",
+                    description: cmd?.description || ""
+                })));
+
+                if (oneClickCommand) {
+                    logDebug(1, `🖱️ One-click command binding: ${oneClickCommand.shortcut || "[unassigned]"}`);
+                    if (!oneClickCommand.shortcut) {
+                        logDebug(1, "⚠️ One-click command has no assigned shortcut in this browser profile.");
+                    }
+                } else {
+                    logDebug(1, "⚠️ One-click command open-oneclick-icon is missing from registered commands.");
+                }
+            });
+        } catch (err) {
+            logDebug(2, `⚠️ Could not inspect registered commands: ${err.message}`);
+        }
+    }
+
+    configReady.then(() => {
+        logRegisteredCommands();
+    });
+
     // 🔒 Enforce final filename/path for every download
     // Reason: Chromium/servers can override suggested names; this listener cements our choice.
     const pendingDownloadPaths = new Map(); // key: download URL, value: desired relative path
@@ -95,7 +140,10 @@
     let allowWEBP = false;
     let allowAVIF = false;
     let allowBMP = false;
-    let allowExtendedImageUrls = false; // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
+    let allowTwitterXQueryParams = false;
+    let allowRedditCdnQueryParams = false;
+    let allowParameterizedCdnUrls = false;
+    let allowWrappedImageUrls = false;
     let showUserFeedbackMessages = false;
     let toastMinVisibleMs = 2000; // ⏱️ Minimum visible time for user toasts (ms)
     let enableClipboardHotkeys = false;
@@ -204,7 +252,10 @@
                 allowWEBP: false,
                 allowAVIF: false,
                 allowBMP: false,
-                allowExtendedImageUrls: false, // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
+                allowTwitterXQueryParams: false,
+                allowRedditCdnQueryParams: false,
+                allowParameterizedCdnUrls: false,
+                allowWrappedImageUrls: false,
                 downloadLimit: 1,
                 filenameMode: "none",
                 debugLogLevel: 1,
@@ -251,7 +302,11 @@
                 logDebug(3, '      allow WEBP? false');
                 logDebug(3, '      allow AVIF? false');
                 logDebug(3, '      allow BMP?  false');
-                logDebug(3, '   🐦 Allow extended image URLs? false');
+                logDebug(3, '   🔗 Extended Image URL Support:');
+                logDebug(3, '      Twitter/X image URLs with query parameters: false');
+                logDebug(3, '      Reddit CDN image URLs with query parameters: false');
+                logDebug(3, '      Parameterized CDN-style image URLs: false');
+                logDebug(3, '      Wrapped URLs that still resolve to a valid image: false');
                 logDebug(3, '   📜 Filename Mode: none');
                 logDebug(3, '      🔤 Prefix: ""');
                 logDebug(3, '      🔡 Suffix: ""');
@@ -317,7 +372,9 @@
             "galleryMaxImages",
             "maxBulkBatch", "continueFromLastBulkBatch",
             "allowJPG", "allowJPEG", "allowPNG", "allowWEBP", "gallerySimilarityLevel",
-            "allowAVIF", "allowBMP", "allowExtendedImageUrls",
+            "allowAVIF", "allowBMP",
+            "allowTwitterXQueryParams", "allowRedditCdnQueryParams",
+            "allowParameterizedCdnUrls", "allowWrappedImageUrls",
             "galleryMinGroupSize",
             "galleryEnableSmartGrouping",
             "galleryEnableFallback",
@@ -373,7 +430,10 @@
             allowWEBP = data.allowWEBP !== false;
             allowAVIF = data.allowAVIF !== false;
             allowBMP = data.allowBMP !== false;
-            allowExtendedImageUrls = data.allowExtendedImageUrls !== false; // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
+            allowTwitterXQueryParams = data.allowTwitterXQueryParams === true;
+            allowRedditCdnQueryParams = data.allowRedditCdnQueryParams === true;
+            allowParameterizedCdnUrls = data.allowParameterizedCdnUrls === true;
+            allowWrappedImageUrls = data.allowWrappedImageUrls === true;
 
             showUserFeedbackMessages = data.showUserFeedbackMessages ?? false;
             toastMinVisibleMs = (typeof data.toastMinVisibleMs === "number" && data.toastMinVisibleMs >= 0 && data.toastMinVisibleMs <= 10000)
@@ -409,13 +469,16 @@
             logDebug(3, `      allow WEBP? ${allowWEBP}`);
             logDebug(3, `      allow AVIF? ${allowAVIF}`);
             logDebug(3, `      allow BMP?  ${allowBMP}`);
+            logDebug(3, '   🔗 Extended Image URL Support:');
+            logDebug(3, `      Twitter/X image URLs with query parameters: ${allowTwitterXQueryParams}`);
+            logDebug(3, `      Reddit CDN image URLs with query parameters: ${allowRedditCdnQueryParams}`);
+            logDebug(3, `      Parameterized CDN-style image URLs: ${allowParameterizedCdnUrls}`);
+            logDebug(3, `      Wrapped URLs that still resolve to a valid image: ${allowWrappedImageUrls}`);
             
             logDebug(3, `   📜 Filename Mode: ${filenameMode}`);
             logDebug(3, `      🔤 Prefix: ${prefix}`);
             logDebug(3, `      🔡 Suffix: ${suffix}`);
             
-            logDebug(3, `   🐦 Allow extended image URLs: ${allowExtendedImageUrls}`);
-
             // 🌍 Clipboard hotkeys
             logDebug(2, '   📋 Clipboard hotkeys.');
             logDebug(3, `      📋 Clipboard hotkeys: ${enableClipboardHotkeys}`);
@@ -512,8 +575,10 @@ chrome.storage.onChanged.addListener((changes) => {
             case "allowWEBP": allowWEBP = newValue; break;
             case "allowAVIF": allowAVIF = newValue; break;
             case "allowBMP": allowBMP = newValue; break;
-            case "allowExtendedImageUrls": allowExtendedImageUrls = newValue; break; // 🖼️ Allow extended image URLs (e.g., Twitter/X :large, :orig)
-
+            case "allowTwitterXQueryParams": allowTwitterXQueryParams = newValue; break;
+            case "allowRedditCdnQueryParams": allowRedditCdnQueryParams = newValue; break;
+            case "allowParameterizedCdnUrls": allowParameterizedCdnUrls = newValue; break;
+            case "allowWrappedImageUrls": allowWrappedImageUrls = newValue; break;
             case "gallerySimilarityLevel": gallerySimilarityLevel = newValue; break;
             case "galleryMinGroupSize": galleryMinGroupSize = newValue; break;
             case "galleryEnableSmartGrouping": galleryEnableSmartGrouping = newValue; break;
@@ -853,6 +918,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             // ✅ Toast target (tab-origin)
             const tabId = sender?.tab?.id;
             const isTabOrigin = (typeof tabId === "number");
+            let handoffAcknowledged = false;
 
             // ✅ UX: Start toast (web-linked)
             if (isTabOrigin) {
@@ -870,11 +936,20 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
                 const urls = candidates.filter(url => typeof url === 'string' && url.startsWith('http'));
                 const total = urls.length;
+                if (total === 0) {
+                    throw new Error("No valid web-linked gallery URLs were received.");
+                }
 
                 // ✅ UX: b) MID: Web-linked Gallery - analyzing / send to download
                 if (isTabOrigin) {
                     sendUserToastToTab(tabId, `MID: Web-linked gallery: found ${total} page(s). Opening...`, "info");
                 }
+
+                // Acknowledge the content-script handoff immediately. Opening many tabs can
+                // outlive the MV3 message callback in some Chromium browsers, producing a
+                // false "unexpected response" toast even though the background flow succeeds.
+                respondSafe(sendResponse, { success: true, ack: true, pages: total });
+                handoffAcknowledged = true;
 
                 const concurrencyLimit = Math.max(1, Math.min(10, maxOpenTabs));
                 let opened = 0;
@@ -929,8 +1004,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                                                     "success"
                                                 );
                                             }
-
-                                            respondSafe(sendResponse, { success: true });
                                         }
                                         return;
                                     }
@@ -1016,7 +1089,9 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                             sendUserToastToTab(tabId, `MID: Web-linked gallery failed: ${errMsg}`, "error");
                         }
 
-                        respondSafe(sendResponse, { success: false, error: errMsg });
+                        if (!handoffAcknowledged) {
+                            respondSafe(sendResponse, { success: false, error: errMsg });
+                        }
                     }
                 }
 
@@ -1035,7 +1110,9 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                     sendUserToastToTab(tabId, `MID: Gallery (web-linked): failed. ${errMsg}`, "error");
                 }
 
-                respondSafe(sendResponse, { success: false, error: errMsg });
+                if (!handoffAcknowledged) {
+                    respondSafe(sendResponse, { success: false, error: errMsg });
+                }
             }
 
             return true;
@@ -1054,17 +1131,11 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                     throw new Error("Invalid image URL received.");
                 }
 
-                const allowExtended = allowExtendedImageUrls ?? false;
-                const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
-                const hasExtendedSuffix = extendedSuffixPattern.test(imageUrl);
-
-                let urlForDownload;
-                if (allowExtended && hasExtendedSuffix) {
-                    urlForDownload = normalizeImageUrl(imageUrl);
-                    logDebug(2, `🔵 Extended suffix detected and allowed. Using normalized URL: ${urlForDownload}`);
+                const urlForDownload = normalizeImageUrl(imageUrl);
+                if (urlForDownload !== imageUrl) {
+                    logDebug(2, `🔵 Extended image URL normalized: ${urlForDownload}`);
                 } else {
-                    urlForDownload = imageUrl;
-                    logDebug(2, `🟢 No extended suffix detected or not allowed. Using original URL.`);
+                    logDebug(2, `🟢 Using original image URL.`);
                 }
 
                 logDebug(2, `🔗 Processing URL: ${urlForDownload}`);
@@ -1172,29 +1243,16 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                     throw new Error("Invalid image URL received.");
                 }
 
-                const allowExtended = allowExtendedImageUrls ?? false;
-                const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
-                const hasExtendedSuffix = extendedSuffixPattern.test(imageUrl);
-
-                let urlForDownload;
-                if (allowExtended && hasExtendedSuffix) {
-                    urlForDownload = normalizeImageUrl(imageUrl);
-                    logDebug(2, `🔵 [Manual] Extended suffix detected and allowed. Using normalized URL: ${urlForDownload}`);
+                const urlForDownload = normalizeImageUrl(imageUrl);
+                if (urlForDownload !== imageUrl) {
+                    logDebug(2, `🔵 [Manual] Extended image URL normalized: ${urlForDownload}`);
                 } else {
-                    urlForDownload = imageUrl;
-                    logDebug(2, `🟢 [Manual] No extended suffix detected or not allowed. Using original URL.`);
+                    logDebug(2, `🟢 [Manual] Using original image URL.`);
                 }
 
                 logDebug(2, `🔗 Processing URL: ${urlForDownload}`);
 
-                const urlObj = new URL(urlForDownload);
-                let baseName = urlObj.pathname.split('/').pop() || 'image';
-                let extension = '';
-                if (baseName.includes('.')) {
-                    const lastDot = baseName.lastIndexOf('.');
-                    extension = baseName.slice(lastDot);
-                    baseName = baseName.slice(0, lastDot);
-                }
+                const { baseName, extension } = splitUrlFileName(urlForDownload);
 
                 // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
                 await Promise.all([configReady, settingsReady]);
@@ -1239,7 +1297,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                                 if (tabId) {
                                     setBadgeFinished();
                                     closeTabSafely(tabId);
-                                    logDebug(2, '💾 END: Manual image download.');
+                                    logDebug(2, `💾 END: Manual image download. Source tab ${tabId} closed after save.`);
                                     logDebug(3, '');
                                 }
                             } else {
@@ -1528,16 +1586,10 @@ async function handleBulkDownload(message, sendResponse) {
                 logDebug(3, `🕵 Checking tab id: ${tab.id}`);
                 logDebug(3, `⏳ Is a direct image URL?: ${tab.url}`);
 
-                const allowExtended = allowExtendedImageUrls ?? false;
-                const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
-                const hasExtendedSuffix = extendedSuffixPattern.test(tab.url);
-
-                let urlForValidation;
-                if (allowExtended && hasExtendedSuffix) {
-                    urlForValidation = normalizeImageUrl(tab.url); // Use clean version to validate
+                const urlForValidation = normalizeImageUrl(tab.url);
+                if (urlForValidation !== tab.url) {
                     logDebug(2, `🔵 Validating normalized URL for image: ${urlForValidation}`);
                 } else {
-                    urlForValidation = tab.url;
                     logDebug(3, `🟢 Validating original URL for image: ${urlForValidation}`);
                 }
 
@@ -1721,22 +1773,13 @@ async function processValidTabs(validTabs, onComplete, validatedUrls, resetBadge
         let url; // Declare early so it's visible in all inner scopes
         try {
             // 🧭 Route for normal and extended URLs
-            const allowExtended = allowExtendedImageUrls ?? false;
-            const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
-            const hasExtendedSuffix = extendedSuffixPattern.test(tab.url);
-
-            let chosenUrlString;
-
-            if (allowExtended && hasExtendedSuffix) {
-                // 🕵 Extended suffix present and allowed: normalize
-                chosenUrlString = normalizeImageUrl(tab.url);
-                logDebug(2, `🕵 Extended suffix detected and allowed.`);
+            const chosenUrlString = normalizeImageUrl(tab.url);
+            if (chosenUrlString !== tab.url) {
+                logDebug(2, `🕵 Extended image URL normalized.`);
                 logDebug(3, `🔴 Original URL: ${tab.url}`);
                 logDebug(3, `🟢 Normalized URL: ${chosenUrlString}`);
             } else {
-                // 🕵 Normal URL or option not enabled: use as is
-                chosenUrlString = tab.url;
-                logDebug(3, `🕵 No extended suffix detected or not allowed. Using original URL.`);
+                logDebug(3, `🕵 Using original URL.`);
                 logDebug(3, `🟢 Original URL: ${chosenUrlString}`);
             }
 
@@ -1781,10 +1824,7 @@ async function processValidTabs(validTabs, onComplete, validatedUrls, resetBadge
                     return;
                 }
 
-                const parts = url.pathname.split('/');
-                const lastPart = parts.pop();
-                const baseName = lastPart.split('.')[0] || 'image';
-                const extension = '.' + (lastPart.split('.').pop() || 'jpg');
+                const { baseName, extension } = splitUrlFileName(url.href);
 
                 // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
                 await Promise.all([settingsReady, configReady]);
@@ -1899,38 +1939,25 @@ async function downloadImageFromUrl(imageUrl, sourceTag = "unknown") {
     // ✅ Ensure both settings (folder) and naming rules are ready
     await Promise.all([settingsReady, configReady]);
 
-    // ✅ Normalize URL if the extension allows extended image suffixes (optional behavior)
+    // ✅ Normalize URL using the shared extended-image policy
     let urlForDownload = imageUrl;
     try {
-        const allowExtended = allowExtendedImageUrls ?? false;
-        const extendedSuffixPattern = /(\.(jpe?g|jpeg|png|webp|bmp|avif))(:[a-zA-Z0-9]{2,10})$/i;
-        const hasExtendedSuffix = extendedSuffixPattern.test(imageUrl);
-
-        if (allowExtended && hasExtendedSuffix) {
-            urlForDownload = normalizeImageUrl(imageUrl);
-            logDebug(3, `🔵 [${sourceTag}] Extended suffix normalized for download: ${urlForDownload}`);
+        urlForDownload = normalizeImageUrl(imageUrl);
+        if (urlForDownload !== imageUrl) {
+            logDebug(3, `🔵 [${sourceTag}] Extended image URL normalized for download: ${urlForDownload}`);
         }
     } catch (e) {
         logDebug(2, `⚠️ [${sourceTag}] URL normalization warning: ${e.message}`);
     }
 
-    // ✅ Derive base filename + extension from URL path
+    // ✅ Derive base filename + extension from URL path or query format
     let baseName = "image";
     let extension = ".jpg";
 
     try {
-        const urlObj = new URL(urlForDownload);
-        const parts = urlObj.pathname.split("/");
-        const lastPart = parts.pop() || "image.jpg";
-
-        if (lastPart.includes(".")) {
-            const lastDot = lastPart.lastIndexOf(".");
-            baseName = lastPart.slice(0, lastDot) || "image";
-            extension = lastPart.slice(lastDot) || ".jpg";
-        } else {
-            baseName = lastPart || "image";
-            extension = ".jpg";
-        }
+        const urlParts = splitUrlFileName(urlForDownload);
+        baseName = urlParts.baseName || "image";
+        extension = urlParts.extension || ".jpg";
     } catch (e) {
         logDebug(2, `⚠️ [${sourceTag}] URL parse warning, using fallback filename: ${e.message}`);
     }
@@ -2368,6 +2395,8 @@ async function handleExtractVisualGallery(message, sendResponse) {
     logDebug(3, '---------------------------------------------------------------');
 
     const timing = logTimingStart("Extract images from galleries (without links)");
+    const rate = Math.max(0, parseInt(galleryMaxImages || 0, 10));
+    const delay = (rate > 0) ? Math.round(1000 / rate) : 0;
 
     try {
         if (!message.images || !Array.isArray(message.images)) {
@@ -2375,6 +2404,8 @@ async function handleExtractVisualGallery(message, sendResponse) {
             respondSafe(sendResponse, { success: false, error: 'Invalid images list received.' });
             return;
         }
+
+        logDebug(2, `⚡ Visual gallery pacing: ${rate > 0 ? `${rate} images/sec (${delay} ms delay)` : 'disabled'}`);
 
         const validatedImages = [];
         for (let i = 0; i < message.images.length; i++) {
@@ -2424,15 +2455,7 @@ async function handleExtractVisualGallery(message, sendResponse) {
             const next = validatedImages.shift();
 
             try {
-                const urlObj = new URL(next.url);
-                const pathname = urlObj.pathname;
-                const extension = pathname.split('.').pop() || 'jpg';
-                let baseName = pathname.split('/').pop() || 'image';
-
-                // 🧪 Ensure baseName is sanitized: remove any leading/trailing slashes and normalize
-                if (baseName.includes('.')) {
-                    baseName = baseName.substring(0, baseName.lastIndexOf('.'));
-                }
+                const { baseName, extension } = splitUrlFileName(next.url);
 
                 const sanitizedBase = sanitizeFilenameComponent(baseName);
 
@@ -2451,6 +2474,10 @@ async function handleExtractVisualGallery(message, sendResponse) {
                             : '';
 
                         const finalPath = safeFolder ? `${safeFolder}/${finalName}` : finalName;
+
+                        if (delay > 0) {
+                            await sleep(delay);
+                        }
 
                         logDebug(2, `📥 Downloading image: ${next.url}`);
                         logDebug(2, `📁 Final name/path: ${finalPath}`);
@@ -2489,6 +2516,10 @@ async function handleExtractVisualGallery(message, sendResponse) {
                 processNext();
             }
         };
+
+        if (delay > 0) {
+            logDebug(3, `⏱️ Applying visual gallery launch delay before each download: ${delay} ms`);
+        }
 
         processNext();
 

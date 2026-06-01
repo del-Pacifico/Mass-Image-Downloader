@@ -7,6 +7,28 @@ Please choose the template that best matches your situation.
 
 ---
 
+## 🏷️ Issue Title Prefixes
+
+Every issue title must start with a bracketed prefix that communicates the issue type at a glance.
+
+Use one of these prefixes when creating a new issue:
+
+- `[Bug]` for confirmed defects that break or degrade expected behavior.
+- `[Investigation]` for unclear, hard-to-reproduce, or not-yet-classified problems.
+- `[EdgeCase]` for narrow, reproducible cases with limited impact, often visual or layout-related.
+- `[Enhancement]` for functional or UX improvements that are not regressions.
+- `[Docs]` for documentation-only work.
+- `[Chore]` for maintenance, tooling, CI, repo cleanup, or non-functional refactors.
+- `[Question]` for support requests or open questions that are not yet actionable work.
+
+Examples:
+
+- `[Bug] Valid X/Twitter image URLs with query parameters are rejected`
+- `[Investigation] Align One-click icon with shared validation`
+- `[EdgeCase] Inspector overlay offset in nested responsive layouts`
+
+---
+
 ## 🐞 Bug Report
 **Use when:**  
 You encounter a **reproducible problem** that breaks or degrades expected functionality.
