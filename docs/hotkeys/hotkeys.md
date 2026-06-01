@@ -77,7 +77,17 @@ Due to Manifest V3 limitations:
 If a shortcut appears as **Not set**, users can assign it manually via:
 
 - **`chrome://extensions/shortcuts`**
+- **`edge://extensions/shortcuts`**
+- **`opera://extensions/shortcuts`**
 - **`brave://extensions/shortcuts`**
+
+If the browser keeps a shortcut as **Not set** after reload, the binding must be assigned manually in that browser's shortcut manager. This is a browser/profile-level shortcut mapping issue, not a feature failure.
+
+### Browser compatibility note
+
+`Ctrl + Shift + M` for Image Inspector is confirmed to work in Brave and Edge.
+In Opera, the same shortcut may be intercepted or blocked by the browser/profile before it reaches the content script.
+If that happens, the hotkey does not reach the `keydown` handler and the inspector will not toggle.
 
 ## 🧰 Fallback Behavior
 
