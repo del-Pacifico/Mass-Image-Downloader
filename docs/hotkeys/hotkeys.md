@@ -1,4 +1,4 @@
-# ⌨️ Hotkey Policy
+# 🏔️ Mass Image Downloader – Hotkey Policy
 
 Mass Image Downloader provides keyboard shortcuts as optional entry points for advanced workflows.
 The following hotkeys are currently implemented and supported as of the latest stable version:

@@ -19,6 +19,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Improved Web-linked Gallery and Settings Peek hotkey recovery after extension reloads so invalidated page-side handlers show repeatable refresh-needed feedback instead of failing silently or only logging to the console.
 - Added Vivaldi to the documented browser QA coverage and header badges after successful QA coverage for the current test pass.
 - Documented why MV3 extension reloads can affect long-lived tabs differently depending on whether a workflow is background-owned or page-side content-script-owned.
+- Aligned documentation H1 titles with the project documentation naming standard.
 
 ### Validation
 

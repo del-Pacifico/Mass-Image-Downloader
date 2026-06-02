@@ -1,5 +1,4 @@
-
-# Mass Image Downloader
+# 🏔️ Mass Image Downloader – Extended Project Overview
 
 ![Chromium 93+](https://img.shields.io/badge/Chromium-93%2B-4285F4?logo=google-chrome&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-FF9800)
@@ -21,7 +20,7 @@
 
 ## 📚 Table of Contents
 
-- [Mass Image Downloader](#mass-image-downloader)
+- [🏔️ Mass Image Downloader – Extended Project Overview](#️-mass-image-downloader--extended-project-overview)
   - [📚 Table of Contents](#-table-of-contents)
   - [🌐 Overview](#-overview)
     - [Core goals](#core-goals)
