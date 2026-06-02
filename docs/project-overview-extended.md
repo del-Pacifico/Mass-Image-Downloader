@@ -7,6 +7,7 @@
 ![Brave QA Tested](https://img.shields.io/badge/Brave-QA%20Tested-FB542B?logo=brave&logoColor=white)
 ![Edge QA Tested](https://img.shields.io/badge/Edge-QA%20Tested-0078D7?logo=microsoftedge&logoColor=white)
 ![Opera QA Tested](https://img.shields.io/badge/Opera-QA%20Tested-FF1B2D?logo=opera&logoColor=white)
+![Vivaldi QA Tested](https://img.shields.io/badge/Vivaldi-QA%20Tested-EF3939?logo=vivaldi&logoColor=white)
 <!--Standards-->
 ![License](https://img.shields.io/badge/license-MPL--2.0-green?style=flat-square)
 ![Status](https://img.shields.io/badge/status-active-brightgreen?style=flat-square)
@@ -34,7 +35,7 @@
     - [Toast Minimum Visible Time](#toast-minimum-visible-time)
       - [**Notification Behavior**](#notification-behavior)
   - [🧩 Installation (Developer Mode / Unpacked)](#-installation-developer-mode--unpacked)
-    - [Steps (Chrome / Edge / Brave)](#steps-chrome--edge--brave)
+    - [Steps (Chromium-based browsers)](#steps-chromium-based-browsers)
     - [Notes](#notes)
   - [🧩 How it works](#-how-it-works)
     - [1) 📸 Bulk Image Download](#1--bulk-image-download)
@@ -142,9 +143,9 @@ Mass Image Downloader is a Chromium (MV3) extension that helps you **collect and
 
 ### Environment
 
-- Chromium-based browsers: Brave, Microsoft Edge, Opera One, and Google Chrome  
+- Chromium-based browsers: Brave, Microsoft Edge, Opera One, Vivaldi, and Google Chrome
 - Minimum Chromium version: **93+** · Manifest: **V3**
-- QA tested primarily on Brave, with additional QA coverage on Microsoft Edge and Opera One.
+- QA tested primarily on Brave, with additional QA coverage on Microsoft Edge, Opera One, and Vivaldi.
 - Google Chrome has not been validated by the project QA process.
 - Browser-level shortcut conflicts or restrictions may require manual configuration.
 
@@ -209,7 +210,7 @@ From there, you can access:
 
 - Expanded browser QA documentation:
   - Brave remains the primary QA-tested browser.
-  - Microsoft Edge and Opera One now have documented additional QA coverage.
+  - Microsoft Edge, Opera One, and Vivaldi now have documented additional QA coverage.
   - Google Chrome is explicitly marked as not validated by the project QA process.
   - Browser-level shortcut conflicts or restrictions are documented as potentially requiring manual configuration.
 
@@ -333,7 +334,7 @@ This keeps feedback readable and prevents visual spam during rapid workflows suc
 
 This repository can be loaded **unpacked** and is **fully operational**—ideal for debugging, forking, and submitting pull requests.
 
-### Steps (Chrome / Edge / Brave)
+### Steps (Chromium-based browsers)
 
 1) Open `chrome://extensions/` (or `edge://extensions/`, `brave://extensions/`).  
 2) Enable **Developer mode** (top-right toggle).  
@@ -753,7 +754,7 @@ To match logs that **start** with the prefix.
 ## ✅ Requirements
 
 - **Browsers**  
-  Chromium-based: Brave, Microsoft Edge, Opera One, and Google Chrome
+  Chromium-based: Brave, Microsoft Edge, Opera One, Vivaldi, and Google Chrome
 
 - **Engine & Platform**  
   Minimum Chromium version: **93+** · Manifest: **V3**
@@ -777,6 +778,7 @@ To match logs that **start** with the prefix.
 - **Brave** -> Primary QA-tested browser.
 - **Microsoft Edge** -> Additional QA coverage completed; some browser-level shortcut conflicts may require manual configuration.
 - **Opera One** -> Additional QA coverage completed for supported flows; Image Inspector remains limited by known browser-specific behavior.
+- **Vivaldi** -> Additional QA coverage completed for tested flows; browser-level shortcut conflicts may require manual configuration.
 - **Google Chrome** -> Not validated by the project QA process.
 
 The extension targets Chromium-based browsers, but QA coverage is explicitly limited to the browsers listed above. Browser-specific shortcut handling can differ by browser or profile configuration.

@@ -16,6 +16,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Improved Settings Peek recovery after extension reloads by releasing stale hotkey listeners, avoiding false "opened" logs, and logging/showing a clear refresh-needed message when the page-side runtime context is invalidated.
 - Standardized user-feedback toast logging so visible messages are recorded with the final rendered text across shared utilities, Options, popup, Image Inspector, gallery extractors, Settings Peek, and One-click flows.
 - Improved Image Inspector recovery after extension reloads by showing a refresh-needed message on invalidated save attempts and by preferring linked full-size image URLs over rendered thumbnails when opening or saving from the panel.
+- Improved Web-linked Gallery and Settings Peek hotkey recovery after extension reloads so invalidated page-side handlers show repeatable refresh-needed feedback instead of failing silently or only logging to the console.
+- Added Vivaldi to the documented browser QA coverage and header badges after successful QA coverage for the current test pass.
 
 ### Validation
 

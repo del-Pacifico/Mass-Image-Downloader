@@ -6,6 +6,7 @@
 ![Brave QA Tested](https://img.shields.io/badge/Brave-QA%20Tested-FB542B?logo=brave&logoColor=white)
 ![Edge QA Tested](https://img.shields.io/badge/Edge-QA%20Tested-0078D7?logo=microsoftedge&logoColor=white)
 ![Opera QA Tested](https://img.shields.io/badge/Opera-QA%20Tested-FF1B2D?logo=opera&logoColor=white)
+![Vivaldi QA Tested](https://img.shields.io/badge/Vivaldi-QA%20Tested-EF3939?logo=vivaldi&logoColor=white)
 ![License](https://img.shields.io/badge/license-MPL--2.0-green?style=flat-square)
 ![Status](https://img.shields.io/badge/status-active-brightgreen?style=flat-square)
 ![GitHub community standards](https://img.shields.io/badge/community%20standards-100%25-brightgreen?style=flat-square&logo=github)
@@ -40,6 +41,8 @@ Mass Image Downloader is a Chromium Manifest V3 extension for collecting and dow
    - Chrome: `chrome://extensions`
    - Edge: `edge://extensions`
    - Brave: `brave://extensions`
+   - Opera: `opera://extensions`
+   - Vivaldi: `vivaldi://extensions`
 3. Enable Developer Mode.
 4. Select **Load unpacked**.
 5. Choose the cloned repository root folder, the one containing `manifest.json`.
@@ -79,7 +82,7 @@ These commands validate the extension manifest, declared paths, version alignmen
 - Chromium-based browser.
 - Minimum Chromium version: `93`.
 - Manifest version: `3`.
-- QA tested primarily on Brave, with additional QA coverage on Microsoft Edge and Opera One.
+- QA tested primarily on Brave, with additional QA coverage on Microsoft Edge, Opera One, and Vivaldi.
 - Google Chrome has not been validated by the project QA process.
 - Browser-level shortcut conflicts or restrictions may require manual configuration.
 

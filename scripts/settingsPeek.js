@@ -145,7 +145,6 @@ if (!window.__mdi_settingsPeekInjected) {
             // Check for Alt + Shift + S → View Settings (Peek)
             if (e.altKey && e.shiftKey && key === "s") {
                 if (!isExtensionContextUsable()) {
-                    document.removeEventListener("keydown", settingsPeekHotkeyHandler, true);
                     showPeekRecoveryMessage("MID: Settings Peek needs this tab to be refreshed after the extension was reloaded.", "error");
                     logDebug(1, "⚠️ Settings Peek hotkey ignored because the extension context is invalidated.");
                     return;
@@ -256,7 +255,6 @@ if (!window.__mdi_settingsPeekInjected) {
 
         } catch (err) {
             if (/Extension context invalidated/i.test(err.message || "")) {
-                document.removeEventListener("keydown", settingsPeekHotkeyHandler, true);
                 showPeekRecoveryMessage("MID: Settings Peek needs this tab to be refreshed after the extension was reloaded.", "error");
             }
 
@@ -345,7 +343,6 @@ if (!window.__mdi_settingsPeekInjected) {
             return true;
         } catch (err) {
             if (/Extension context invalidated/i.test(err.message || "")) {
-                document.removeEventListener("keydown", settingsPeekHotkeyHandler, true);
                 showPeekRecoveryMessage("MID: Settings Peek needs this tab to be refreshed after the extension was reloaded.", "error");
             }
 

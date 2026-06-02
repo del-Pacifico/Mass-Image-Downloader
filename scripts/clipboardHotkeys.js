@@ -354,6 +354,35 @@
     }
 
     /**
+     * Checks whether this content script still has a valid extension runtime context.
+     * @returns {boolean} True when extension runtime APIs can still be used safely.
+     */
+    function isExtensionContextUsable() {
+        try {
+            return Boolean(chrome?.runtime?.id);
+        } catch (_) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks whether an error message indicates that the extension context was invalidated.
+     * @param {string} message - Error message to inspect.
+     * @returns {boolean} True when the content script can no longer call extension APIs.
+     */
+    function isExtensionContextInvalidatedMessage(message) {
+        return /Extension context invalidated|context invalidated/i.test(String(message || ""));
+    }
+
+    /**
+     * Shows the standard recovery message for invalidated Web-linked Gallery hotkey attempts.
+     * @returns {void}
+     */
+    function showWebLinkedContextRefreshMessage() {
+        showUserMessage("Web-linked Gallery needs this tab to be refreshed after the extension was reloaded.", "error");
+    }
+
+    /**
      * Receives toast requests from background.js and displays them in-page.
      * MV3 service workers have no DOM, so user feedback must be rendered from a content script.
      */
@@ -590,6 +619,12 @@
             if (!event.altKey || !event.shiftKey) return;
             if (event.code !== "KeyW") return;
 
+            if (!isExtensionContextUsable()) {
+                logDebug(1, "⚠️ Web-linked Gallery hotkey ignored because the extension context is invalidated.");
+                showWebLinkedContextRefreshMessage();
+                return;
+            }
+
             event.preventDefault();
             event.stopPropagation();
 
@@ -603,6 +638,12 @@
                 }
             );
         } catch (err) {
+            if (isExtensionContextInvalidatedMessage(err.message)) {
+                logDebug(1, "⚠️ Web-linked Gallery hotkey failed because the extension context is invalidated.");
+                showWebLinkedContextRefreshMessage();
+                return;
+            }
+
             logDebug(1, `❌ Hotkey handler failed (Alt+Shift+W): ${err.message}`);
         }
     });
