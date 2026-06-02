@@ -13,6 +13,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Improved hotkey-driven content script reliability for Clipboard Hotkeys, Settings Peek, and Image Inspector by validating local settings before executing cached-state-dependent actions.
 - Added clearer recovery handling for One-click settings load failures when the extension runtime context has changed.
 - Added fallback toast rendering from the background service worker when long-lived tabs no longer have an active content-script message receiver after extension reloads.
+- Improved Settings Peek recovery after extension reloads by releasing stale hotkey listeners, avoiding false "opened" logs, and showing a clear refresh-needed message when the page-side runtime context is invalidated.
 
 ### Validation
 

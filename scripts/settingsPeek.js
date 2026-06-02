@@ -119,7 +119,14 @@ if (!window.__mdi_settingsPeekInjected) {
     }
 
     // ⌨️ Hotkey: Toggle Settings Peek panel (Alt + Shift + S)
-    document.addEventListener("keydown", (e) => {
+    document.addEventListener("keydown", settingsPeekHotkeyHandler, true);
+
+    /**
+     * Handles the Settings Peek hotkey and releases stale listeners after extension reloads.
+     * @param {KeyboardEvent} e - Browser keydown event.
+     * @returns {void}
+     */
+    function settingsPeekHotkeyHandler(e) {
         try {
             const target = e.target;
 
@@ -137,6 +144,13 @@ if (!window.__mdi_settingsPeekInjected) {
 
             // Check for Alt + Shift + S → View Settings (Peek)
             if (e.altKey && e.shiftKey && key === "s") {
+                if (!isExtensionContextUsable()) {
+                    document.removeEventListener("keydown", settingsPeekHotkeyHandler, true);
+                    showPeekRecoveryMessage("MID: Settings Peek needs this tab to be refreshed after the extension was reloaded.", "error");
+                    logDebug(1, "⚠️ Settings Peek hotkey ignored because the extension context is invalidated.");
+                    return;
+                }
+
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -150,7 +164,69 @@ if (!window.__mdi_settingsPeekInjected) {
             logDebug(1, `❌ Peek hotkey handler failed: ${err.message}`);
             logDebug(2, `🐛 Stack trace: ${err.stack}`);
         }
-    }, true);
+    }
+
+    /**
+     * Checks whether this content script still has a valid extension runtime context.
+     * @returns {boolean} True when extension runtime APIs can still be used safely.
+     */
+    function isExtensionContextUsable() {
+        try {
+            return Boolean(chrome?.runtime?.id && chrome.runtime.getURL("html/peekOptions.html"));
+        } catch (err) {
+            return false;
+        }
+    }
+
+    /**
+     * Shows a small page-side recovery message when the extension runtime context was invalidated.
+     * @param {string} text - Message to show to the user.
+     * @param {"info"|"success"|"error"} type - Visual message type.
+     * @returns {void}
+     */
+    function showPeekRecoveryMessage(text, type = "info") {
+        try {
+            const container = document.body || document.documentElement;
+            if (!container) return;
+
+            const toastType = ["info", "success", "error"].includes(type) ? type : "info";
+            let toast = document.getElementById("__mdi_peekRecoveryToast");
+            if (!toast) {
+                toast = document.createElement("div");
+                toast.id = "__mdi_peekRecoveryToast";
+                toast.setAttribute("role", "status");
+                toast.setAttribute("aria-live", "polite");
+                container.appendChild(toast);
+            }
+
+            toast.textContent = /^MID:/i.test(text) ? text : `MID: ${text}`;
+            toast.style.cssText = [
+                "position:fixed",
+                "top:18px",
+                "right:18px",
+                "max-width:360px",
+                "padding:12px 14px",
+                "border-radius:6px",
+                "font:13px/1.35 Arial, sans-serif",
+                "color:#fff",
+                `background:${toastType === "error" ? "#d9534f" : "#007EE3"}`,
+                "box-shadow:0 4px 14px rgba(0,0,0,.22)",
+                "z-index:2147483647",
+                "opacity:1",
+                "transition:opacity .2s ease",
+                "white-space:normal",
+                "word-break:break-word"
+            ].join(";");
+
+            clearTimeout(window.__mdiPeekRecoveryToastTimer);
+            window.__mdiPeekRecoveryToastTimer = setTimeout(() => {
+                toast.style.opacity = "0";
+                setTimeout(() => toast.remove(), 250);
+            }, 7000);
+        } catch (err) {
+            logDebug(1, `❌ Failed to show Settings Peek recovery message: ${err.message}`);
+        }
+    }
 
     /**
      * Toggles the Peek panel on/off.
@@ -170,10 +246,17 @@ if (!window.__mdi_settingsPeekInjected) {
             await ensurePeekConfigFresh("panel toggle");
 
             // Otherwise, inject it
-            injectPeekPanel();
-            logDebug(1, "✅ Peek panel opened (toggle).");
+            const didOpen = injectPeekPanel();
+            if (didOpen) {
+                logDebug(1, "✅ Peek panel opened (toggle).");
+            }
 
         } catch (err) {
+            if (/Extension context invalidated/i.test(err.message || "")) {
+                document.removeEventListener("keydown", settingsPeekHotkeyHandler, true);
+                showPeekRecoveryMessage("MID: Settings Peek needs this tab to be refreshed after the extension was reloaded.", "error");
+            }
+
             logDebug(1, `❌ Failed to toggle Peek panel: ${err.message}`);
             logDebug(2, `🐛 Stack trace: ${err.stack}`);
         }
@@ -181,13 +264,14 @@ if (!window.__mdi_settingsPeekInjected) {
 
 
     /**
-     * Injects the peek panel overlay if it is not already present
+     * Injects the peek panel overlay if it is not already present.
+     * @returns {boolean} True when the panel is present or was injected successfully.
      */
     function injectPeekPanel() {
         try {
             if (document.getElementById("__mdi_peekOverlay")) {
                 logDebug(2, "🟡 Peek overlay already visible. Ignoring.");
-                return;
+                return true;
             }
 
             const overlay = document.createElement("div");
@@ -255,9 +339,16 @@ if (!window.__mdi_settingsPeekInjected) {
 
             document.addEventListener("keydown", escKeyHandler);
             logDebug(1, "🪟 Peek overlay injected into page.");
+            return true;
         } catch (err) {
+            if (/Extension context invalidated/i.test(err.message || "")) {
+                document.removeEventListener("keydown", settingsPeekHotkeyHandler, true);
+                showPeekRecoveryMessage("MID: Settings Peek needs this tab to be refreshed after the extension was reloaded.", "error");
+            }
+
             logDebug(1, `❌ Error injecting peek overlay: ${err.message}`);
             logDebug(2, `🐛 Stack trace: ${err.stack}`);
+            return false;
         }
     }
 
