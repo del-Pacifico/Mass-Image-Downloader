@@ -741,6 +741,117 @@ function respondSafe(sendResponse, payload) {
 }
 
 /**
+ * Detects whether a toast message failed because the target tab has no active content-script receiver.
+ * @param {string} message - Runtime error message reported by Chromium.
+ * @returns {boolean} True when a direct toast fallback can be attempted.
+ */
+function isMissingToastReceiverError(message) {
+    if (!message || typeof message !== "string") return false;
+    return /Could not establish connection|Receiving end does not exist|message channel closed/i.test(message);
+}
+
+/**
+ * Injects a minimal standalone toast renderer when a long-lived tab lost its content-script receiver.
+ * @param {number} tabId - Target browser tab id.
+ * @param {string} text - Toast message to display.
+ * @param {"info"|"success"|"error"} type - Visual toast type.
+ * @returns {void}
+ */
+function injectUserToastFallback(tabId, text, type = "info") {
+    try {
+        if (!tabId || typeof tabId !== "number") return;
+        if (!text || typeof text !== "string") return;
+        if (!showUserFeedbackMessages) return;
+
+        chrome.tabs.get(tabId, (tab) => {
+            if (chrome.runtime.lastError) {
+                logDebug(2, `⚠️ Toast fallback skipped: ${chrome.runtime.lastError.message}`);
+                return;
+            }
+
+            const tabUrl = tab?.url || "";
+            if (isRestrictedPageUrl(tabUrl)) {
+                logDebug(2, `🚫 Toast fallback skipped on restricted page: ${tabUrl || "(empty url)"}`);
+                return;
+            }
+
+            chrome.scripting.executeScript(
+                {
+                    target: { tabId },
+                    func: (toastText, toastType, minVisibleMs) => {
+                        const normalizedType = ["info", "success", "error"].includes(toastType) ? toastType : "info";
+                        const safeMinVisibleMs = Math.max(0, parseInt(minVisibleMs ?? 2000, 10) || 2000);
+                        const baseDuration = normalizedType === "error" ? 10000 : 5000;
+                        const duration = Math.max(baseDuration, safeMinVisibleMs);
+                        const now = Date.now();
+                        const prefixedText = /^MID:/i.test(toastText) ? toastText : `MID: ${toastText}`;
+
+                        let toast = document.getElementById("mdi-user-toast");
+                        if (!toast) {
+                            const toastContainer = document.body || document.documentElement;
+                            if (!toastContainer) return;
+
+                            toast = document.createElement("div");
+                            toast.id = "mdi-user-toast";
+                            toast.setAttribute("role", "status");
+                            toast.setAttribute("aria-live", "polite");
+                            toastContainer.appendChild(toast);
+                        }
+
+                        toast.textContent = prefixedText;
+                        toast.style.cssText = [
+                            "position:fixed",
+                            "top:18px",
+                            "right:18px",
+                            "max-width:360px",
+                            "padding:12px 14px",
+                            "border-radius:6px",
+                            "font:13px/1.35 Arial, sans-serif",
+                            "color:#fff",
+                            `background:${normalizedType === "error" ? "#d9534f" : "#007EE3"}`,
+                            "box-shadow:0 4px 14px rgba(0,0,0,.22)",
+                            "z-index:2147483647",
+                            "opacity:1",
+                            "transition:opacity .2s ease",
+                            "white-space:normal",
+                            "word-break:break-word"
+                        ].join(";");
+
+                        window.__mdiUserToastMinUntil = now + safeMinVisibleMs;
+                        clearTimeout(window.__mdiUserToastTimer);
+                        clearTimeout(window.__mdiUserToastDeferTimer);
+
+                        window.__mdiUserToastTimer = setTimeout(() => {
+                            const remaining = (window.__mdiUserToastMinUntil || 0) - Date.now();
+                            if (remaining > 0) {
+                                window.__mdiUserToastDeferTimer = setTimeout(() => {
+                                    toast.style.opacity = "0";
+                                    setTimeout(() => toast.remove(), 250);
+                                }, remaining);
+                                return;
+                            }
+
+                            toast.style.opacity = "0";
+                            setTimeout(() => toast.remove(), 250);
+                        }, duration);
+                    },
+                    args: [text, type, toastMinVisibleMs]
+                },
+                () => {
+                    if (chrome.runtime.lastError) {
+                        logDebug(2, `⚠️ Toast fallback injection failed: ${chrome.runtime.lastError.message}`);
+                    } else {
+                        logDebug(2, "✅ Toast fallback rendered in target tab.");
+                    }
+                }
+            );
+        });
+    } catch (err) {
+        logDebug(2, `⚠️ injectUserToastFallback failed: ${err.message}`);
+    }
+}
+
+/**
  * Sends a user toast to the sender tab (content script).
  * MV3 service workers have no DOM, so UI feedback must be rendered in-page.
  * @param {number} tabId
@@ -769,7 +880,12 @@ function sendUserToastToTab(tabId, text, type = "info") {
             () => {
                 // ✅ MV3: prevent "Receiving end does not exist" from surfacing as an uncaught error
                 if (chrome.runtime.lastError) {
-                    logDebug(2, `⚠️ Toast send skipped: ${chrome.runtime.lastError.message}`);
+                    const errorMessage = chrome.runtime.lastError.message || "";
+                    logDebug(2, `⚠️ Toast send skipped: ${errorMessage}`);
+
+                    if (isMissingToastReceiverError(errorMessage)) {
+                        injectUserToastFallback(tabId, text, type);
+                    }
                 }
             }
         );

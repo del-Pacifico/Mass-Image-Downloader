@@ -12,6 +12,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Hardened download naming and path generation so Bulk, manual download, Image Inspector saves, and gallery downloads refresh naming/folder settings only when the local snapshot is stale or incomplete.
 - Improved hotkey-driven content script reliability for Clipboard Hotkeys, Settings Peek, and Image Inspector by validating local settings before executing cached-state-dependent actions.
 - Added clearer recovery handling for One-click settings load failures when the extension runtime context has changed.
+- Added fallback toast rendering from the background service worker when long-lived tabs no longer have an active content-script message receiver after extension reloads.
 
 ### Validation
 
