@@ -691,8 +691,30 @@ function isLikelyDirectImageUrl(url) {
 }
 
 /**
+ * Derives a likely full-size image URL from common gallery thumbnail paths.
+ * @param {string} url - Rendered thumbnail URL.
+ * @returns {string} Full-size candidate URL or an empty string when no thumbnail pattern matches.
+ */
+function deriveFullSizeUrlFromThumbnail(url) {
+  try {
+    if (!isLikelyDirectImageUrl(url)) return "";
+
+    const parsed = new URL(url, location.href);
+    const originalPath = parsed.pathname;
+    const fullSizePath = originalPath.replace(/\/thumbs(?:\/\d+x\d+)?\//i, "/");
+
+    if (fullSizePath === originalPath) return "";
+
+    parsed.pathname = fullSizePath;
+    return parsed.href;
+  } catch (_) {
+    return "";
+  }
+}
+
+/**
  * Resolves the best downloadable URL for an inspected image.
- * Prefers a direct image href from the nearest link, then falls back to the rendered image src.
+ * Prefers a direct image href, then a full-size thumbnail derivation, then the rendered image src.
  * @param {HTMLImageElement} img - Inspected image element.
  * @returns {string} Best available absolute image URL.
  */
@@ -706,6 +728,12 @@ function resolveInspectorImageUrl(img) {
     if (absoluteHref && isLikelyDirectImageUrl(absoluteHref)) {
       logDebug(2, "🔗 Image Inspector: using linked full-size image URL.");
       return absoluteHref;
+    }
+
+    const derivedFullSizeUrl = deriveFullSizeUrlFromThumbnail(renderedUrl);
+    if (derivedFullSizeUrl) {
+      logDebug(2, "🔗 Image Inspector: using derived full-size image URL from thumbnail.");
+      return derivedFullSizeUrl;
     }
 
     return renderedUrl;

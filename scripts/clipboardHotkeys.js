@@ -383,6 +383,16 @@
     }
 
     /**
+     * Shows the standard recovery message for invalidated clipboard hotkey attempts.
+     * @param {"prefix"|"suffix"} type - Clipboard assignment target.
+     * @returns {void}
+     */
+    function showClipboardContextRefreshMessage(type) {
+        const label = type === "suffix" ? "Suffix" : "Prefix";
+        showUserMessage(`${label} assignment needs this tab to be refreshed after the extension was reloaded.`, "error");
+    }
+
+    /**
      * Receives toast requests from background.js and displays them in-page.
      * MV3 service workers have no DOM, so user feedback must be rendered from a content script.
      */
@@ -463,7 +473,7 @@
             update[type] = sanitized;
             // ✅ Check if the prefix/suffix is already set to the same value
             try {
-                if (!chrome?.storage?.sync || !chrome?.runtime) {
+                if (!isExtensionContextUsable() || !chrome?.storage?.sync) {
                     throw new Error("Chrome storage API or runtime is unavailable.");
                 }
 
@@ -478,6 +488,11 @@
                             showUserMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} set to: ${sanitized}`, 'success');
                         } catch (callbackErr) {
                             logDebug(1, `❌ Failed to save ${type}:`, callbackErr.message);
+                            if (isExtensionContextInvalidatedMessage(callbackErr.message)) {
+                                showClipboardContextRefreshMessage(type);
+                                return;
+                            }
+
                             showUserMessage(`Failed to save ${type}.`, 'error');
                         }
                     });
@@ -485,7 +500,12 @@
             } catch (outerErr) {
                 logDebug(1, `❌ Exception saving ${type}:`, outerErr.message);
                 logDebug(2, `❌ Stacktrace saving ${type}: `, outerErr.stack);
-                showUserMessage(`Error saving ${type}. Context may be invalid.`, 'error');
+                if (isExtensionContextInvalidatedMessage(outerErr.message) || !isExtensionContextUsable()) {
+                    showClipboardContextRefreshMessage(type);
+                    return;
+                }
+
+                showUserMessage(`Error saving ${type}.`, 'error');
             }
         } catch (err) {
             logDebug(1, `❌ Exception saving ${type}:`, err.message);
@@ -505,6 +525,12 @@
      */
     async function handleClipboardAssign(type) {
         try {
+            if (!isExtensionContextUsable()) {
+                logDebug(1, `⚠️ Clipboard ${type} hotkey ignored because the extension context is invalidated.`);
+                showClipboardContextRefreshMessage(type);
+                return;
+            }
+
             // ✅ Check if the Clipboard API is available and the document is ready
             // This is important because the Clipboard API is not available in all contexts (e.g., background scripts).
             // The document.readyState check ensures that the document is fully loaded before accessing the clipboard.
