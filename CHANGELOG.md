@@ -23,6 +23,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Aligned the root README H1 with the project documentation naming standard.
 - Added MV3 runtime resilience rules to the contribution guide for future content-script, hotkey, background handoff, and long-lived tab work.
 - Refined contribution code standards and development rules to clarify scope discipline, logging, recovery paths, business-rule preservation, documentation updates, and local validation expectations.
+- Added Codex CLI to the AI-assisted contribution tools list.
 
 ### Validation
 

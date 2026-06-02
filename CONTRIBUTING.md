@@ -197,6 +197,7 @@ Discussions should use the correct category and descriptive labels when availabl
 
 This project partially uses tools based on artificial intelligence (AI) for assistance, such as: 
 
+- Codex CLI
 - Copilot 
 - ChatGPT 
 - Gemini 
