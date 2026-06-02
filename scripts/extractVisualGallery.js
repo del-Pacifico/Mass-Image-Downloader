@@ -179,7 +179,7 @@
 				z-index:9999;
 			`;
 
-			logDebug(2, `📢 Showing user message: "${text}" (${type})`);
+			logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
 
 			// ⏱️ Mark minimum visible window start (before append to avoid ultra-fast overwrite)
             try {

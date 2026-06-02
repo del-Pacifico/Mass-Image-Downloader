@@ -199,7 +199,10 @@ if (!window.__mdi_settingsPeekInjected) {
                 container.appendChild(toast);
             }
 
-            toast.textContent = /^MID:/i.test(text) ? text : `MID: ${text}`;
+            const finalText = /^MID:/i.test(text) ? text : `MID: ${text}`;
+            logDebug(2, `📢 Showing user message: "${finalText}" (${toastType})`);
+
+            toast.textContent = finalText;
             toast.style.cssText = [
                 "position:fixed",
                 "top:18px",

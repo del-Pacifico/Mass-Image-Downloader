@@ -368,6 +368,8 @@ function showUserMsgSafe(text, type = "info") {
 
     document.body.appendChild(msg);
 
+    logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
+
     window[TIMER_KEY] = setTimeout(() => {
       msg.style.opacity = "0";
       setTimeout(() => { try { msg.remove(); } catch (_) {} }, 500);

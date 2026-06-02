@@ -706,7 +706,7 @@ function showUserMessage(text, type = "info") {
         messageElement.style.zIndex = "9999";
         document.body.appendChild(messageElement);
 
-        logDebug(3, `📢 Showing user message: "${text}" (${type})`);
+        logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
 
         // ✅ Store timer id so the next toast can cancel it
         window[TIMER_KEY] = setTimeout(() => {

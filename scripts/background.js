@@ -775,6 +775,9 @@ function injectUserToastFallback(tabId, text, type = "info") {
                 return;
             }
 
+            const finalText = /^MID:/i.test(text) ? text : `MID: ${text}`;
+            logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
+
             chrome.scripting.executeScript(
                 {
                     target: { tabId },

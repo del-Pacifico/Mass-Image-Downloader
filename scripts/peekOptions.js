@@ -393,6 +393,8 @@
 
             document.body.appendChild(msg);
 
+            logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
+
             // ⏱️ Mark minimum visible window start
             try {
                 window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
