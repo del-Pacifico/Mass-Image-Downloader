@@ -48,6 +48,9 @@ const INSPECTOR_DEFAULT_MIN_WIDTH = 800;
 const INSPECTOR_DEFAULT_MIN_HEIGHT = 600;
 let inspectorMinWidthCache = INSPECTOR_DEFAULT_MIN_WIDTH;
 let inspectorMinHeightCache = INSPECTOR_DEFAULT_MIN_HEIGHT;
+const INSPECTOR_CONFIG_STALE_MS = 60000;
+let inspectorConfigLastHydratedAt = 0;
+let inspectorConfigHydrationInFlight = null;
 const INSPECTOR_IMAGE_WRAPPER_SELECTOR = "figure, picture, .Image, .Logo";
 const INSPECTOR_OVERLAY_BUTTON_MIN_SIZE = 40;
 const INSPECTOR_OVERLAY_ANCHOR_PADDING = 8;
@@ -68,6 +71,13 @@ async function initConfig() {
         "minHeight",
 		    "debugLogLevel"
       ], (data) => {
+        if (chrome.runtime.lastError) {
+          logDebug(1, "❌ Image Inspector settings load failed:", chrome.runtime.lastError.message);
+          resolve();
+          return;
+        }
+
+        data = data || {};
         iiEnabledFromOptions = data.imageInspectorEnabled === true;
         iiDevMode = data.imageInspectorDevMode === true;
         iiCloseOnSave = data.imageInspectorCloseOnSave === true;
@@ -88,6 +98,7 @@ async function initConfig() {
           : INSPECTOR_DEFAULT_MIN_HEIGHT;
 
         if (!isNaN(level)) debugLogLevelCache = level;
+        inspectorConfigLastHydratedAt = Date.now();
 
         logDebug(1, "🕵️ Image Inspector settings loaded:", {
           iiEnabledFromOptions,
@@ -111,6 +122,53 @@ async function initConfig() {
       resolve();
     }
   });
+}
+
+/**
+ * Checks whether the Image Inspector settings snapshot is ready for hotkey use.
+ * @returns {boolean} True when the local settings are complete and fresh.
+ */
+function isInspectorConfigUsable() {
+  if (!inspectorConfigLastHydratedAt) return false;
+  if ((Date.now() - inspectorConfigLastHydratedAt) > INSPECTOR_CONFIG_STALE_MS) return false;
+
+  return typeof iiEnabledFromOptions === "boolean"
+    && typeof iiDevMode === "boolean"
+    && typeof iiCloseOnSave === "boolean"
+    && typeof showUserFeedbackMessagesCache === "boolean"
+    && Number.isFinite(toastMinVisibleMsCache)
+    && toastMinVisibleMsCache >= 0
+    && toastMinVisibleMsCache <= 10000
+    && Number.isFinite(inspectorMinWidthCache)
+    && inspectorMinWidthCache > 0
+    && Number.isFinite(inspectorMinHeightCache)
+    && inspectorMinHeightCache > 0;
+}
+
+/**
+ * Rehydrates Image Inspector settings only when the local snapshot is stale or incomplete.
+ * @param {string} contextLabel - Short label used in debug logs.
+ * @returns {Promise<boolean>} True when a storage refresh was performed.
+ */
+async function ensureInspectorConfigFresh(contextLabel = "Image Inspector") {
+  if (isInspectorConfigUsable()) {
+    return false;
+  }
+
+  if (!inspectorConfigHydrationInFlight) {
+    logDebug(2, `🔄 Rehydrating Image Inspector settings for ${contextLabel}.`);
+    inspectorConfigHydrationInFlight = initConfig()
+      .catch((err) => {
+        logDebug(1, `❌ Image Inspector settings rehydration failed for ${contextLabel}:`, err?.message || err);
+        throw err;
+      })
+      .finally(() => {
+        inspectorConfigHydrationInFlight = null;
+      });
+  }
+
+  await inspectorConfigHydrationInFlight;
+  return true;
 }
 
 /**
@@ -152,6 +210,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   // Enable/disable toggle
   if ("imageInspectorEnabled" in changes) {
     iiEnabledFromOptions = changes.imageInspectorEnabled.newValue === true;
+    inspectorConfigLastHydratedAt = Date.now();
     logDebug(1, "🕵️ imageInspectorEnabled →", iiEnabledFromOptions);
     if (!iiEnabledFromOptions && iiActiveInPage) {
       teardownImageInspector("disabled-in-options");
@@ -162,6 +221,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   // Developer mode toggle
   if ("imageInspectorDevMode" in changes) {
     iiDevMode = changes.imageInspectorDevMode.newValue === true;
+    inspectorConfigLastHydratedAt = Date.now();
     logDebug(2, "👨🏻‍💻 imageInspectorDevMode →", iiDevMode);
     try { refreshDevBlockIfOpen(); } catch (_) {}
   }
@@ -169,19 +229,25 @@ chrome.storage.onChanged.addListener((changes, area) => {
   // Close-on-save toggle
   if ("imageInspectorCloseOnSave" in changes) {
     iiCloseOnSave = changes.imageInspectorCloseOnSave.newValue === true;
+    inspectorConfigLastHydratedAt = Date.now();
     logDebug(2, "🔄 imageInspectorCloseOnSave →", iiCloseOnSave);
   }
 
   // User feedback toggle
   if ("showUserFeedbackMessages" in changes) {
     showUserFeedbackMessagesCache = changes.showUserFeedbackMessages.newValue !== false;
+    inspectorConfigLastHydratedAt = Date.now();
     logDebug(2, "🔄 showUserFeedbackMessages →", showUserFeedbackMessagesCache);
   }
 
   // Toast duration setting
-  if ("showUserFeedbackMessages" in changes) {
-    showUserFeedbackMessagesCache = changes.showUserFeedbackMessages.newValue !== false;
-    logDebug(2, "🔄 showUserFeedbackMessages →", showUserFeedbackMessagesCache);
+  if ("toastMinVisibleMs" in changes) {
+    const rawToastMinVisibleMs = parseInt(changes.toastMinVisibleMs.newValue ?? 2000, 10);
+    toastMinVisibleMsCache = (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
+      ? rawToastMinVisibleMs
+      : 2000;
+    inspectorConfigLastHydratedAt = Date.now();
+    logDebug(2, "🔄 toastMinVisibleMs →", toastMinVisibleMsCache);
   }
 
   if ("minWidth" in changes) {
@@ -190,6 +256,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     inspectorMinWidthCache = (!isNaN(nextValue) && nextValue >= 1 && nextValue <= 10000)
       ? nextValue
       : INSPECTOR_DEFAULT_MIN_WIDTH;
+    inspectorConfigLastHydratedAt = Date.now();
     logDebug(2, "📐 minWidth →", oldValue, "=>", inspectorMinWidthCache);
     logDebug(3, "🧪 [II trace] Image size minWidth cache updated:", {
       previous: oldValue,
@@ -203,6 +270,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     inspectorMinHeightCache = (!isNaN(nextValue) && nextValue >= 1 && nextValue <= 10000)
       ? nextValue
       : INSPECTOR_DEFAULT_MIN_HEIGHT;
+    inspectorConfigLastHydratedAt = Date.now();
     logDebug(2, "📐 minHeight →", oldValue, "=>", inspectorMinHeightCache);
     logDebug(3, "🧪 [II trace] Image size minHeight cache updated:", {
       previous: oldValue,
@@ -399,8 +467,15 @@ function onKeyDown(evt) {
     evt.preventDefault();
     evt.stopPropagation();
 
-    // Toggle the inspector.
-    toggleInspectorViaHotkey();
+    // Toggle after a targeted config refresh only when the local snapshot is stale.
+    ensureInspectorConfigFresh("hotkey toggle")
+      .then(() => {
+        toggleInspectorViaHotkey();
+      })
+      .catch((err) => {
+        logDebug(1, "❌ Image Inspector hotkey could not refresh settings:", err?.message || err);
+        showUserMsgSafe("Image Inspector context changed. Please refresh this page and try again.", "error");
+      });
   } catch (err) {
     logDebug(1, "❌ onKeyDown error:", err?.message || err);
   }

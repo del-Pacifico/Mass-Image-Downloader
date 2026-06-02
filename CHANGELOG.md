@@ -4,6 +4,22 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [2.8.186] - 2026-06-02
+
+### Fixed
+
+- Added conditional state rehydration for long-lived tabs so settings-dependent actions can recover stale or incomplete cached settings without requiring a page refresh.
+- Hardened download naming and path generation so Bulk, manual download, Image Inspector saves, and gallery downloads refresh naming/folder settings only when the local snapshot is stale or incomplete.
+- Improved hotkey-driven content script reliability for Clipboard Hotkeys, Settings Peek, and Image Inspector by validating local settings before executing cached-state-dependent actions.
+- Added clearer recovery handling for One-click settings load failures when the extension runtime context has changed.
+
+### Validation
+
+- Confirmed extension compliance with `npm run check`.
+- Confirmed automated tests with `npm test`.
+
+---
+
 ## [2.8.185] - 2026-05-30
 
 ### Fixed

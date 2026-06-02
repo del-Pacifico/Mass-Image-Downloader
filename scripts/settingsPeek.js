@@ -15,6 +15,9 @@ if (!window.__mdi_settingsPeekInjected) {
     // such as peekTransparencyLevel, showUserFeedbackMessages, etc.
     let configCache = {};
     let debugLogLevelCache = 1;
+    const CONFIG_CACHE_STALE_MS = 60000;
+    let configLastHydratedAt = 0;
+    let configHydrationInFlight = null;
 
     // Initialize config and listener after storage loads
     (async function () {
@@ -46,6 +49,7 @@ if (!window.__mdi_settingsPeekInjected) {
 
                     configCache = data ?? {};
                     debugLogLevelCache = parseInt(configCache.debugLogLevel ?? 1);
+                    configLastHydratedAt = Date.now();
                     logDebug(1, "⚙️ Debug level loaded:", debugLogLevelCache);
                     resolve();
                 });
@@ -54,6 +58,43 @@ if (!window.__mdi_settingsPeekInjected) {
                 resolve();
             }
         });
+    }
+
+    /**
+     * Checks whether the Settings Peek config snapshot is complete enough to open the panel.
+     * @returns {boolean} True when the local snapshot is initialized and fresh.
+     */
+    function isPeekConfigUsable() {
+        if (!configLastHydratedAt) return false;
+        if ((Date.now() - configLastHydratedAt) > CONFIG_CACHE_STALE_MS) return false;
+        return configCache && typeof configCache === "object";
+    }
+
+    /**
+     * Rehydrates Settings Peek config only when the local snapshot is stale or incomplete.
+     * @param {string} contextLabel - Short label used in debug logs.
+     * @returns {Promise<boolean>} True when a storage refresh was performed.
+     */
+    async function ensurePeekConfigFresh(contextLabel = "Settings Peek") {
+        if (isPeekConfigUsable()) {
+            return false;
+        }
+
+        if (!configHydrationInFlight) {
+            logDebug(2, `🔄 Rehydrating Settings Peek config for ${contextLabel}.`);
+            configHydrationInFlight = initConfig()
+                .catch((err) => {
+                    logDebug(1, `❌ Settings Peek config rehydration failed for ${contextLabel}: ${err.message}`);
+                    logDebug(2, `🐛 Stack trace: ${err.stack}`);
+                    throw err;
+                })
+                .finally(() => {
+                    configHydrationInFlight = null;
+                });
+        }
+
+        await configHydrationInFlight;
+        return true;
     }
 
     /**
@@ -116,7 +157,7 @@ if (!window.__mdi_settingsPeekInjected) {
      * If the panel already exists, it will be removed.
      * Otherwise, it will be injected.
      */
-    function togglePeekPanel() {
+    async function togglePeekPanel() {
         try {
             const existing = document.getElementById("__mdi_peekOverlay");
             // If panel exists, remove it
@@ -125,6 +166,8 @@ if (!window.__mdi_settingsPeekInjected) {
                 logDebug(1, "✅ Peek panel closed (toggle).");
                 return;
             }
+
+            await ensurePeekConfigFresh("panel toggle");
 
             // Otherwise, inject it
             injectPeekPanel();

@@ -296,6 +296,13 @@ function initConfigForInjectSaveIcon(callback) {
             "allowParameterizedCdnUrls", "allowWrappedImageUrls",
             "allowExtendedImageUrls"],
         (data) => {
+            if (chrome.runtime.lastError) {
+                logDebug(1, `❌ Failed to load One-click settings: ${chrome.runtime.lastError.message}`);
+                configCache.showUserFeedbackMessages = true;
+                showUserMessage("Extension context changed. Please refresh this page and try again.", "error");
+                return;
+            }
+
             debugLogLevelCache = parseInt(data.debugLogLevel ?? 1);
 
             configCache.minWidth = parseInt(data.minWidth) || 800;

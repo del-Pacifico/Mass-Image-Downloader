@@ -32,6 +32,62 @@
         suffix: ""
     };
 
+    const CONFIG_CACHE_STALE_MS = 60000;
+    let configCacheLastHydratedAt = 0;
+    let configCacheHydrationInFlight = null;
+
+    /**
+     * Checks whether a cached setting value is usable for the requested flow.
+     * @param {string} key - Setting key to validate.
+     * @returns {boolean} True when the cached value is complete and usable.
+     */
+    function isConfigCacheValueUsable(key) {
+        const value = configCache[key];
+
+        switch (key) {
+            case "debugLogLevel":
+                return Number.isInteger(value) && value >= 0 && value <= 3;
+            case "showUserFeedbackMessages":
+            case "allowJPG":
+            case "allowJPEG":
+            case "allowPNG":
+            case "allowWEBP":
+            case "allowAVIF":
+            case "allowBMP":
+            case "allowTwitterXQueryParams":
+            case "allowRedditCdnQueryParams":
+            case "allowParameterizedCdnUrls":
+            case "allowWrappedImageUrls":
+            case "allowExtendedImageUrls":
+                return typeof value === "boolean";
+            case "toastMinVisibleMs":
+                return Number.isFinite(value) && value >= 0 && value <= 10000;
+            case "minWidth":
+            case "minHeight":
+                return Number.isFinite(value) && value > 0;
+            case "filenameMode":
+                return typeof value === "string" && ["none", "prefix", "suffix", "both", "timestamp"].includes(value);
+            case "prefix":
+            case "suffix":
+            case "downloadFolder":
+            case "customFolderPath":
+                return typeof value === "string";
+            default:
+                return Object.prototype.hasOwnProperty.call(configCache, key) && value !== undefined;
+        }
+    }
+
+    /**
+     * Determines whether the shared config cache can be trusted for a specific flow.
+     * @param {string[]} requiredKeys - Setting keys required by the caller.
+     * @returns {boolean} True when the snapshot is initialized, fresh, and complete.
+     */
+    function isConfigCacheSnapshotUsable(requiredKeys) {
+        if (!configCacheLastHydratedAt) return false;
+        if ((Date.now() - configCacheLastHydratedAt) > CONFIG_CACHE_STALE_MS) return false;
+        return requiredKeys.every((key) => isConfigCacheValueUsable(key));
+    }
+
     async function initConfigCache() {
         return new Promise((resolve) => {
             chrome.storage.sync.get([
@@ -45,6 +101,12 @@
                 "allowWrappedImageUrls",
                 "allowExtendedImageUrls" // Legacy compatibility flag for older saved settings
             ], (data) => {
+                if (chrome.runtime.lastError) {
+                    logDebug(1, `❌ Failed to hydrate shared config cache: ${chrome.runtime.lastError.message}`);
+                    resolve(false);
+                    return;
+                }
+
                 configCache.debugLogLevel = parseInt(data.debugLogLevel ?? 1);
                 configCache.showUserFeedbackMessages = data.showUserFeedbackMessages ?? true;
                 const rawToastMinVisibleMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
@@ -92,9 +154,45 @@
                 configCache.customFolderPath = data.customFolderPath ?? "";
                 configCache.minWidth = parseInt(data.minWidth ?? 800);
                 configCache.minHeight = parseInt(data.minHeight ?? 600);
-                resolve();
+                configCacheLastHydratedAt = Date.now();
+                resolve(true);
             });
         });
+    }
+
+    /**
+     * Rehydrates the shared config cache only when the current snapshot is stale or incomplete.
+     * @param {string[]} requiredKeys - Setting keys required by the current flow.
+     * @param {string} contextLabel - Short label used in debug logs.
+     * @returns {Promise<boolean>} True when a storage refresh was performed.
+     */
+    async function ensureConfigCacheFresh(requiredKeys = [], contextLabel = "settings-dependent flow") {
+        const keys = Array.isArray(requiredKeys) ? requiredKeys : [];
+
+        if (isConfigCacheSnapshotUsable(keys)) {
+            return false;
+        }
+
+        if (typeof chrome === "undefined" || !chrome?.storage?.sync) {
+            logDebug(1, `⚠️ Config rehydration skipped for ${contextLabel}: chrome.storage is unavailable.`);
+            return false;
+        }
+
+        if (!configCacheHydrationInFlight) {
+            logDebug(2, `🔄 Rehydrating shared config cache for ${contextLabel}.`);
+            configCacheHydrationInFlight = initConfigCache()
+                .catch((err) => {
+                    logDebug(1, `❌ Config rehydration failed for ${contextLabel}: ${err.message}`);
+                    logDebug(3, `🐛 Stacktrace: ${err.stack}`);
+                    throw err;
+                })
+                .finally(() => {
+                    configCacheHydrationInFlight = null;
+                });
+        }
+
+        await configCacheHydrationInFlight;
+        return true;
     }
 
     const SUPPORTED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".avif", ".bmp"];
@@ -204,12 +302,14 @@
             // if prefix changed, update cache and log
             if (changes.prefix) {
                 configCache.prefix = changes.prefix.newValue ?? '';
+                configCacheLastHydratedAt = Date.now();
                 logDebug(2, `🔄 Prefix updated in cache: "${configCache.prefix}"`);
             }
 
             // if suffix changed, update cache and log
             if (changes.suffix) {
                 configCache.suffix = changes.suffix.newValue ?? '';
+                configCacheLastHydratedAt = Date.now();
                 logDebug(2, `🔄 Suffix updated in cache: "${configCache.suffix}"`);
             }
 
@@ -217,6 +317,7 @@
             if (changes.filenameMode) {
                 // 🛠️ Patch: sync filenameMode so generateFilename sees new mode immediately
                 configCache.filenameMode = changes.filenameMode.newValue ?? 'none';
+                configCacheLastHydratedAt = Date.now();
                 logDebug(2, `🔄 Filename mode updated in cache: "${configCache.filenameMode}"`);
             }
 
@@ -224,6 +325,7 @@
             if (changes.debugLogLevel) {
                 const oldLevel = configCache.debugLogLevel;
                 configCache.debugLogLevel = parseInt(changes.debugLogLevel.newValue ?? 1);
+                configCacheLastHydratedAt = Date.now();
                 logDebug(1, `🪵 Debug level changed: ${oldLevel} → ${configCache.debugLogLevel}`);
             }
 
@@ -231,6 +333,7 @@
             if (changes.minWidth) {
                 const oldValue = configCache.minWidth;
                 configCache.minWidth = parseInt(changes.minWidth.newValue ?? 800);
+                configCacheLastHydratedAt = Date.now();
                 logDebug(2, `🔄 Min width updated in cache: ${oldValue} → ${configCache.minWidth}`);
             }
 
@@ -238,6 +341,7 @@
             if (changes.minHeight) {
                 const oldValue = configCache.minHeight;
                 configCache.minHeight = parseInt(changes.minHeight.newValue ?? 600);
+                configCacheLastHydratedAt = Date.now();
                 logDebug(2, `🔄 Min height updated in cache: ${oldValue} → ${configCache.minHeight}`);
             }
 
@@ -245,6 +349,7 @@
             if (changes.showUserFeedbackMessages) {
                 const oldValue = configCache.showUserFeedbackMessages;
                 configCache.showUserFeedbackMessages = changes.showUserFeedbackMessages.newValue ?? true;
+                configCacheLastHydratedAt = Date.now();
                 logDebug(2, `🔄 showUserFeedbackMessages updated in cache: ${oldValue} → ${configCache.showUserFeedbackMessages}`);
             }
 
@@ -254,6 +359,7 @@
                 const raw = parseInt(changes.toastMinVisibleMs.newValue ?? 2000, 10);
                 const safe = (!isNaN(raw) && raw >= 0 && raw <= 10000) ? raw : 2000;
                 configCache.toastMinVisibleMs = safe;
+                configCacheLastHydratedAt = Date.now();
                 logDebug(2, `🔄 toastMinVisibleMs updated in cache: ${oldValue} → ${configCache.toastMinVisibleMs}`);
             }
 
@@ -265,6 +371,7 @@
                 changes.allowExtendedImageUrls
             ) {
                 syncExtendedImageUrlFlagsFromStorageChanges(changes);
+                configCacheLastHydratedAt = Date.now();
             }
 
         });
@@ -752,6 +859,7 @@
     // 🔒 This function does NOT handle folder paths. The caller must append them if needed.
     async function generateFilename(baseName, extension) {
         try {
+            await ensureConfigCacheFresh(["filenameMode", "prefix", "suffix"], "filename generation");
             const { filenameMode, prefix, suffix } = configCache;
             let name = baseName;
 
@@ -1008,6 +1116,7 @@
         isAllowedImageFormat,
         showUserMessage,
         initConfigCache,
+        ensureConfigCacheFresh,
         setBadgeError
     };
     

@@ -36,6 +36,7 @@
         isDirectImageUrl,
         isAllowedImageFormat,
         initConfigCache,
+        ensureConfigCacheFresh,
         setBadgeError
     } from "./utils.js";
 
@@ -156,6 +157,111 @@
     let imageInspectorEnabled = false;              // Hotkey toggle allowed?
     let imageInspectorDeveloperMode = false;        // Show dev-only fields in panel?
     let imageInspectorCloseOnSave = false;          // Close tab after save?
+    const BACKGROUND_SETTINGS_STALE_MS = 60000;
+    const DOWNLOAD_PATH_SETTING_KEYS = ["downloadFolder", "customFolderPath"];
+    const NAMING_SETTING_KEYS = ["filenameMode", "prefix", "suffix"];
+    let backgroundSettingsLastHydratedAt = 0;
+    let backgroundSettingsHydrationInFlight = null;
+
+    /**
+     * Sanitizes a custom download folder path for background cache use.
+     * @param {string} value - Raw storage value.
+     * @returns {string} Sanitized folder path or an empty string.
+     */
+    function sanitizeCustomFolderPath(value) {
+        return typeof value === "string" ? value.replace(/[<>:"/\\|?*]+/g, '') : "";
+    }
+
+    /**
+     * Updates background settings used by download path generation.
+     * @param {object} data - Partial chrome.storage.sync settings object.
+     * @returns {void}
+     */
+    function applyBackgroundPathSettings(data = {}) {
+        if (typeof data.downloadFolder === "string") {
+            downloadFolder = data.downloadFolder;
+        }
+        if (Object.prototype.hasOwnProperty.call(data, "customFolderPath")) {
+            customFolderPath = sanitizeCustomFolderPath(data.customFolderPath);
+        }
+        backgroundSettingsLastHydratedAt = Date.now();
+    }
+
+    /**
+     * Checks whether a cached background setting is usable for a flow.
+     * @param {string} key - Setting key to validate.
+     * @returns {boolean} True when the cached value is complete and usable.
+     */
+    function isBackgroundSettingUsable(key) {
+        switch (key) {
+            case "downloadFolder":
+                return typeof downloadFolder === "string" && ["default", "custom"].includes(downloadFolder);
+            case "customFolderPath":
+                return typeof customFolderPath === "string";
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Rehydrates background settings only when the local snapshot is stale or incomplete.
+     * @param {string[]} requiredKeys - Storage keys required by the current flow.
+     * @param {string} contextLabel - Short label used in debug logs.
+     * @returns {Promise<boolean>} True when a storage refresh was performed.
+     */
+    async function ensureBackgroundSettingsFresh(requiredKeys = [], contextLabel = "background flow") {
+        await settingsReady;
+
+        const keys = Array.isArray(requiredKeys) ? requiredKeys : [];
+        const hasFreshSnapshot = backgroundSettingsLastHydratedAt
+            && (Date.now() - backgroundSettingsLastHydratedAt) <= BACKGROUND_SETTINGS_STALE_MS
+            && keys.every((key) => isBackgroundSettingUsable(key));
+
+        if (hasFreshSnapshot) {
+            return false;
+        }
+
+        if (!backgroundSettingsHydrationInFlight) {
+            logDebug(2, `🔄 Rehydrating background settings for ${contextLabel}.`);
+            backgroundSettingsHydrationInFlight = new Promise((resolve, reject) => {
+                chrome.storage.sync.get(keys, (data) => {
+                    if (chrome.runtime.lastError) {
+                        reject(new Error(chrome.runtime.lastError.message));
+                        return;
+                    }
+
+                    try {
+                        applyBackgroundPathSettings(data || {});
+                        resolve(true);
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+            }).catch((err) => {
+                logDebug(1, `❌ Background settings rehydration failed for ${contextLabel}: ${err.message}`);
+                logDebug(3, `🐛 Stacktrace: ${err.stack}`);
+                throw err;
+            }).finally(() => {
+                backgroundSettingsHydrationInFlight = null;
+            });
+        }
+
+        await backgroundSettingsHydrationInFlight;
+        return true;
+    }
+
+    /**
+     * Ensures naming and path settings are fresh enough for download path generation.
+     * @param {string} contextLabel - Short label used in debug logs.
+     * @returns {Promise<void>}
+     */
+    async function ensureDownloadStateFresh(contextLabel) {
+        await Promise.all([settingsReady, configReady]);
+        await Promise.all([
+            ensureBackgroundSettingsFresh(DOWNLOAD_PATH_SETTING_KEYS, contextLabel),
+            ensureConfigCacheFresh(NAMING_SETTING_KEYS, contextLabel)
+        ]);
+    }
 
     /** 
      * One-time settings gate. Ensures options are loaded before first use.
@@ -167,12 +273,7 @@
             ["downloadFolder", "customFolderPath"],
             (data) => {
                 try {
-                    if (typeof data.downloadFolder === "string") {
-                        downloadFolder = data.downloadFolder;
-                    }
-                    if (typeof data.customFolderPath === "string") {
-                        customFolderPath = data.customFolderPath;
-                    }
+                    applyBackgroundPathSettings(data || {});
                 } catch (e) {
                     // [Mass Image Downloader]: ⚠️ Fallback to defaults on parsing errors
                     logDebug(1, `❌ Error reading settings: ${e.message}`);
@@ -399,7 +500,7 @@
 
 
             downloadFolder = data.downloadFolder || "default";
-            customFolderPath = data.customFolderPath?.replace(/[<>:"/\\|?*]+/g, '') || "";
+            customFolderPath = sanitizeCustomFolderPath(data.customFolderPath);
             downloadLimit = (data.downloadLimit >= 1 && data.downloadLimit <= 15) ? data.downloadLimit : 2;
             debugLogLevel = (typeof data.debugLogLevel === 'number' && [0, 1, 2, 3].includes(data.debugLogLevel))
             ? data.debugLogLevel
@@ -451,6 +552,7 @@
             imageInspectorEnabled = !!data.imageInspectorEnabled;
             imageInspectorDeveloperMode = !!data.imageInspectorDeveloperMode;
             imageInspectorCloseOnSave = !!data.imageInspectorCloseOnSave;
+            backgroundSettingsLastHydratedAt = Date.now();
             
             // Display current settings by console
             logDebug(3, '------------------------------');
@@ -552,8 +654,8 @@ chrome.storage.onChanged.addListener((changes) => {
         const oldValue = changes[key].oldValue;
 
         switch (key) {
-            case "downloadFolder": downloadFolder = newValue; break;
-            case "customFolderPath": customFolderPath = newValue.replace(/[<>:"/\\|?*]+/g, ''); break;
+            case "downloadFolder": downloadFolder = newValue; backgroundSettingsLastHydratedAt = Date.now(); break;
+            case "customFolderPath": customFolderPath = sanitizeCustomFolderPath(newValue); backgroundSettingsLastHydratedAt = Date.now(); break;
             case "downloadLimit": downloadLimit = newValue; break;
             case "debugLogLevel":
             debugLogLevel = (typeof newValue === 'number' && [0,1,2,3].includes(newValue))
@@ -1142,8 +1244,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
                 const { baseName, extension } = splitUrlFileName(urlForDownload);
 
-                // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
-                await Promise.all([configReady, settingsReady]);
+                // ✅ Refresh only stale/incomplete naming and folder settings before building paths.
+                await ensureDownloadStateFresh("Image Inspector save");
 
                 (async () => {
                     try {
@@ -1254,8 +1356,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
                 const { baseName, extension } = splitUrlFileName(urlForDownload);
 
-                // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
-                await Promise.all([configReady, settingsReady]);
+                // ✅ Refresh only stale/incomplete naming and folder settings before building paths.
+                await ensureDownloadStateFresh("manual image download");
 
                 (async () => {
                     try {
@@ -1826,8 +1928,8 @@ async function processValidTabs(validTabs, onComplete, validatedUrls, resetBadge
 
                 const { baseName, extension } = splitUrlFileName(url.href);
 
-                // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
-                await Promise.all([settingsReady, configReady]);
+                // ✅ Refresh only stale/incomplete naming and folder settings before building paths.
+                await ensureDownloadStateFresh("bulk download");
 
                 // ✅ Generate final filename based on user settings (prefix/suffix/timestamp)
                 const finalName = await generateFilename(baseName, extension);
@@ -1936,8 +2038,8 @@ async function downloadImageFromUrl(imageUrl, sourceTag = "unknown") {
         throw new Error("Invalid imageUrl (downloadImageFromUrl).");
     }
 
-    // ✅ Ensure both settings (folder) and naming rules are ready
-    await Promise.all([settingsReady, configReady]);
+    // ✅ Refresh only stale/incomplete naming and folder settings before building paths.
+    await ensureDownloadStateFresh(sourceTag);
 
     // ✅ Normalize URL using the shared extended-image policy
     let urlForDownload = imageUrl;
@@ -2462,8 +2564,8 @@ async function handleExtractVisualGallery(message, sendResponse) {
                 // ✅ Always wait for BOTH settings (folder) and config (naming) before building filenames/paths
                 (async () => {
                     try {
-                        // Gate: ensure storage-backed folder and configCache-based naming are ready
-                        await Promise.all([settingsReady, configReady]);
+                        // Gate: refresh only stale/incomplete folder and naming settings.
+                        await ensureDownloadStateFresh("visual gallery download");
 
                         // Generate final filename after gates (prefix/suffix/timestamp are now reliable)
                         const finalName = await generateFilename(sanitizedBase, '.' + extension);
