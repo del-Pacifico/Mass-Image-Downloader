@@ -647,6 +647,75 @@ function getInspectorOverlayParent(img) {
 }
 
 /**
+ * Checks whether this content script still has a valid extension runtime context.
+ * @returns {boolean} True when extension runtime APIs can still be used safely.
+ */
+function isExtensionContextUsable() {
+  try {
+    return Boolean(chrome?.runtime?.id);
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
+ * Checks whether an error message indicates that the extension context was invalidated.
+ * @param {string} message - Error message to inspect.
+ * @returns {boolean} True when the context can no longer call extension APIs.
+ */
+function isExtensionContextInvalidatedMessage(message) {
+  return /Extension context invalidated|context invalidated/i.test(String(message || ""));
+}
+
+/**
+ * Shows the standard recovery message for invalidated Image Inspector content scripts.
+ * @returns {void}
+ */
+function showInspectorContextRefreshMessage() {
+  showUserMsgSafe("Image Inspector needs this tab to be refreshed after the extension was reloaded.", "error");
+}
+
+/**
+ * Checks whether a URL looks like a direct supported image resource.
+ * @param {string} url - URL to inspect.
+ * @returns {boolean} True when the URL path ends in a common image extension.
+ */
+function isLikelyDirectImageUrl(url) {
+  try {
+    const parsed = new URL(url, location.href);
+    if (!/^https?:$/i.test(parsed.protocol)) return false;
+    return /\.(jpe?g|png|webp|avif|bmp)(?:$|[?#])/i.test(parsed.pathname);
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
+ * Resolves the best downloadable URL for an inspected image.
+ * Prefers a direct image href from the nearest link, then falls back to the rendered image src.
+ * @param {HTMLImageElement} img - Inspected image element.
+ * @returns {string} Best available absolute image URL.
+ */
+function resolveInspectorImageUrl(img) {
+  try {
+    const renderedUrl = String(img?.currentSrc || img?.src || "");
+    const link = img instanceof Element ? img.closest("a[href]") : null;
+    const href = link?.getAttribute("href") || "";
+    const absoluteHref = href ? new URL(href, location.href).href : "";
+
+    if (absoluteHref && isLikelyDirectImageUrl(absoluteHref)) {
+      logDebug(2, "🔗 Image Inspector: using linked full-size image URL.");
+      return absoluteHref;
+    }
+
+    return renderedUrl;
+  } catch (err) {
+    logDebug(2, "⚠️ Image Inspector URL resolution failed:", err?.message || err);
+    return String(img?.currentSrc || img?.src || "");
+  }
+}
+
+/**
  * Picks the best image candidate inside a wrapper element.
  * @param {Element} container - Candidate wrapper.
  * @returns {HTMLImageElement|null}
@@ -1241,7 +1310,7 @@ function openInspectorPanelForImage(img) {
     scroll.className = "scroll";
 
     // Image metadata.
-    const src = String(img.currentSrc || img.src || "");
+    const src = resolveInspectorImageUrl(img);
     const pageUrl = String(location.href);
     const titleAttr = img.getAttribute("title") || "[ No title ]";
     const altAttr = img.getAttribute("alt") || "[ No description ]";
@@ -1412,7 +1481,7 @@ function openInspectorPanelForImage(img) {
     function updateMetadataForImage(targetImg) {
       try {
         if (!targetImg) return;
-        const currentSrc = String(targetImg.currentSrc || targetImg.src || "");
+        const currentSrc = resolveInspectorImageUrl(targetImg);
         const f = inferFileType(currentSrc);
         const nDim = `${targetImg.naturalWidth || targetImg.width} × ${targetImg.naturalHeight || targetImg.height}px`;
         const rectNow = targetImg.getBoundingClientRect();
@@ -1435,7 +1504,7 @@ function openInspectorPanelForImage(img) {
     function updateDeveloperForImage(targetImg) {
       if (!iiDevMode || !devWrap) return;
       try {
-        const currentSrc = String(targetImg?.currentSrc || targetImg?.src || "");
+        const currentSrc = resolveInspectorImageUrl(targetImg);
         if (devNodeTypeVal) devNodeTypeVal.textContent = targetImg ? targetImg.tagName : "[ N/A ]";
         if (devFullUrlVal) devFullUrlVal.textContent = currentSrc || "[ N/A ]";
         if (devCorsVal) devCorsVal.textContent = "N/A";
@@ -1450,7 +1519,7 @@ function openInspectorPanelForImage(img) {
         if (!targetImg) return;
 
         currentInspectorImage = targetImg;
-        currentInspectorSrc = String(targetImg.currentSrc || targetImg.src || "");
+        currentInspectorSrc = resolveInspectorImageUrl(targetImg);
 
         if (previewImg) {
           previewImg.src = currentInspectorSrc;
@@ -1615,6 +1684,12 @@ function tryOpenImageInNewTab(url) {
  */
 function trySaveImage(url) {
   try {
+    if (!isExtensionContextUsable()) {
+      logDebug(1, "⚠️ Image Inspector save skipped because the extension context is invalidated.");
+      showInspectorContextRefreshMessage();
+      return;
+    }
+
     chrome.runtime.sendMessage(
       { action: "imageInspectorSaveImage", imageUrl: url, source: "imageInspector" },
       (resp) => {
@@ -1628,6 +1703,11 @@ function trySaveImage(url) {
           if (msg.includes("The message port closed before a response was received")) {
             logDebug(2, "ℹ️ Non-fatal messaging error; assuming download started correctly.");
             handleSaveSuccess();
+            return;
+          }
+
+          if (isExtensionContextInvalidatedMessage(msg)) {
+            showInspectorContextRefreshMessage();
             return;
           }
 
@@ -1656,6 +1736,12 @@ function trySaveImage(url) {
       }
     );
   } catch (err) {
+    if (isExtensionContextInvalidatedMessage(err?.message)) {
+      logDebug(1, "⚠️ Image Inspector save failed because the extension context is invalidated.");
+      showInspectorContextRefreshMessage();
+      return;
+    }
+
     showUserMsgSafe("Could not start download.", "error");
     logDebug(1, "❌ trySaveImage error:", err?.message || err);
     logDebug(3, `🐛 Stacktrace: ${err.stack}`);
@@ -1669,6 +1755,12 @@ function trySaveImage(url) {
  */
 function fallbackSave(url) {
   try {
+    if (!isExtensionContextUsable()) {
+      logDebug(1, "⚠️ Image Inspector fallback save skipped because the extension context is invalidated.");
+      showInspectorContextRefreshMessage();
+      return;
+    }
+
     chrome.runtime.sendMessage(
       { action: "imageInspectorSaveImage", imageUrl: url, source: "imageInspector-fallback" },
       (resp2) => {
@@ -1682,6 +1774,11 @@ function fallbackSave(url) {
           if (msg.includes("The message port closed before a response was received")) {
             logDebug(2, "ℹ️ Non-fatal messaging error in fallback; assuming download started correctly.");
             handleSaveSuccess();
+            return;
+          }
+
+          if (isExtensionContextInvalidatedMessage(msg)) {
+            showInspectorContextRefreshMessage();
             return;
           }
 
@@ -1709,6 +1806,12 @@ function fallbackSave(url) {
       }
     );
   } catch (err) {
+    if (isExtensionContextInvalidatedMessage(err?.message)) {
+      logDebug(1, "⚠️ Image Inspector fallback save failed because the extension context is invalidated.");
+      showInspectorContextRefreshMessage();
+      return;
+    }
+
     showUserMsgSafe("Could not start download.", "error");
     logDebug(1, "❌ fallbackSave error:", err?.message || err);
     logDebug(3, `🐛 Stacktrace: ${err.stack}`);
