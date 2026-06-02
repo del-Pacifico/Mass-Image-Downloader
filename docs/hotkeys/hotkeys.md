@@ -74,6 +74,20 @@ Due to Manifest V3 limitations:
 - Additional hotkeys may need to be handled via `keydown` listeners in content scripts
 - Not all suggested shortcuts are auto-assigned by the browser
 
+### Extension reloads and page-side hotkeys
+
+Some shortcuts are background-owned `chrome.commands`, while others are page-side `keydown` listeners because Manifest V3 limits how many commands can be declared.
+
+After reloading the extension, the background Service Worker is fresh, but content scripts already attached to open tabs may have an invalidated extension context. Those old scripts can still receive key presses, but calls such as `chrome.runtime.sendMessage` may fail.
+
+Practical impact:
+
+- `Alt + Shift + D` and other background-owned commands can continue through the fresh background worker.
+- `Alt + Shift + W` is handled page-side, so after an extension reload it may ask the user to refresh the tab before Web-linked Gallery can run.
+- `Alt + Shift + S` and Image Inspector save actions can also require a tab refresh when their old page-side context is invalidated.
+
+Refreshing the affected tab injects fresh content scripts and restores normal hotkey behavior.
+
 If a shortcut appears as **Not set**, users can assign it manually via:
 
 - **`chrome://extensions/shortcuts`**

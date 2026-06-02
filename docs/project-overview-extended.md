@@ -1284,6 +1284,15 @@ Situations and caveats that can affect extraction/downloading. Review this list 
 - **MV3 lifecycle**  
   The Service Worker sleeps between events; long runs are split into batches by design.
 
+- **Extension reloads and long-lived tabs**
+  When the extension is reloaded while a page is already open, Chromium creates a fresh MV3 background Service Worker, but content scripts that were injected before the reload can remain attached to the page in a partially invalidated state. In that state, old page-side JavaScript may still receive keyboard events, but extension APIs such as `chrome.runtime.sendMessage`, `chrome.storage.sync`, or `chrome.runtime.getURL()` may fail with `Extension context invalidated`.
+  This is why some workflows keep working after an extension reload while others ask the user to refresh the page:
+  - **Bulk Image Download** is handled through `chrome.commands` and the background worker, so it can continue using the fresh background state.
+  - **One-click Download Icon** is triggered by the background worker and can inject a fresh content script into the active tab.
+  - **Direct-link and visual gallery extractors** can be launched from popup/background entry points that inject fresh extractor scripts.
+  - **Settings Peek**, **Image Inspector save**, and **Web-linked Gallery via `Alt+Shift+W`** depend on page-side content script code at the moment of interaction. If that page-side context was invalidated by an extension reload, the extension cannot safely complete the handoff to the background worker from the old script.
+  The expected recovery path is to show a clear toast asking the user to refresh the affected tab. Refreshing the page injects fresh content scripts, restores extension API access, and lets the same workflow run normally again. This behavior is a Chromium/MV3 lifecycle constraint, not lost settings or corrupted extension state.
+
 - **Non-standard markup**  
   If direct/visual modes miss items, try **Web-linked galleries** as an alternative.
 
