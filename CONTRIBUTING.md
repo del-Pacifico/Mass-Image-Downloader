@@ -89,13 +89,22 @@ Examples:
 
 ## 📐 Code Standards
 
-- Use **JavaScript ES6+**
-- No external libraries — all code must remain in pure JS
-- Follow modular principles (1 file = 1 concern)
-- Keep logging consistent: `[Mass image downloader]: emoji + message` (use `logDebug()` from `utils.js`)
-- User-facing recovery messages must be paired with developer logs using the final rendered message text.
-- Comment blocks using clear, concise English
-- Add JSDoc or a concise header comment to every new or changed function, including its purpose, parameters, and return value when applicable
+Code changes must follow these standards:
+
+- Use **JavaScript ES6+**.
+- Do not add external libraries; the extension must remain pure JavaScript.
+- Keep modules focused: prefer **1 file = 1 concern**.
+- Prefer existing project helpers and patterns before adding new abstractions.
+- Add JSDoc or a concise header comment to every new or changed function, including purpose, parameters, and return value when applicable.
+- Write comments in clear, concise English. Comments should explain intent, edge cases, or non-obvious behavior.
+- Keep logging consistent with the project format: `[Mass image downloader]: emoji + message`.
+- Use `logDebug()` where available instead of direct `console.log()`.
+- User-facing recovery messages must also be logged with the final rendered message text:
+  ```js
+  logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
+  ```
+- Avoid false-positive logs. Do not log success unless the action actually completed or the flow has a documented safe-success condition.
+- Keep user-facing messages professional, concise, and actionable.
 
 ## 🧪 Local Validation
 
@@ -117,13 +126,23 @@ The same checks run in GitHub Actions for pull requests targeting `dev`.
 
 Contributions must follow the project's development rules:
 
-- Use JavaScript and browser-extension best practices for clear, maintainable code.
 - Keep changes modular, focused, and testable.
+- Keep the PR scope aligned with the issue or approved discussion. Avoid unrelated refactors.
+- Preserve existing business rules unless the issue explicitly requires changing them.
+- Do not alter URL validation, gallery heuristics, download naming rules, hotkey names, or browser behavior assumptions as side effects.
 - Handle errors professionally with clear recovery paths.
-- Account for edge cases, report failures through logs or user-facing messages as appropriate, and continue operating whenever safe. Unhandled catastrophic failures are not acceptable.
-- Avoid bottlenecks in CPU, memory, filesystem, and batch-processing paths.
-- Write code comments, logs, and user-facing messages in professional, approachable English.
+- Report recoverable failures through logs and, when user action is needed, through user-facing messages.
+- Continue operating whenever safe. Unhandled catastrophic failures are not acceptable.
+- Avoid unnecessary CPU, memory, filesystem, tab-management, or batch-processing bottlenecks.
+- Rehydrate cached settings only when the local snapshot is stale, incomplete, or required for the current flow.
+- Keep background refreshes scoped to the settings required by that flow.
 - Follow the MV3 runtime resilience rules for content scripts, hotkeys, background handoffs, and long-lived tabs.
+- Update relevant documentation when behavior, recovery paths, browser support, hotkeys, settings, or known limitations change.
+- Run local validation before opening or updating a pull request:
+  ```bash
+  npm run check
+  npm test
+  ```
 
 ---
 
