@@ -93,6 +93,7 @@ Examples:
 - No external libraries — all code must remain in pure JS
 - Follow modular principles (1 file = 1 concern)
 - Keep logging consistent: `[Mass image downloader]: emoji + message` (use `logDebug()` from `utils.js`)
+- User-facing recovery messages must be paired with developer logs using the final rendered message text.
 - Comment blocks using clear, concise English
 - Add JSDoc or a concise header comment to every new or changed function, including its purpose, parameters, and return value when applicable
 
@@ -122,6 +123,30 @@ Contributions must follow the project's development rules:
 - Account for edge cases, report failures through logs or user-facing messages as appropriate, and continue operating whenever safe. Unhandled catastrophic failures are not acceptable.
 - Avoid bottlenecks in CPU, memory, filesystem, and batch-processing paths.
 - Write code comments, logs, and user-facing messages in professional, approachable English.
+- Follow the MV3 runtime resilience rules for content scripts, hotkeys, background handoffs, and long-lived tabs.
+
+---
+
+## 🧩 MV3 Runtime Resilience Rules
+
+Browser-extension changes must account for Manifest V3 lifecycle behavior, especially when workflows involve content scripts, hotkeys, popup/background handoff, or `chrome.runtime.sendMessage`.
+
+When implementing or refactoring extension workflows:
+
+- Distinguish whether the entry point is **background-owned** (`chrome.commands`, popup-triggered background injection, service-worker orchestration) or **page-side** (`keydown` listeners or already-injected content scripts).
+- Assume long-lived tabs may contain content scripts injected before an extension reload. Those scripts can still receive DOM events, but their extension context may be invalidated.
+- Handle `Extension context invalidated` explicitly when a page-side script can no longer call extension APIs.
+- Provide a clear user-facing recovery path when safe recovery is not possible, usually asking the user to refresh the affected tab.
+- Do not leave recoverable MV3 lifecycle failures as console-only errors.
+- Do not show false success messages after failed injection, failed handoff, or invalidated runtime access.
+- Rehydrate cached settings only when the local snapshot is stale, incomplete, or required for the current flow.
+- Keep background refreshes scoped to the settings required by that flow.
+- Preserve existing business logic unless the issue explicitly requires changing it. Do not alter URL validation, gallery heuristics, download naming rules, or hotkey names as a side effect of lifecycle fixes.
+- Any visible toast/user feedback must also be logged with the final rendered text, using the project format:
+  ```js
+  logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
+  ```
+- If the change introduces or documents browser-specific behavior, shortcut conflicts, MV3 recovery behavior, or long-lived tab limitations, update the relevant documentation.
 
 ---
 
