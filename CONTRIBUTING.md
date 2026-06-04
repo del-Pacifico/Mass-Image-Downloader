@@ -138,6 +138,151 @@ Code changes must follow these standards:
 - Avoid false-positive logs. Do not log success unless the action actually completed or the flow has a documented safe-success condition.
 - Keep user-facing messages professional, concise, and actionable.
 
+## 🎨 UI Feedback and Visual Standards
+
+The extension must keep a consistent visual language across popup UI, Options, Settings Peek, Image Inspector, One-click overlays, tooltips, injected panels, and content-script toasts.
+
+### Core Palette
+
+Use the established project palette:
+
+<table>
+  <thead>
+    <tr>
+      <th>Role</th>
+      <th>Color</th>
+      <th>Swatch</th>
+      <th>Usage</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Primary action / info / success</td>
+      <td><code>#007EE3</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#007EE3;border:1px solid #768591;"></span></td>
+      <td>Primary buttons, informational toasts, successful completion toasts, neutral user feedback.</td>
+    </tr>
+    <tr>
+      <td>Secondary accent / border / hover</td>
+      <td><code>#768591</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#768591;border:1px solid #768591;"></span></td>
+      <td>Control borders, hover states, secondary UI accents.</td>
+    </tr>
+    <tr>
+      <td>Light surface</td>
+      <td><code>#F8F8F8</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#F8F8F8;border:1px solid #768591;"></span></td>
+      <td>Panel backgrounds, icon button backgrounds, light control surfaces.</td>
+    </tr>
+    <tr>
+      <td>Panel surface</td>
+      <td><code>#FFFFFF</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#FFFFFF;border:1px solid #768591;"></span></td>
+      <td>Option groups, cards, table cells, and readable panel content areas.</td>
+    </tr>
+    <tr>
+      <td>Text on colored surfaces</td>
+      <td><code>#FFFFFF</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#FFFFFF;border:1px solid #768591;"></span></td>
+      <td>Toast text and button text on colored backgrounds.</td>
+    </tr>
+    <tr>
+      <td>Secondary text</td>
+      <td><code>#6C757D</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#6C757D;border:1px solid #768591;"></span></td>
+      <td>Descriptions, helper text, muted labels, and secondary comments.</td>
+    </tr>
+    <tr>
+      <td>Body text</td>
+      <td><code>#3f3f3f</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#3f3f3f;border:1px solid #768591;"></span></td>
+      <td>Readable table values, regular panel text, and metadata content.</td>
+    </tr>
+    <tr>
+      <td>Subtle separators</td>
+      <td><code>#D0D0D0</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#D0D0D0;border:1px solid #768591;"></span></td>
+      <td>Panel borders, table separators, and low-emphasis dividers.</td>
+    </tr>
+    <tr>
+      <td>Error / recovery required</td>
+      <td><code>#d9534f</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#d9534f;border:1px solid #768591;"></span></td>
+      <td>Error toasts, blocked actions, invalid settings, and refresh-required recovery messages.</td>
+    </tr>
+    <tr>
+      <td>Dark tooltip surface</td>
+      <td><code>#121b3e</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#121b3e;border:1px solid #768591;"></span></td>
+      <td>Tooltip backgrounds and dark inspector accents already used by existing components.</td>
+    </tr>
+  </tbody>
+</table>
+
+Do not introduce new status colors, such as green success tones, unless the project palette is explicitly expanded in this table and the related UI helpers are updated consistently.
+
+### Toasts
+
+Toast colors must be consistent across all scripts.
+
+Use:
+
+- Info, success, neutral completion, and safe-success messages: `#007EE3`.
+- Errors, blocked actions, invalid settings, and refresh-required recovery messages: `#d9534f`.
+- Toast text: `#FFFFFF`.
+
+The semantic message type (`info`, `success`, `error`) may still be used for logs, duration, or flow meaning, but it must not introduce colors outside the project palette.
+
+Every visible toast or user-facing recovery message must also be logged with the final rendered text:
+
+```js
+logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
+```
+
+Avoid false-positive success messages. Only show success when the action actually completed or when the flow has a documented safe-success condition.
+
+### Buttons and Controls
+
+Buttons should reuse the existing control palette:
+
+- Primary button background: `#007EE3`.
+- Hover or secondary accent: `#768591`.
+- Light controls or icon backgrounds: `#F8F8F8`.
+- Button text on colored backgrounds: `#FFFFFF`.
+
+Icon-only controls should keep the same visual treatment used by the existing One-click and Image Inspector controls.
+
+### Panels and Tables
+
+Settings, Options, Peek, and Inspector panels should remain readable and utilitarian:
+
+- Prefer light panel backgrounds already used by the extension, especially `#F8F8F8`.
+- Use restrained borders and separators based on the existing gray/blue-gray palette.
+- Tables should prioritize scanability: clear row separation, stable alignment, and no decorative color overload.
+- Status or result tables should not introduce new color families unless the palette is formally expanded.
+
+### Tooltips
+
+Tooltips should use the existing dark surface style already present in the extension:
+
+- Dark tooltip background: `#121b3e`.
+- Light text: `#FFFFFF`.
+- Compact padding and restrained border styling.
+- No decorative color families outside the documented palette.
+
+### Scope
+
+This standard applies to:
+
+- popup UI
+- Options UI
+- Settings Peek
+- Image Inspector
+- One-click overlay
+- gallery and bulk toasts
+- content-script recovery messages
+- future user-facing panels, tables, tooltips, and injected controls
+
 ## 📚 Documentation Standards
 
 All project documentation should use a project-name-first visible title.

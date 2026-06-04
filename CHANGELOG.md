@@ -16,6 +16,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Added fallback toast rendering from the background service worker when long-lived tabs no longer have an active content-script message receiver after extension reloads.
 - Improved Settings Peek recovery after extension reloads by releasing stale hotkey listeners, avoiding false "opened" logs, and logging/showing a clear refresh-needed message when the page-side runtime context is invalidated.
 - Standardized user-feedback toast logging so visible messages are recorded with the final rendered text across shared utilities, Options, popup, Image Inspector, gallery extractors, Settings Peek, and One-click flows.
+- Replaced Settings Peek clipboard-based JSON copy with an Open Settings JSON action that avoids page-level Clipboard API permission-policy blocks.
+- Aligned One-click success toast styling with the documented project feedback palette.
 - Improved Image Inspector recovery after extension reloads by showing a refresh-needed message on invalidated save attempts and by preferring linked full-size image URLs over rendered thumbnails when opening or saving from the panel.
 - Improved Web-linked Gallery and Settings Peek hotkey recovery after extension reloads so invalidated page-side handlers show repeatable refresh-needed feedback instead of failing silently or only logging to the console.
 - Suppressed stale Settings Peek hotkey recovery toasts when a newer valid Settings Peek instance is already active in the same tab after popup-driven reinjection.
@@ -26,6 +28,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Added MV3 runtime resilience rules to the contribution guide for future content-script, hotkey, background handoff, and long-lived tab work.
 - Refined contribution code standards and development rules to clarify scope discipline, logging, recovery paths, business-rule preservation, documentation updates, and local validation expectations.
 - Added the documentation title standard to the contribution guide and aligned root documents, manuals, and GitHub templates with the project-name-first heading convention.
+- Added UI feedback and visual standards to the contribution guide, including the project palette for toasts, buttons, panels, tables, and tooltips.
 - Added Codex CLI to the AI-assisted contribution tools list.
 
 ### Validation

@@ -33,7 +33,7 @@
             
             applyTransparency();
             renderSettings();
-            bindCopyJsonButton();
+            bindOpenJsonButton();
             setVersion();
         } catch (err) {
             logDebug(1, "❌ Unhandled error in initialization:", err.message);
@@ -270,9 +270,9 @@
     }
 
     /**
-     * Binds clipboard copy functionality to button.
+     * Binds settings JSON preview functionality to button.
      */
-    function bindCopyJsonButton() {
+    function bindOpenJsonButton() {
         const btn = document.getElementById("copy-json");
         if (!btn) {
             logDebug(1, "❌ copy-json button not found.");
@@ -282,25 +282,27 @@
         btn.addEventListener("click", () => {
             try {
                 const json = JSON.stringify(configCache, null, 2);
+                const blob = new Blob([json], { type: "application/json" });
+                const blobUrl = URL.createObjectURL(blob);
+                const openedWindow = window.open(blobUrl, "_blank");
 
-                if (!navigator.clipboard) {
-                    showMessage("Clipboard API not supported", "error");
+                if (!openedWindow) {
+                    URL.revokeObjectURL(blobUrl);
+                    showMessage("Settings JSON was blocked by the browser. Allow popups for this page and try again.", "error");
                     return;
                 }
 
-                navigator.clipboard.writeText(json)
-                    .then(() => {
-                        showMessage("Settings copied to clipboard");
-                        logDebug(1, "📋 Configuration copied.");
-                    })
-                    .catch(err => {
-                        showMessage("Copy failed: " + err.message, "error");
-                        logDebug(1, "❌ Clipboard copy error:", err.message);
-                    });
+                try { openedWindow.opener = null; } catch (_) {}
 
+                setTimeout(() => {
+                    try { URL.revokeObjectURL(blobUrl); } catch (_) {}
+                }, 30000);
+
+                showMessage("Settings JSON opened.");
+                logDebug(1, "📋 Settings JSON opened in a new tab.");
             } catch (err) {
-                showMessage("Unexpected error during copy", "error");
-                logDebug(1, "❌ Exception during JSON copy:", err.message);
+                showMessage("Could not open Settings JSON.", "error");
+                logDebug(1, "❌ Exception opening Settings JSON:", err.message);
                 logDebug(2, "🐛 Stacktrace: ", err.stack);
             }
         });
@@ -314,7 +316,7 @@
      * It checks if the user has enabled feedback messages before displaying anything.
      * The message is styled based on the type (info or error) and automatically disappears after a certain duration.
      * If a new message is shown while another is still visible, the previous one is removed immediately to ensure that only one message is displayed at a time.
-     * This function is useful for providing feedback to the user about actions taken, such as successfully copying settings to clipboard or encountering an error.
+     * This function is useful for providing feedback to the user about actions taken, such as opening settings JSON or encountering an error.
      */
     function showMessage(text, type = "info") {
         try {
