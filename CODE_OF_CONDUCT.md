@@ -1,4 +1,4 @@
-# ✨ Code of Conduct – Mass Image Downloader
+# 🏔️ Mass Image Downloader – Code of Conduct
 
 This project follows a code of conduct to ensure a respectful and inclusive community for contributors, maintainers, and users.
 

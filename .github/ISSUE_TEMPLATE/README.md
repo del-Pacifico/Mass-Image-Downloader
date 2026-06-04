@@ -1,4 +1,4 @@
-# 🧭 Issue Templates Guide
+# 🏔️ Mass Image Downloader – Issue Templates Guide
 
 This directory contains the **official issue templates** for **Mass Image Downloader**.  
 Each template is designed to capture the *right level of detail* for a specific type of report, helping maintainers triage issues efficiently and respond accurately.

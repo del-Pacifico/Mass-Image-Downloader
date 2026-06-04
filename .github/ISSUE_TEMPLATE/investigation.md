@@ -1,4 +1,4 @@
-# 👨🏼‍🔬 Investigation Template
+# 🏔️ Mass Image Downloader – Investigation Template
 
 **Purpose**: Track unclear or ambiguous behaviors that require technical analysis before being classified as a bug, edge case, feature request, or known limitation.
 

@@ -1,10 +1,12 @@
 ---
-name: "Release checklist"
+name: "🏔️ Mass Image Downloader – Release Checklist"
 about: Track items required to ship a release
 title: "release: vX.Y.Z"
 labels: ["type: release"]
 assignees: []
 ---
+
+# 🏔️ Mass Image Downloader – Release Checklist
 
 ## Flow
 

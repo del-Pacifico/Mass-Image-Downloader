@@ -1,4 +1,4 @@
-# ✨ Feature Request
+# 🏔️ Mass Image Downloader – Feature Request
 
 Thank you for taking the time to propose an improvement for **Mass Image Downloader**.
 

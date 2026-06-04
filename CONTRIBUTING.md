@@ -1,4 +1,4 @@
-# 🤝 Contributing Guide – Mass Image Downloader
+# 🏔️ Mass Image Downloader – Contributing Guide
 
 Thank you for your interest in contributing to **Mass Image Downloader**!
 This guide provides everything you need to know to start contributing effectively and collaboratively.
@@ -137,6 +137,31 @@ Code changes must follow these standards:
   ```
 - Avoid false-positive logs. Do not log success unless the action actually completed or the flow has a documented safe-success condition.
 - Keep user-facing messages professional, concise, and actionable.
+
+## 📚 Documentation Standards
+
+All project documentation should use a project-name-first visible title.
+
+For regular Markdown documentation, the first line should be:
+
+```text
+# 🏔️ Mass Image Downloader – <Document Title>
+```
+
+For Markdown files with YAML frontmatter, keep the frontmatter first and place the visible H1 immediately after the closing `---`:
+
+```markdown
+---
+name: 🏔️ Mass Image Downloader – Bug Report
+about: Report a reproducible bug
+---
+
+# 🏔️ Mass Image Downloader – Bug Report
+```
+
+For YAML-only metadata files, use the same project-name-first format in the visible `name`, `title`, or equivalent display field when such a field exists. Issue title templates such as `[Bug]` or `[Docs]` may keep their operational prefix format.
+
+This standard applies to root documentation, manuals, guides, policies, changelogs, contribution documents, and GitHub issue or pull request templates when practical.
 
 ## 🧪 Local Validation
 
