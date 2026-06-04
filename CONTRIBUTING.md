@@ -63,6 +63,38 @@ feature/chore branch -> dev -> main -> tag/release
 - Create tags and GitHub releases only from `main`.
 - Keep changes focused and avoid mixing unrelated work in the same branch or pull request.
 
+### Incremental Commit and Push Discipline
+
+During active development, each validated atomic change should be committed and pushed to the current working branch as soon as it is complete.
+
+Use this workflow for every focused improvement, bug fix, documentation correction, or test update:
+
+1. Keep the change scoped to the active issue, discussion, or approved pull request objective.
+2. Review the working tree before staging.
+3. Stage only the files that belong to the completed atomic change.
+4. Run the relevant local validation before committing when the change can affect behavior or repository checks:
+   ```bash
+   npm run check
+   npm test
+   ```
+5. Commit with a clear conventional prefix such as `fix:`, `docs:`, `chore:`, `refactor:`, or `test:`.
+6. Push the commit to the current feature, fix, chore, documentation, or tooling branch immediately.
+
+Do not batch unrelated changes into a single commit. Do not push directly to `dev` or `main` during normal development. Pull requests remain the mechanism for promoting work back into `dev`.
+
+Example:
+
+```bash
+git status --short
+git add -- scripts/clipboardHotkeys.js
+npm run check
+npm test
+git commit -m "fix: handle invalidated clipboard hotkey context"
+git push -u origin fix/rehydrate-content-script-state
+```
+
+In this example, the commit contains only the clipboard hotkey recovery fix and is pushed to the active fix branch. A separate documentation correction or unrelated refactor should use its own focused commit.
+
 ---
 
 ## 🏷️ Issue Title Prefixes

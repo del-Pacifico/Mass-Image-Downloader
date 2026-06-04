@@ -171,6 +171,8 @@ feature/chore branch -> dev -> main -> tag/release
 
 Issues, Pull Requests, and Discussions must use the repository label taxonomy before they are considered ready for planning, review, or promotion. See the root [Contributing Guide](../CONTRIBUTING.md) for the full development and labeling rules.
 
+Active development should use small, validated commits pushed to the current work branch. See the root [Contributing Guide](../CONTRIBUTING.md#incremental-commit-and-push-discipline) for the incremental commit and push workflow.
+
 ### 💡 Ideas & Early Proposals
 - **Location:** GitHub Discussions
 - Used for:
