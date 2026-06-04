@@ -171,7 +171,7 @@ Mass Image Downloader provides a **complete, structured documentation set**, org
 
 If you are looking for **step-by-step configuration**, **internal behavior explanations**, or **design rationale**, use the documentation hub:
 
-➡️ **Documentation Hub:** [`docs/README.md`](./docs/README.md)
+➡️ **Documentation Hub:** [`docs/README.md`](./README.md)
 
 From there, you can access:
 

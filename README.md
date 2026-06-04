@@ -38,7 +38,6 @@ Mass Image Downloader is a Chromium Manifest V3 extension for collecting and dow
    git clone git@github.com:del-Pacifico/Mass-Image-Downloader.git
    ```
 2. Open a Chromium-based browser and go to the extensions page:
-   - Chrome: `chrome://extensions`
    - Edge: `edge://extensions`
    - Brave: `brave://extensions`
    - Opera: `opera://extensions`
