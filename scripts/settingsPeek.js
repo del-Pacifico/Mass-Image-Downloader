@@ -16,11 +16,14 @@ if (!window.__mdi_settingsPeekInjected) {
     let configCache = {};
     let debugLogLevelCache = 1;
     const CONFIG_CACHE_STALE_MS = 60000;
+    const SETTINGS_PEEK_ACTIVE_TOKEN_ATTR = "data-mdi-settings-peek-active-token";
+    const settingsPeekInstanceToken = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     let configLastHydratedAt = 0;
     let configHydrationInFlight = null;
 
     // Initialize config and listener after storage loads
     (async function () {
+        markSettingsPeekInstanceActive();
         logStartup();
         await initConfig();
         registerMessageListener();
@@ -145,11 +148,17 @@ if (!window.__mdi_settingsPeekInjected) {
             // Check for Alt + Shift + S → View Settings (Peek)
             if (e.altKey && e.shiftKey && key === "s") {
                 if (!isExtensionContextUsable()) {
-                    showPeekRecoveryMessage("MID: Settings Peek needs this tab to be refreshed after the extension was reloaded.", "error");
+                    if (isSupersededSettingsPeekInstance()) {
+                        logDebug(2, "ℹ️ Stale Settings Peek listener ignored because a newer instance is active.");
+                        return;
+                    }
+
+                    showSettingsPeekRefreshMessage();
                     logDebug(1, "⚠️ Settings Peek hotkey ignored because the extension context is invalidated.");
                     return;
                 }
 
+                markSettingsPeekInstanceActive();
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -175,6 +184,37 @@ if (!window.__mdi_settingsPeekInjected) {
         } catch (err) {
             return false;
         }
+    }
+
+    /**
+     * Marks this content-script instance as the active Settings Peek handler for the page.
+     * @returns {void}
+     */
+    function markSettingsPeekInstanceActive() {
+        try {
+            document.documentElement?.setAttribute(SETTINGS_PEEK_ACTIVE_TOKEN_ATTR, settingsPeekInstanceToken);
+        } catch (_) {}
+    }
+
+    /**
+     * Checks whether another Settings Peek instance has become active after this one.
+     * @returns {boolean} True when this listener should stay silent.
+     */
+    function isSupersededSettingsPeekInstance() {
+        try {
+            const activeToken = document.documentElement?.getAttribute(SETTINGS_PEEK_ACTIVE_TOKEN_ATTR);
+            return Boolean(activeToken && activeToken !== settingsPeekInstanceToken);
+        } catch (_) {
+            return false;
+        }
+    }
+
+    /**
+     * Shows the standard recovery message for Settings Peek after extension reloads.
+     * @returns {void}
+     */
+    function showSettingsPeekRefreshMessage() {
+        showPeekRecoveryMessage("MID: Settings Peek needs this tab to be refreshed after the extension was reloaded.", "error");
     }
 
     /**
@@ -237,6 +277,8 @@ if (!window.__mdi_settingsPeekInjected) {
      */
     async function togglePeekPanel() {
         try {
+            markSettingsPeekInstanceActive();
+
             const existing = document.getElementById("__mdi_peekOverlay");
             // If panel exists, remove it
             if (existing) {
@@ -255,7 +297,7 @@ if (!window.__mdi_settingsPeekInjected) {
 
         } catch (err) {
             if (/Extension context invalidated/i.test(err.message || "")) {
-                showPeekRecoveryMessage("MID: Settings Peek needs this tab to be refreshed after the extension was reloaded.", "error");
+                showSettingsPeekRefreshMessage();
             }
 
             logDebug(1, `❌ Failed to toggle Peek panel: ${err.message}`);
@@ -343,7 +385,7 @@ if (!window.__mdi_settingsPeekInjected) {
             return true;
         } catch (err) {
             if (/Extension context invalidated/i.test(err.message || "")) {
-                showPeekRecoveryMessage("MID: Settings Peek needs this tab to be refreshed after the extension was reloaded.", "error");
+                showSettingsPeekRefreshMessage();
             }
 
             logDebug(1, `❌ Error injecting peek overlay: ${err.message}`);

@@ -17,6 +17,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Standardized user-feedback toast logging so visible messages are recorded with the final rendered text across shared utilities, Options, popup, Image Inspector, gallery extractors, Settings Peek, and One-click flows.
 - Improved Image Inspector recovery after extension reloads by showing a refresh-needed message on invalidated save attempts and by preferring linked full-size image URLs over rendered thumbnails when opening or saving from the panel.
 - Improved Web-linked Gallery and Settings Peek hotkey recovery after extension reloads so invalidated page-side handlers show repeatable refresh-needed feedback instead of failing silently or only logging to the console.
+- Suppressed stale Settings Peek hotkey recovery toasts when a newer valid Settings Peek instance is already active in the same tab after popup-driven reinjection.
 - Added Vivaldi to the documented browser QA coverage and header badges after successful QA coverage for the current test pass.
 - Documented why MV3 extension reloads can affect long-lived tabs differently depending on whether a workflow is background-owned or page-side content-script-owned.
 - Aligned documentation H1 titles with the project documentation naming standard.
