@@ -90,18 +90,31 @@ Refreshing the affected tab injects fresh content scripts and restores normal ho
 
 If a shortcut appears as **Not set**, users can assign it manually via:
 
-- **`chrome://extensions/shortcuts`**
+- **`brave://extensions/shortcuts`**
 - **`edge://extensions/shortcuts`**
 - **`opera://extensions/shortcuts`**
-- **`brave://extensions/shortcuts`**
+- **`vivaldi://extensions/shortcuts`**
 
 If the browser keeps a shortcut as **Not set** after reload, the binding must be assigned manually in that browser's shortcut manager. This is a browser/profile-level shortcut mapping issue, not a feature failure.
 
-### Browser compatibility note
+### Browser-specific shortcut notes
 
-`Ctrl + Shift + M` for Image Inspector is confirmed to work in Brave and Edge.
-In Opera, the same shortcut may be intercepted or blocked by the browser/profile before it reaches the content script.
-If that happens, the hotkey does not reach the `keydown` handler and the inspector will not toggle.
+Browser shortcut assignment is controlled by the browser profile. A shortcut can be implemented by the extension and still remain unassigned, reserved, intercepted, or blocked by the browser.
+
+Known behavior from the current QA baseline:
+
+- **Brave**: documented shortcuts operate as expected.
+- **Vivaldi**: documented shortcuts operate as expected.
+- **Microsoft Edge**: `Alt + Shift + I` for One-click Download Icon may need manual assignment in the browser extension shortcut manager.
+- **Opera One**: `Ctrl + Shift + M` for Image Inspector may be intercepted or blocked by the browser/profile before the extension receives the key event.
+
+If a shortcut does not work:
+
+1. Check the browser extension shortcut manager.
+2. Confirm that the shortcut is assigned to Mass Image Downloader.
+3. Check whether the browser or profile reserves the same combination.
+4. Reassign the shortcut when the browser allows it.
+5. Retest from a normal web page, not from browser UI, extension pages, DevTools, or restricted pages.
 
 ## 🧰 Fallback Behavior
 

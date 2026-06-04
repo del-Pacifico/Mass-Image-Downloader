@@ -13,6 +13,26 @@ This guide provides everything you need to know to start contributing effectivel
 - Use **Discussions** for early ideas, open questions, design exploration, or support conversations that are not yet actionable.
 - Use **Pull Requests** only for focused changes linked to an issue or approved discussion.
 
+### Browser Support and QA Baseline
+
+Mass Image Downloader targets QA-validated Chromium-based browsers compatible with Manifest V3.
+
+The project QA baseline is:
+
+- **Brave**: primary QA browser; current QA confirms the documented flows and shortcuts operate as expected.
+- **Vivaldi**: supported and QA-tested; current QA confirms the documented flows and shortcuts operate as expected.
+- **Microsoft Edge**: supported and QA-tested; current QA confirms the documented flows operate as expected, but some extension shortcuts may require manual assignment in the browser shortcut manager.
+- **Opera One**: supported and QA-tested; current QA confirms the documented flows operate as expected, but some browser/profile shortcut conflicts may limit specific shortcuts.
+
+The following browsers are outside the current project QA baseline:
+
+- **Browsers not listed above**: may work, but are not treated as validated unless explicitly added to the QA baseline.
+- **Firefox and non-Chromium browsers**: out of scope because the extension is built for Chromium Manifest V3 APIs.
+
+Shortcut-specific behavior belongs in `docs/hotkeys/hotkeys.md`, not in this contribution guide.
+
+Bug reports from non-baseline Chromium browsers are accepted when they include enough evidence to determine whether the defect is in the extension, browser behavior, permissions, shortcut handling, site-specific behavior, or an unsupported runtime.
+
 ### 🐛 Report a Bug
 
 Before opening a bug report, confirm that the behavior is a reproducible defect and not only an unclear observation, browser shortcut conflict, site-specific edge case, or configuration question.
