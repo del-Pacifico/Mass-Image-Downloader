@@ -7,15 +7,63 @@ This guide provides everything you need to know to start contributing effectivel
 
 ## 📥 How to Contribute
 
+### Choose the Right Channel
+
+- Use **Issues** for actionable bugs, approved feature requests, documentation problems, edge cases, and investigations.
+- Use **Discussions** for early ideas, open questions, design exploration, or support conversations that are not yet actionable.
+- Use **Pull Requests** only for focused changes linked to an issue or approved discussion.
+
 ### 🐛 Report a Bug
 
-- Use the [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.md)
-- Include steps to reproduce, screenshots, and console output if possible
+Before opening a bug report, confirm that the behavior is a reproducible defect and not only an unclear observation, browser shortcut conflict, site-specific edge case, or configuration question.
+
+Recommended flow:
+
+1. Confirm you are using the expected extension version.
+2. Reproduce the behavior in a clean, focused scenario.
+3. Check whether the same behavior happens after refreshing the affected tab or reloading the extension.
+4. Capture the environment:
+   - browser and version;
+   - Chromium version when available;
+   - extension version;
+   - operating system;
+   - installation mode.
+5. Capture the relevant settings snapshot, preferably from Settings Peek.
+6. Collect evidence:
+   - exact steps to reproduce;
+   - expected behavior;
+   - actual behavior;
+   - page URL or URL pattern when relevant;
+   - console logs filtered by `[Mass image downloader]`;
+   - screenshots or recordings when visual behavior is involved.
+7. Open a GitHub issue and choose the bug-report option when the problem is reproducible.
+
+Use one issue per defect. If the behavior is unclear or hard to classify, open an investigation instead of forcing it into a bug report.
 
 ### 🌟 Suggest a Feature
 
-- Use the [Feature Request template](.github/ISSUE_TEMPLATE/feature_request.md)
-- Explain your use case and what benefit it adds
+Before opening a feature request, make sure the request describes a user need or workflow improvement, not only an implementation idea.
+
+Recommended flow:
+
+1. Describe the problem or workflow gap.
+2. Explain who benefits and in which scenarios.
+3. Describe the expected behavior from a user perspective.
+4. Identify the affected area:
+   - popup;
+   - Options;
+   - Settings Peek;
+   - Image Inspector;
+   - One-click;
+   - Bulk;
+   - galleries;
+   - hotkeys;
+   - documentation.
+5. Note any constraints or trade-offs, such as browser behavior, MV3 limits, performance, privacy, permissions, or UI complexity.
+6. Add examples, mockups, screenshots, or comparable workflows when useful.
+7. Open a GitHub issue and choose the feature-request option when the proposal is actionable.
+
+Use GitHub Discussions first for early ideas, broad design questions, or proposals that still need scope definition. A discussion can later be promoted to an issue once the expected behavior and scope are clear.
 
 ### 🛠 Submit a Code Contribution
 

@@ -29,6 +29,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Refined contribution code standards and development rules to clarify scope discipline, logging, recovery paths, business-rule preservation, documentation updates, and local validation expectations.
 - Added the documentation title standard to the contribution guide and aligned root documents, manuals, and GitHub templates with the project-name-first heading convention.
 - Added UI feedback and visual standards to the contribution guide, including the project palette for toasts, buttons, panels, tables, and tooltips.
+- Clarified the contribution guide flows for bug reports and feature suggestions so users prepare evidence, scope, and the right channel before selecting an issue form.
 - Added Codex CLI to the AI-assisted contribution tools list.
 
 ### Validation
