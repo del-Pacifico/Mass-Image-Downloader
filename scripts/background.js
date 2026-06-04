@@ -46,6 +46,9 @@
         logDebug(1, "📦 Background configuration initialized.");
     });
 
+    // Internal retry schedule for transient MV3 frame readiness races after opening new tabs.
+    const SAVE_ICON_INJECTION_RETRY_DELAYS_MS = [150, 300, 600];
+
     /**
      * Logs the effective browser command bindings so hotkey issues can be diagnosed
      * without guessing whether the browser assigned the shortcut at all.
@@ -1253,42 +1256,41 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                                 }
 
                                 setTimeout(() => {
-                                    chrome.tabs.create({ url: currentUrl, active: false, index: targetIndex }, (tab) => {
-                                        if (chrome.runtime.lastError) {
-                                            const errMsg = chrome.runtime.lastError.message || "";
-                                            if (errMsg.includes('429')) {
-                                                logDebug(1, `⚠️ Rate limit hit (429). Applying backoff.`);
-                                                // Push the next opening further to reduce bursts against the same host
-                                                nextOpenAt = Math.max(nextOpenAt, Date.now() + (baseDelay * 2));
-                                                setTimeout(tryOpenNext, baseDelay * 2);
+                                    chrome.tabs.create({ url: currentUrl, active: false, index: targetIndex }, async (tab) => {
+                                        try {
+                                            if (chrome.runtime.lastError) {
+                                                const errMsg = chrome.runtime.lastError.message || "";
+                                                if (errMsg.includes('429')) {
+                                                    logDebug(1, `⚠️ Rate limit hit (429). Applying backoff.`);
+                                                    // Push the next opening further to reduce bursts against the same host
+                                                    nextOpenAt = Math.max(nextOpenAt, Date.now() + (baseDelay * 2));
+                                                    setTimeout(tryOpenNext, baseDelay * 2);
+                                                } else {
+                                                    logDebug(1, `🧟 Failed to open tab: ${errMsg}`);
+                                                    // Continue immediately; the rate limiter will enforce spacing
+                                                    setTimeout(tryOpenNext, 0);
+                                                }
                                             } else {
-                                                logDebug(1, `🧟 Failed to open tab: ${errMsg}`);
+                                                tabsOpened++;
+                                                updateBadge(tabsOpened);
+                                                logDebug(2, `✅ Opened tab ${index + 1} of ${total}: ${currentUrl}`);
+
+                                                // Inject the save icon after the new tab's main frame is ready enough for MV3 scripting.
+                                                if (enableOneClickIcon) {
+                                                    await injectSaveIconWithRetry(tab.id);
+                                                }
+
                                                 // Continue immediately; the rate limiter will enforce spacing
                                                 setTimeout(tryOpenNext, 0);
                                             }
-                                        } else {
-                                            tabsOpened++;
-                                            updateBadge(tabsOpened);
-                                            logDebug(2, `✅ Opened tab ${index + 1} of ${total}: ${currentUrl}`);
-
-                                            // 🚀 NEW: Inject save icon if option enabled
-                                            if (enableOneClickIcon) {
-                                                chrome.scripting.executeScript({
-                                                    target: { tabId: tab.id },
-                                                    files: ["scripts/injectSaveIcon.js"]
-                                                }, () => {
-                                                    if (chrome.runtime.lastError) {
-                                                        logDebug(1, `❌ Failed to inject save icon: ${chrome.runtime.lastError.message}`);
-                                                    } else {
-                                                        logDebug(2, `💾 Save icon injected into tabId ${tab.id}`);
-                                                    }
-                                                });
-                                            }
-
-                                            // Continue immediately; the rate limiter will enforce spacing
+                                        } catch (err) {
+                                            const errMsg = err?.message || String(err);
+                                            logDebug(1, `❌ Unexpected error while opening web-linked tab: ${errMsg}`);
+                                            logDebug(3, `🐛 Stacktrace: ${err?.stack || "n/a"}`);
                                             setTimeout(tryOpenNext, 0);
+                                        } finally {
+                                            activeOpenings--;
                                         }
-                                        activeOpenings--;
                                     });
                                 }, waitMs);
 
@@ -1646,10 +1648,7 @@ function isRestrictedPageUrl(url) {
  */
 async function injectScriptFileSafe(tabId, filePath, contextLabel) {
     try {
-        await chrome.scripting.executeScript({
-            target: { tabId },
-            files: [filePath]
-        });
+        await executeScriptFile(tabId, filePath);
 
         logDebug(1, `✅ Script injected successfully (${contextLabel}): ${filePath}`);
         return true;
@@ -1659,6 +1658,78 @@ async function injectScriptFileSafe(tabId, filePath, contextLabel) {
         logDebug(3, `🐛 Stacktrace: ${err.stack}`);
         return false;
     }
+}
+
+/**
+ * Detects transient MV3 script injection errors caused by a tab frame not being ready yet.
+ * @param {string} message Error message returned by chrome.scripting.executeScript.
+ * @returns {boolean}
+ */
+function isTransientSaveIconInjectionError(message) {
+    if (!message || typeof message !== "string") return false;
+
+    return /frame with id \d+ is not ready/i.test(message)
+        || /frame.*not ready/i.test(message);
+}
+
+/**
+ * Executes a script file in a tab and exposes callback-based runtime errors as a Promise rejection.
+ * @param {number} tabId Target tab identifier.
+ * @param {string} filePath Extension script path to inject.
+ * @returns {Promise<void>}
+ */
+function executeScriptFile(tabId, filePath) {
+    return new Promise((resolve, reject) => {
+        chrome.scripting.executeScript({
+            target: { tabId },
+            files: [filePath]
+        }, () => {
+            if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError.message || "Unknown script injection error."));
+                return;
+            }
+
+            resolve();
+        });
+    });
+}
+
+/**
+ * Injects the One-click save icon with bounded retries for newly opened tabs whose main frame is not ready yet.
+ * @param {number} tabId Target tab identifier.
+ * @returns {Promise<boolean>} True when the icon script is injected successfully; otherwise false.
+ */
+async function injectSaveIconWithRetry(tabId) {
+    const filePath = "scripts/injectSaveIcon.js";
+    const maxAttempts = SAVE_ICON_INJECTION_RETRY_DELAYS_MS.length + 1;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            await executeScriptFile(tabId, filePath);
+
+            const suffix = attempt > 1 ? ` after ${attempt} attempt(s)` : "";
+            logDebug(2, `💾 Save icon injected into tabId ${tabId}${suffix}`);
+            return true;
+        } catch (err) {
+            const errMsg = err?.message || String(err);
+            const hasRetry = attempt <= SAVE_ICON_INJECTION_RETRY_DELAYS_MS.length;
+
+            if (hasRetry && isTransientSaveIconInjectionError(errMsg)) {
+                const retryDelay = SAVE_ICON_INJECTION_RETRY_DELAYS_MS[attempt - 1];
+                logDebug(
+                    2,
+                    `⏳ Save icon injection retry ${attempt}/${SAVE_ICON_INJECTION_RETRY_DELAYS_MS.length} for tabId ${tabId}: ${errMsg}. Waiting ${retryDelay} ms.`
+                );
+                await sleep(retryDelay);
+                continue;
+            }
+
+            logDebug(1, `❌ Failed to inject save icon into tabId ${tabId}: ${errMsg}`);
+            return false;
+        }
+    }
+
+    return false;
 }
 
 /**

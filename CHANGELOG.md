@@ -18,6 +18,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Standardized user-feedback toast logging so visible messages are recorded with the final rendered text across shared utilities, Options, popup, Image Inspector, gallery extractors, Settings Peek, and One-click flows.
 - Replaced Settings Peek clipboard-based JSON copy with an Open Settings JSON action that avoids page-level Clipboard API permission-policy blocks.
 - Aligned One-click success toast styling with the documented project feedback palette.
+- Added bounded retry backoff for automatic One-click icon injection in newly opened Web-linked Gallery tabs when Chromium reports that the main frame is not ready yet.
 - Improved Image Inspector recovery after extension reloads by showing a refresh-needed message on invalidated save attempts and by preferring linked full-size image URLs over rendered thumbnails when opening or saving from the panel.
 - Improved Web-linked Gallery and Settings Peek hotkey recovery after extension reloads so invalidated page-side handlers show repeatable refresh-needed feedback instead of failing silently or only logging to the console.
 - Suppressed stale Settings Peek hotkey recovery toasts when a newer valid Settings Peek instance is already active in the same tab after popup-driven reinjection.
