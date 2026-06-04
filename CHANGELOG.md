@@ -11,6 +11,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Added conditional state rehydration for long-lived tabs so settings-dependent actions can recover stale or incomplete cached settings without requiring a page refresh.
 - Hardened download naming and path generation so Bulk, manual download, Image Inspector saves, and gallery downloads refresh naming/folder settings only when the local snapshot is stale or incomplete.
 - Improved hotkey-driven content script reliability for Clipboard Hotkeys, Settings Peek, and Image Inspector by validating local settings before executing cached-state-dependent actions.
+- Improved Clipboard Hotkeys recovery after extension reloads so invalidated prefix/suffix hotkey attempts show refresh guidance before settings rehydration or clipboard access.
 - Added clearer recovery handling for One-click settings load failures when the extension runtime context has changed.
 - Added fallback toast rendering from the background service worker when long-lived tabs no longer have an active content-script message receiver after extension reloads.
 - Improved Settings Peek recovery after extension reloads by releasing stale hotkey listeners, avoiding false "opened" logs, and logging/showing a clear refresh-needed message when the page-side runtime context is invalidated.

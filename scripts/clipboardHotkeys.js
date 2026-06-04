@@ -602,8 +602,16 @@
         if (!event.ctrlKey || !event.altKey) return;
         if (event.code !== 'KeyP' && event.code !== 'KeyS') return;
 
+        const actionType = event.code === 'KeyP' ? 'prefix' : 'suffix';
+
         // ✅ Check if feature is enabled by user
         try {
+            if (!isExtensionContextUsable()) {
+                logDebug(1, `⚠️ Clipboard ${actionType} hotkey ignored because the extension context is invalidated.`);
+                showClipboardContextRefreshMessage(actionType);
+                return;
+            }
+
             await ensureClipboardConfigFresh("clipboard assignment hotkey");
 
             if (typeof enableClipboardHotkeysCache === 'undefined') {
@@ -614,11 +622,16 @@
             if (!enableClipboardHotkeysCache) return;
 
             event.preventDefault();
-            const actionType = event.code === 'KeyP' ? 'prefix' : 'suffix';
             logDebug(2, `🧩 Clipboard hotkey triggered: ${actionType.toUpperCase()}`);
             handleClipboardAssign(actionType);
 
         } catch (err) {
+            if (isExtensionContextInvalidatedMessage(err?.message)) {
+                logDebug(1, `⚠️ Clipboard ${actionType} hotkey could not refresh settings because the extension context is invalidated.`);
+                showClipboardContextRefreshMessage(actionType);
+                return;
+            }
+
             logDebug(1, '❌ Error checking clipboard hotkeys feature:', err.message);
             logDebug(2, '❌ Stacktrace: ', err.stack);
         }
