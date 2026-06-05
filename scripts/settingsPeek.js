@@ -229,19 +229,75 @@ if (!window.__mdi_settingsPeekInjected) {
             if (!container) return;
 
             const toastType = ["info", "success", "error"].includes(type) ? type : "info";
-            let toast = document.getElementById("__mdi_peekRecoveryToast");
-            if (!toast) {
-                toast = document.createElement("div");
-                toast.id = "__mdi_peekRecoveryToast";
-                toast.setAttribute("role", "status");
-                toast.setAttribute("aria-live", "polite");
-                container.appendChild(toast);
-            }
-
             const finalText = /^MID:/i.test(text) ? text : `MID: ${text}`;
+            const minVisibleMs = getToastMinVisibleMs();
+            const baseDuration = toastType === "error" ? 10000 : 5000;
+            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
+            const TOAST_ID = "mdi-user-toast";
+            const TIMER_KEY = "__mdiUserToastTimer";
+            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+            const DEFER_KEY = "__mdiUserToastDeferTimer";
+            const PENDING_KEY = "__mdiUserToastPending";
+
+            try {
+                const legacyToast = document.getElementById("__mdi_peekRecoveryToast");
+                if (legacyToast) legacyToast.remove();
+
+                if (window.__mdiPeekRecoveryToastTimer) {
+                    clearTimeout(window.__mdiPeekRecoveryToastTimer);
+                    window.__mdiPeekRecoveryToastTimer = null;
+                }
+            } catch (_) {}
+
+            try {
+                const now = Date.now();
+                const minUntil = window[MINUNTIL_KEY] || 0;
+
+                if (minVisibleMs > 0 && now < minUntil) {
+                    window[PENDING_KEY] = { text: finalText, type: toastType };
+
+                    if (window[DEFER_KEY]) {
+                        clearTimeout(window[DEFER_KEY]);
+                        window[DEFER_KEY] = null;
+                    }
+
+                    window[DEFER_KEY] = setTimeout(() => {
+                        const pending = window[PENDING_KEY];
+                        window[PENDING_KEY] = null;
+                        window[DEFER_KEY] = null;
+
+                        if (pending && pending.text) {
+                            showPeekRecoveryMessage(pending.text, pending.type || "info");
+                        }
+                    }, Math.max(0, minUntil - now));
+
+                    return;
+                }
+            } catch (_) {}
+
+            try {
+                const existing = document.getElementById(TOAST_ID);
+                if (existing) existing.remove();
+
+                if (window[TIMER_KEY]) {
+                    clearTimeout(window[TIMER_KEY]);
+                    window[TIMER_KEY] = null;
+                }
+            } catch (_) {}
+
+            try {
+                window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
+            } catch (_) {}
+
+            const toast = document.createElement("div");
+            toast.id = TOAST_ID;
+            toast.setAttribute("role", "status");
+            toast.setAttribute("aria-live", "polite");
+            toast.textContent = finalText;
+            container.appendChild(toast);
+
             logDebug(2, `📢 Showing user message: "${finalText}" (${toastType})`);
 
-            toast.textContent = finalText;
             toast.style.cssText = [
                 "position:fixed",
                 "top:18px",
@@ -260,14 +316,27 @@ if (!window.__mdi_settingsPeekInjected) {
                 "word-break:break-word"
             ].join(";");
 
-            clearTimeout(window.__mdiPeekRecoveryToastTimer);
-            window.__mdiPeekRecoveryToastTimer = setTimeout(() => {
+            window[TIMER_KEY] = setTimeout(() => {
                 toast.style.opacity = "0";
-                setTimeout(() => toast.remove(), 250);
-            }, 7000);
+                setTimeout(() => {
+                    try { toast.remove(); } catch (_) {}
+                }, 250);
+                window[TIMER_KEY] = null;
+            }, effectiveDuration);
         } catch (err) {
             logDebug(1, `❌ Failed to show Settings Peek recovery message: ${err.message}`);
         }
+    }
+
+    /**
+     * Reads the user-configured toast minimum visible time from the cached Settings Peek config.
+     * @returns {number} Configured minimum visible time in milliseconds, or 2000 as defensive default.
+     */
+    function getToastMinVisibleMs() {
+        const rawToastMinVisibleMs = parseInt(configCache?.toastMinVisibleMs ?? 2000, 10);
+        return (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
+            ? rawToastMinVisibleMs
+            : 2000;
     }
 
     /**
