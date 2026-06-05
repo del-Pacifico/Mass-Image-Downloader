@@ -29,6 +29,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Aligned documentation H1 titles with the project documentation naming standard.
 - Aligned the root README H1 with the project documentation naming standard.
 - Added MV3 runtime resilience rules to the contribution guide for future content-script, hotkey, background handoff, and long-lived tab work.
+- Added bugfix scope discipline rules to the contribution guide so corrective work remains focused on the confirmed defect and avoids unrelated flow changes.
 - Refined contribution code standards and development rules to clarify scope discipline, logging, recovery paths, business-rule preservation, documentation updates, and local validation expectations.
 - Added the documentation title standard to the contribution guide and aligned root documents, manuals, and GitHub templates with the project-name-first heading convention.
 - Added UI feedback and visual standards to the contribution guide, including the project palette for toasts, buttons, panels, tables, and tooltips.

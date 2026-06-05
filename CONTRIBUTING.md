@@ -414,6 +414,44 @@ Contributions must follow the project's development rules:
   npm test
   ```
 
+### 🩹 Bugfix Scope Discipline
+
+Bugfix work follows the same development standards, best practices, validation requirements, and branch flow defined in this guide.
+
+Bugfixes must use the repository flow:
+
+```text
+feature/chore/fix branch -> dev -> main -> tag/release
+```
+
+Bugfix work must stay focused on the confirmed defect and must not introduce unnecessary bottlenecks, broad refactors, or unrelated behavioral changes.
+
+Before changing code:
+
+- Identify the exact failing behavior.
+- Identify the expected behavior.
+- Identify the affected flow, module, and trigger condition.
+- Confirm whether the issue is a defect, browser limitation, site-specific edge case, or expected behavior.
+- Prefer the smallest correction that restores the expected behavior.
+
+During implementation:
+
+- Follow the project code standards and development rules.
+- Keep the correction scoped to the confirmed defect.
+- Do not broaden the fix into unrelated refactors or feature work.
+- Do not change neighboring workflows unless the defect proves they share the same root cause.
+- Do not alter URL validation, gallery heuristics, naming rules, hotkey mappings, browser support assumptions, or UI behavior as side effects.
+- Preserve existing successful flows and documented fallback behavior.
+- Avoid adding new operational bottlenecks unless they are required to correct the defect and are bounded, documented, and validated.
+- Update `CHANGELOG.md` for every user-visible or behavior-relevant bugfix.
+
+After implementation:
+
+- Run the relevant validation commands.
+- Re-test the failing scenario.
+- Re-test the closest related flows that could be affected.
+- Record residual limitations or follow-up investigations separately instead of hiding them inside the bugfix.
+
 ---
 
 ## 🧩 MV3 Runtime Resilience Rules
