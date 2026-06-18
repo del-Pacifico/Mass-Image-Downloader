@@ -1,4 +1,4 @@
-# ⌨️ Hotkey Policy
+# 🏔️ Mass Image Downloader – Hotkey Policy
 
 Mass Image Downloader provides keyboard shortcuts as optional entry points for advanced workflows.
 The following hotkeys are currently implemented and supported as of the latest stable version:
@@ -74,20 +74,47 @@ Due to Manifest V3 limitations:
 - Additional hotkeys may need to be handled via `keydown` listeners in content scripts
 - Not all suggested shortcuts are auto-assigned by the browser
 
+### Extension reloads and page-side hotkeys
+
+Some shortcuts are background-owned `chrome.commands`, while others are page-side `keydown` listeners because Manifest V3 limits how many commands can be declared.
+
+After reloading the extension, the background Service Worker is fresh, but content scripts already attached to open tabs may have an invalidated extension context. Those old scripts can still receive key presses, but calls such as `chrome.runtime.sendMessage` may fail.
+
+Practical impact:
+
+- `Alt + Shift + D` and other background-owned commands can continue through the fresh background worker.
+- `Alt + Shift + W` is handled page-side, so after an extension reload it may ask the user to refresh the tab before Web-linked Gallery can run.
+- `Alt + Shift + S` and Image Inspector save actions can also require a tab refresh when their old page-side context is invalidated.
+
+Refreshing the affected tab injects fresh content scripts and restores normal hotkey behavior.
+
 If a shortcut appears as **Not set**, users can assign it manually via:
 
-- **`chrome://extensions/shortcuts`**
+- **`brave://extensions/shortcuts`**
 - **`edge://extensions/shortcuts`**
 - **`opera://extensions/shortcuts`**
-- **`brave://extensions/shortcuts`**
+- **`vivaldi://extensions/shortcuts`**
 
 If the browser keeps a shortcut as **Not set** after reload, the binding must be assigned manually in that browser's shortcut manager. This is a browser/profile-level shortcut mapping issue, not a feature failure.
 
-### Browser compatibility note
+### Browser-specific shortcut notes
 
-`Ctrl + Shift + M` for Image Inspector is confirmed to work in Brave and Edge.
-In Opera, the same shortcut may be intercepted or blocked by the browser/profile before it reaches the content script.
-If that happens, the hotkey does not reach the `keydown` handler and the inspector will not toggle.
+Browser shortcut assignment is controlled by the browser profile. A shortcut can be implemented by the extension and still remain unassigned, reserved, intercepted, or blocked by the browser.
+
+Known behavior from the current QA baseline:
+
+- **Brave**: documented shortcuts operate as expected.
+- **Vivaldi**: documented shortcuts operate as expected.
+- **Microsoft Edge**: `Alt + Shift + I` for One-click Download Icon may need manual assignment in the browser extension shortcut manager.
+- **Opera One**: `Ctrl + Shift + M` for Image Inspector may be intercepted or blocked by the browser/profile before the extension receives the key event.
+
+If a shortcut does not work:
+
+1. Check the browser extension shortcut manager.
+2. Confirm that the shortcut is assigned to Mass Image Downloader.
+3. Check whether the browser or profile reserves the same combination.
+4. Reassign the shortcut when the browser allows it.
+5. Retest from a normal web page, not from browser UI, extension pages, DevTools, or restricted pages.
 
 ## 🧰 Fallback Behavior
 

@@ -1,4 +1,4 @@
-# 🔐 Security Policy – Mass Image Downloader
+# 🏔️ Mass Image Downloader – Security Policy
 
 We take the security of this project seriously and want to ensure users can report vulnerabilities responsibly.
 

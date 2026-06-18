@@ -688,6 +688,7 @@ In the **Web-Linked Galleries** feature:
 - The same icon injection logic is reused
 - Each opened page is treated independently
 - Only one icon (and one image) is processed per page
+- Newly opened tabs may receive the icon injection after an internal retry backoff (`150 ms`, `300 ms`, `600 ms`) when Chromium reports that the main frame is not ready yet
 
 > This ensures consistency between manual one-click usage and automated gallery extraction.
 

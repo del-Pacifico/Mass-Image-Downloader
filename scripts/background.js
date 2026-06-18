@@ -36,6 +36,7 @@
         isDirectImageUrl,
         isAllowedImageFormat,
         initConfigCache,
+        ensureConfigCacheFresh,
         setBadgeError
     } from "./utils.js";
 
@@ -44,6 +45,9 @@
     const configReady = initConfigCache().then(() => {
         logDebug(1, "📦 Background configuration initialized.");
     });
+
+    // Internal retry schedule for transient MV3 frame readiness races after opening new tabs.
+    const SAVE_ICON_INJECTION_RETRY_DELAYS_MS = [150, 300, 600];
 
     /**
      * Logs the effective browser command bindings so hotkey issues can be diagnosed
@@ -156,6 +160,111 @@
     let imageInspectorEnabled = false;              // Hotkey toggle allowed?
     let imageInspectorDeveloperMode = false;        // Show dev-only fields in panel?
     let imageInspectorCloseOnSave = false;          // Close tab after save?
+    const BACKGROUND_SETTINGS_STALE_MS = 60000;
+    const DOWNLOAD_PATH_SETTING_KEYS = ["downloadFolder", "customFolderPath"];
+    const NAMING_SETTING_KEYS = ["filenameMode", "prefix", "suffix"];
+    let backgroundSettingsLastHydratedAt = 0;
+    let backgroundSettingsHydrationInFlight = null;
+
+    /**
+     * Sanitizes a custom download folder path for background cache use.
+     * @param {string} value - Raw storage value.
+     * @returns {string} Sanitized folder path or an empty string.
+     */
+    function sanitizeCustomFolderPath(value) {
+        return typeof value === "string" ? value.replace(/[<>:"/\\|?*]+/g, '') : "";
+    }
+
+    /**
+     * Updates background settings used by download path generation.
+     * @param {object} data - Partial chrome.storage.sync settings object.
+     * @returns {void}
+     */
+    function applyBackgroundPathSettings(data = {}) {
+        if (typeof data.downloadFolder === "string") {
+            downloadFolder = data.downloadFolder;
+        }
+        if (Object.prototype.hasOwnProperty.call(data, "customFolderPath")) {
+            customFolderPath = sanitizeCustomFolderPath(data.customFolderPath);
+        }
+        backgroundSettingsLastHydratedAt = Date.now();
+    }
+
+    /**
+     * Checks whether a cached background setting is usable for a flow.
+     * @param {string} key - Setting key to validate.
+     * @returns {boolean} True when the cached value is complete and usable.
+     */
+    function isBackgroundSettingUsable(key) {
+        switch (key) {
+            case "downloadFolder":
+                return typeof downloadFolder === "string" && ["default", "custom"].includes(downloadFolder);
+            case "customFolderPath":
+                return typeof customFolderPath === "string";
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Rehydrates background settings only when the local snapshot is stale or incomplete.
+     * @param {string[]} requiredKeys - Storage keys required by the current flow.
+     * @param {string} contextLabel - Short label used in debug logs.
+     * @returns {Promise<boolean>} True when a storage refresh was performed.
+     */
+    async function ensureBackgroundSettingsFresh(requiredKeys = [], contextLabel = "background flow") {
+        await settingsReady;
+
+        const keys = Array.isArray(requiredKeys) ? requiredKeys : [];
+        const hasFreshSnapshot = backgroundSettingsLastHydratedAt
+            && (Date.now() - backgroundSettingsLastHydratedAt) <= BACKGROUND_SETTINGS_STALE_MS
+            && keys.every((key) => isBackgroundSettingUsable(key));
+
+        if (hasFreshSnapshot) {
+            return false;
+        }
+
+        if (!backgroundSettingsHydrationInFlight) {
+            logDebug(2, `🔄 Rehydrating background settings for ${contextLabel}.`);
+            backgroundSettingsHydrationInFlight = new Promise((resolve, reject) => {
+                chrome.storage.sync.get(keys, (data) => {
+                    if (chrome.runtime.lastError) {
+                        reject(new Error(chrome.runtime.lastError.message));
+                        return;
+                    }
+
+                    try {
+                        applyBackgroundPathSettings(data || {});
+                        resolve(true);
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+            }).catch((err) => {
+                logDebug(1, `❌ Background settings rehydration failed for ${contextLabel}: ${err.message}`);
+                logDebug(3, `🐛 Stacktrace: ${err.stack}`);
+                throw err;
+            }).finally(() => {
+                backgroundSettingsHydrationInFlight = null;
+            });
+        }
+
+        await backgroundSettingsHydrationInFlight;
+        return true;
+    }
+
+    /**
+     * Ensures naming and path settings are fresh enough for download path generation.
+     * @param {string} contextLabel - Short label used in debug logs.
+     * @returns {Promise<void>}
+     */
+    async function ensureDownloadStateFresh(contextLabel) {
+        await Promise.all([settingsReady, configReady]);
+        await Promise.all([
+            ensureBackgroundSettingsFresh(DOWNLOAD_PATH_SETTING_KEYS, contextLabel),
+            ensureConfigCacheFresh(NAMING_SETTING_KEYS, contextLabel)
+        ]);
+    }
 
     /** 
      * One-time settings gate. Ensures options are loaded before first use.
@@ -167,12 +276,7 @@
             ["downloadFolder", "customFolderPath"],
             (data) => {
                 try {
-                    if (typeof data.downloadFolder === "string") {
-                        downloadFolder = data.downloadFolder;
-                    }
-                    if (typeof data.customFolderPath === "string") {
-                        customFolderPath = data.customFolderPath;
-                    }
+                    applyBackgroundPathSettings(data || {});
                 } catch (e) {
                     // [Mass Image Downloader]: ⚠️ Fallback to defaults on parsing errors
                     logDebug(1, `❌ Error reading settings: ${e.message}`);
@@ -399,7 +503,7 @@
 
 
             downloadFolder = data.downloadFolder || "default";
-            customFolderPath = data.customFolderPath?.replace(/[<>:"/\\|?*]+/g, '') || "";
+            customFolderPath = sanitizeCustomFolderPath(data.customFolderPath);
             downloadLimit = (data.downloadLimit >= 1 && data.downloadLimit <= 15) ? data.downloadLimit : 2;
             debugLogLevel = (typeof data.debugLogLevel === 'number' && [0, 1, 2, 3].includes(data.debugLogLevel))
             ? data.debugLogLevel
@@ -451,6 +555,7 @@
             imageInspectorEnabled = !!data.imageInspectorEnabled;
             imageInspectorDeveloperMode = !!data.imageInspectorDeveloperMode;
             imageInspectorCloseOnSave = !!data.imageInspectorCloseOnSave;
+            backgroundSettingsLastHydratedAt = Date.now();
             
             // Display current settings by console
             logDebug(3, '------------------------------');
@@ -552,8 +657,8 @@ chrome.storage.onChanged.addListener((changes) => {
         const oldValue = changes[key].oldValue;
 
         switch (key) {
-            case "downloadFolder": downloadFolder = newValue; break;
-            case "customFolderPath": customFolderPath = newValue.replace(/[<>:"/\\|?*]+/g, ''); break;
+            case "downloadFolder": downloadFolder = newValue; backgroundSettingsLastHydratedAt = Date.now(); break;
+            case "customFolderPath": customFolderPath = sanitizeCustomFolderPath(newValue); backgroundSettingsLastHydratedAt = Date.now(); break;
             case "downloadLimit": downloadLimit = newValue; break;
             case "debugLogLevel":
             debugLogLevel = (typeof newValue === 'number' && [0,1,2,3].includes(newValue))
@@ -639,6 +744,120 @@ function respondSafe(sendResponse, payload) {
 }
 
 /**
+ * Detects whether a toast message failed because the target tab has no active content-script receiver.
+ * @param {string} message - Runtime error message reported by Chromium.
+ * @returns {boolean} True when a direct toast fallback can be attempted.
+ */
+function isMissingToastReceiverError(message) {
+    if (!message || typeof message !== "string") return false;
+    return /Could not establish connection|Receiving end does not exist|message channel closed/i.test(message);
+}
+
+/**
+ * Injects a minimal standalone toast renderer when a long-lived tab lost its content-script receiver.
+ * @param {number} tabId - Target browser tab id.
+ * @param {string} text - Toast message to display.
+ * @param {"info"|"success"|"error"} type - Visual toast type.
+ * @returns {void}
+ */
+function injectUserToastFallback(tabId, text, type = "info") {
+    try {
+        if (!tabId || typeof tabId !== "number") return;
+        if (!text || typeof text !== "string") return;
+        if (!showUserFeedbackMessages) return;
+
+        chrome.tabs.get(tabId, (tab) => {
+            if (chrome.runtime.lastError) {
+                logDebug(2, `⚠️ Toast fallback skipped: ${chrome.runtime.lastError.message}`);
+                return;
+            }
+
+            const tabUrl = tab?.url || "";
+            if (isRestrictedPageUrl(tabUrl)) {
+                logDebug(2, `🚫 Toast fallback skipped on restricted page: ${tabUrl || "(empty url)"}`);
+                return;
+            }
+
+            const finalText = /^MID:/i.test(text) ? text : `MID: ${text}`;
+            logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
+
+            chrome.scripting.executeScript(
+                {
+                    target: { tabId },
+                    func: (toastText, toastType, minVisibleMs) => {
+                        const normalizedType = ["info", "success", "error"].includes(toastType) ? toastType : "info";
+                        const safeMinVisibleMs = Math.max(0, parseInt(minVisibleMs ?? 2000, 10) || 2000);
+                        const baseDuration = normalizedType === "error" ? 10000 : 5000;
+                        const duration = Math.max(baseDuration, safeMinVisibleMs);
+                        const now = Date.now();
+                        const prefixedText = /^MID:/i.test(toastText) ? toastText : `MID: ${toastText}`;
+
+                        let toast = document.getElementById("mdi-user-toast");
+                        if (!toast) {
+                            const toastContainer = document.body || document.documentElement;
+                            if (!toastContainer) return;
+
+                            toast = document.createElement("div");
+                            toast.id = "mdi-user-toast";
+                            toast.setAttribute("role", "status");
+                            toast.setAttribute("aria-live", "polite");
+                            toastContainer.appendChild(toast);
+                        }
+
+                        toast.textContent = prefixedText;
+                        toast.style.cssText = [
+                            "position:fixed",
+                            "top:18px",
+                            "right:18px",
+                            "max-width:360px",
+                            "padding:12px 14px",
+                            "border-radius:6px",
+                            "font:13px/1.35 Arial, sans-serif",
+                            "color:#fff",
+                            `background:${normalizedType === "error" ? "#d9534f" : "#007EE3"}`,
+                            "box-shadow:0 4px 14px rgba(0,0,0,.22)",
+                            "z-index:2147483647",
+                            "opacity:1",
+                            "transition:opacity .2s ease",
+                            "white-space:normal",
+                            "word-break:break-word"
+                        ].join(";");
+
+                        window.__mdiUserToastMinUntil = now + safeMinVisibleMs;
+                        clearTimeout(window.__mdiUserToastTimer);
+                        clearTimeout(window.__mdiUserToastDeferTimer);
+
+                        window.__mdiUserToastTimer = setTimeout(() => {
+                            const remaining = (window.__mdiUserToastMinUntil || 0) - Date.now();
+                            if (remaining > 0) {
+                                window.__mdiUserToastDeferTimer = setTimeout(() => {
+                                    toast.style.opacity = "0";
+                                    setTimeout(() => toast.remove(), 250);
+                                }, remaining);
+                                return;
+                            }
+
+                            toast.style.opacity = "0";
+                            setTimeout(() => toast.remove(), 250);
+                        }, duration);
+                    },
+                    args: [text, type, toastMinVisibleMs]
+                },
+                () => {
+                    if (chrome.runtime.lastError) {
+                        logDebug(2, `⚠️ Toast fallback injection failed: ${chrome.runtime.lastError.message}`);
+                    } else {
+                        logDebug(2, "✅ Toast fallback rendered in target tab.");
+                    }
+                }
+            );
+        });
+    } catch (err) {
+        logDebug(2, `⚠️ injectUserToastFallback failed: ${err.message}`);
+    }
+}
+
+/**
  * Sends a user toast to the sender tab (content script).
  * MV3 service workers have no DOM, so UI feedback must be rendered in-page.
  * @param {number} tabId
@@ -667,7 +886,12 @@ function sendUserToastToTab(tabId, text, type = "info") {
             () => {
                 // ✅ MV3: prevent "Receiving end does not exist" from surfacing as an uncaught error
                 if (chrome.runtime.lastError) {
-                    logDebug(2, `⚠️ Toast send skipped: ${chrome.runtime.lastError.message}`);
+                    const errorMessage = chrome.runtime.lastError.message || "";
+                    logDebug(2, `⚠️ Toast send skipped: ${errorMessage}`);
+
+                    if (isMissingToastReceiverError(errorMessage)) {
+                        injectUserToastFallback(tabId, text, type);
+                    }
                 }
             }
         );
@@ -1032,42 +1256,41 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                                 }
 
                                 setTimeout(() => {
-                                    chrome.tabs.create({ url: currentUrl, active: false, index: targetIndex }, (tab) => {
-                                        if (chrome.runtime.lastError) {
-                                            const errMsg = chrome.runtime.lastError.message || "";
-                                            if (errMsg.includes('429')) {
-                                                logDebug(1, `⚠️ Rate limit hit (429). Applying backoff.`);
-                                                // Push the next opening further to reduce bursts against the same host
-                                                nextOpenAt = Math.max(nextOpenAt, Date.now() + (baseDelay * 2));
-                                                setTimeout(tryOpenNext, baseDelay * 2);
+                                    chrome.tabs.create({ url: currentUrl, active: false, index: targetIndex }, async (tab) => {
+                                        try {
+                                            if (chrome.runtime.lastError) {
+                                                const errMsg = chrome.runtime.lastError.message || "";
+                                                if (errMsg.includes('429')) {
+                                                    logDebug(1, `⚠️ Rate limit hit (429). Applying backoff.`);
+                                                    // Push the next opening further to reduce bursts against the same host
+                                                    nextOpenAt = Math.max(nextOpenAt, Date.now() + (baseDelay * 2));
+                                                    setTimeout(tryOpenNext, baseDelay * 2);
+                                                } else {
+                                                    logDebug(1, `🧟 Failed to open tab: ${errMsg}`);
+                                                    // Continue immediately; the rate limiter will enforce spacing
+                                                    setTimeout(tryOpenNext, 0);
+                                                }
                                             } else {
-                                                logDebug(1, `🧟 Failed to open tab: ${errMsg}`);
+                                                tabsOpened++;
+                                                updateBadge(tabsOpened);
+                                                logDebug(2, `✅ Opened tab ${index + 1} of ${total}: ${currentUrl}`);
+
+                                                // Inject the save icon after the new tab's main frame is ready enough for MV3 scripting.
+                                                if (enableOneClickIcon) {
+                                                    await injectSaveIconWithRetry(tab.id);
+                                                }
+
                                                 // Continue immediately; the rate limiter will enforce spacing
                                                 setTimeout(tryOpenNext, 0);
                                             }
-                                        } else {
-                                            tabsOpened++;
-                                            updateBadge(tabsOpened);
-                                            logDebug(2, `✅ Opened tab ${index + 1} of ${total}: ${currentUrl}`);
-
-                                            // 🚀 NEW: Inject save icon if option enabled
-                                            if (enableOneClickIcon) {
-                                                chrome.scripting.executeScript({
-                                                    target: { tabId: tab.id },
-                                                    files: ["scripts/injectSaveIcon.js"]
-                                                }, () => {
-                                                    if (chrome.runtime.lastError) {
-                                                        logDebug(1, `❌ Failed to inject save icon: ${chrome.runtime.lastError.message}`);
-                                                    } else {
-                                                        logDebug(2, `💾 Save icon injected into tabId ${tab.id}`);
-                                                    }
-                                                });
-                                            }
-
-                                            // Continue immediately; the rate limiter will enforce spacing
+                                        } catch (err) {
+                                            const errMsg = err?.message || String(err);
+                                            logDebug(1, `❌ Unexpected error while opening web-linked tab: ${errMsg}`);
+                                            logDebug(3, `🐛 Stacktrace: ${err?.stack || "n/a"}`);
                                             setTimeout(tryOpenNext, 0);
+                                        } finally {
+                                            activeOpenings--;
                                         }
-                                        activeOpenings--;
                                     });
                                 }, waitMs);
 
@@ -1142,8 +1365,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
                 const { baseName, extension } = splitUrlFileName(urlForDownload);
 
-                // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
-                await Promise.all([configReady, settingsReady]);
+                // ✅ Refresh only stale/incomplete naming and folder settings before building paths.
+                await ensureDownloadStateFresh("Image Inspector save");
 
                 (async () => {
                     try {
@@ -1254,8 +1477,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
                 const { baseName, extension } = splitUrlFileName(urlForDownload);
 
-                // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
-                await Promise.all([configReady, settingsReady]);
+                // ✅ Refresh only stale/incomplete naming and folder settings before building paths.
+                await ensureDownloadStateFresh("manual image download");
 
                 (async () => {
                     try {
@@ -1425,10 +1648,7 @@ function isRestrictedPageUrl(url) {
  */
 async function injectScriptFileSafe(tabId, filePath, contextLabel) {
     try {
-        await chrome.scripting.executeScript({
-            target: { tabId },
-            files: [filePath]
-        });
+        await executeScriptFile(tabId, filePath);
 
         logDebug(1, `✅ Script injected successfully (${contextLabel}): ${filePath}`);
         return true;
@@ -1438,6 +1658,78 @@ async function injectScriptFileSafe(tabId, filePath, contextLabel) {
         logDebug(3, `🐛 Stacktrace: ${err.stack}`);
         return false;
     }
+}
+
+/**
+ * Detects transient MV3 script injection errors caused by a tab frame not being ready yet.
+ * @param {string} message Error message returned by chrome.scripting.executeScript.
+ * @returns {boolean}
+ */
+function isTransientSaveIconInjectionError(message) {
+    if (!message || typeof message !== "string") return false;
+
+    return /frame with id \d+ is not ready/i.test(message)
+        || /frame.*not ready/i.test(message);
+}
+
+/**
+ * Executes a script file in a tab and exposes callback-based runtime errors as a Promise rejection.
+ * @param {number} tabId Target tab identifier.
+ * @param {string} filePath Extension script path to inject.
+ * @returns {Promise<void>}
+ */
+function executeScriptFile(tabId, filePath) {
+    return new Promise((resolve, reject) => {
+        chrome.scripting.executeScript({
+            target: { tabId },
+            files: [filePath]
+        }, () => {
+            if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError.message || "Unknown script injection error."));
+                return;
+            }
+
+            resolve();
+        });
+    });
+}
+
+/**
+ * Injects the One-click save icon with bounded retries for newly opened tabs whose main frame is not ready yet.
+ * @param {number} tabId Target tab identifier.
+ * @returns {Promise<boolean>} True when the icon script is injected successfully; otherwise false.
+ */
+async function injectSaveIconWithRetry(tabId) {
+    const filePath = "scripts/injectSaveIcon.js";
+    const maxAttempts = SAVE_ICON_INJECTION_RETRY_DELAYS_MS.length + 1;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            await executeScriptFile(tabId, filePath);
+
+            const suffix = attempt > 1 ? ` after ${attempt} attempt(s)` : "";
+            logDebug(2, `💾 Save icon injected into tabId ${tabId}${suffix}`);
+            return true;
+        } catch (err) {
+            const errMsg = err?.message || String(err);
+            const hasRetry = attempt <= SAVE_ICON_INJECTION_RETRY_DELAYS_MS.length;
+
+            if (hasRetry && isTransientSaveIconInjectionError(errMsg)) {
+                const retryDelay = SAVE_ICON_INJECTION_RETRY_DELAYS_MS[attempt - 1];
+                logDebug(
+                    2,
+                    `⏳ Save icon injection retry ${attempt}/${SAVE_ICON_INJECTION_RETRY_DELAYS_MS.length} for tabId ${tabId}: ${errMsg}. Waiting ${retryDelay} ms.`
+                );
+                await sleep(retryDelay);
+                continue;
+            }
+
+            logDebug(1, `❌ Failed to inject save icon into tabId ${tabId}: ${errMsg}`);
+            return false;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -1826,8 +2118,8 @@ async function processValidTabs(validTabs, onComplete, validatedUrls, resetBadge
 
                 const { baseName, extension } = splitUrlFileName(url.href);
 
-                // ✅ Wait for BOTH: storage (folder) and utils/configCache (naming)
-                await Promise.all([settingsReady, configReady]);
+                // ✅ Refresh only stale/incomplete naming and folder settings before building paths.
+                await ensureDownloadStateFresh("bulk download");
 
                 // ✅ Generate final filename based on user settings (prefix/suffix/timestamp)
                 const finalName = await generateFilename(baseName, extension);
@@ -1936,8 +2228,8 @@ async function downloadImageFromUrl(imageUrl, sourceTag = "unknown") {
         throw new Error("Invalid imageUrl (downloadImageFromUrl).");
     }
 
-    // ✅ Ensure both settings (folder) and naming rules are ready
-    await Promise.all([settingsReady, configReady]);
+    // ✅ Refresh only stale/incomplete naming and folder settings before building paths.
+    await ensureDownloadStateFresh(sourceTag);
 
     // ✅ Normalize URL using the shared extended-image policy
     let urlForDownload = imageUrl;
@@ -2462,8 +2754,8 @@ async function handleExtractVisualGallery(message, sendResponse) {
                 // ✅ Always wait for BOTH settings (folder) and config (naming) before building filenames/paths
                 (async () => {
                     try {
-                        // Gate: ensure storage-backed folder and configCache-based naming are ready
-                        await Promise.all([settingsReady, configReady]);
+                        // Gate: refresh only stale/incomplete folder and naming settings.
+                        await ensureDownloadStateFresh("visual gallery download");
 
                         // Generate final filename after gates (prefix/suffix/timestamp are now reliable)
                         const finalName = await generateFilename(sanitizedBase, '.' + extension);

@@ -1,10 +1,12 @@
 ---
-name: "Hotfix (production)"
+name: "🏔️ Mass Image Downloader – Hotfix (Production)"
 about: Critical fix to be released ASAP
 title: "hotfix: <short summary>"
 labels: ["type: hotfix", "priority: high"]
 assignees: []
 ---
+
+# 🏔️ Mass Image Downloader – Hotfix (Production)
 
 ## Incident Summary
 

@@ -27,6 +27,53 @@
 
     // 📢 Toast minimum visible time (ms). Range: 0..10000. Default: 2000.
     let toastMinVisibleMsCache = 2000;
+    const CONFIG_CACHE_STALE_MS = 60000;
+    let configLastHydratedAt = 0;
+    let configHydrationInFlight = null;
+
+    /**
+     * Checks whether the clipboard hotkey settings snapshot is ready for use.
+     * @returns {boolean} True when the local settings are complete and fresh.
+     */
+    function isClipboardConfigUsable() {
+        if (!configLastHydratedAt) return false;
+        if ((Date.now() - configLastHydratedAt) > CONFIG_CACHE_STALE_MS) return false;
+
+        return Number.isInteger(debugLogLevelCache)
+            && typeof showUserFeedbackMessagesCache === "boolean"
+            && typeof enableClipboardHotkeysCache === "boolean"
+            && typeof filenameModeCache === "string"
+            && Number.isFinite(toastMinVisibleMsCache)
+            && toastMinVisibleMsCache >= 0
+            && toastMinVisibleMsCache <= 10000;
+    }
+
+    /**
+     * Rehydrates clipboard hotkey settings only when the local snapshot is stale or incomplete.
+     * @param {string} contextLabel - Short label used in debug logs.
+     * @returns {Promise<boolean>} True when a storage refresh was performed.
+     */
+    async function ensureClipboardConfigFresh(contextLabel = "clipboard hotkey") {
+        if (isClipboardConfigUsable()) {
+            return false;
+        }
+
+        if (!configHydrationInFlight) {
+            logDebug(2, `🔄 Rehydrating clipboard hotkey settings for ${contextLabel}.`);
+            configHydrationInFlight = initConfig()
+                .catch((err) => {
+                    logDebug(1, `❌ Clipboard settings rehydration failed for ${contextLabel}: ${err.message}`);
+                    logDebug(2, `❌ Stacktrace: ${err.stack}`);
+                    throw err;
+                })
+                .finally(() => {
+                    configHydrationInFlight = null;
+                });
+        }
+
+        await configHydrationInFlight;
+        return true;
+    }
 
     // ✅ Initialize config from chrome.storage.sync
     /**
@@ -60,6 +107,7 @@
 
                         const rawToastMs = parseInt(data.toastMinVisibleMs ?? 2000, 10);
                         toastMinVisibleMsCache = (!isNaN(rawToastMs) && rawToastMs >= 0 && rawToastMs <= 10000) ? rawToastMs : 2000;
+                        configLastHydratedAt = Date.now();
 
                     } catch (err) {
                         logDebug(1, "❌ Failed to assign config values:", err.message);
@@ -86,6 +134,7 @@
                 if (changes.debugLogLevel) {
                     const oldValue = debugLogLevelCache;
                     debugLogLevelCache = parseInt(changes.debugLogLevel.newValue ?? 1);
+                    configLastHydratedAt = Date.now();
                     logDebug(2, `🔄 debugLogLevel updated: ${oldValue} → ${debugLogLevelCache}`);
                 }
 
@@ -93,6 +142,7 @@
                 if (changes.showUserFeedbackMessages) {
                     const oldValue = showUserFeedbackMessagesCache;
                     showUserFeedbackMessagesCache = changes.showUserFeedbackMessages.newValue ?? true;
+                    configLastHydratedAt = Date.now();
                     logDebug(2, `🔄 showUserFeedbackMessages updated: ${oldValue} → ${showUserFeedbackMessagesCache}`);
                 }
 
@@ -101,6 +151,7 @@
                     const oldValue = toastMinVisibleMsCache;
                     const raw = parseInt(changes.toastMinVisibleMs.newValue ?? 2000, 10);
                     toastMinVisibleMsCache = (!isNaN(raw) && raw >= 0 && raw <= 10000) ? raw : 2000;
+                    configLastHydratedAt = Date.now();
                     logDebug(2, `🔄 toastMinVisibleMs updated: ${oldValue} → ${toastMinVisibleMsCache}`);
                 }
 
@@ -108,6 +159,7 @@
                 if (changes.enableClipboardHotkeys) {
                     const oldValue = enableClipboardHotkeysCache;
                     enableClipboardHotkeysCache = changes.enableClipboardHotkeys.newValue ?? false;
+                    configLastHydratedAt = Date.now();
                     logDebug(2, `🔄 enableClipboardHotkeys updated: ${oldValue} → ${enableClipboardHotkeysCache}`);
                 }
 
@@ -115,6 +167,7 @@
                 if (changes.filenameMode) {
                     const oldValue = filenameModeCache;
                     filenameModeCache = changes.filenameMode.newValue ?? "none";
+                    configLastHydratedAt = Date.now();
                     logDebug(2, `🔄 filenameMode updated: ${oldValue} → ${filenameModeCache}`);
                 }
             
@@ -123,6 +176,7 @@
                     const oldValue = toastMinVisibleMsCache;
                     const raw = parseInt(changes.toastMinVisibleMs.newValue ?? 2000, 10);
                     toastMinVisibleMsCache = (!isNaN(raw) && raw >= 0 && raw <= 10000) ? raw : 2000;
+                    configLastHydratedAt = Date.now();
                     logDebug(2, `🔄 toastMinVisibleMs updated: ${oldValue} → ${toastMinVisibleMsCache}`);
                 }
 
@@ -300,6 +354,45 @@
     }
 
     /**
+     * Checks whether this content script still has a valid extension runtime context.
+     * @returns {boolean} True when extension runtime APIs can still be used safely.
+     */
+    function isExtensionContextUsable() {
+        try {
+            return Boolean(chrome?.runtime?.id);
+        } catch (_) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks whether an error message indicates that the extension context was invalidated.
+     * @param {string} message - Error message to inspect.
+     * @returns {boolean} True when the content script can no longer call extension APIs.
+     */
+    function isExtensionContextInvalidatedMessage(message) {
+        return /Extension context invalidated|context invalidated/i.test(String(message || ""));
+    }
+
+    /**
+     * Shows the standard recovery message for invalidated Web-linked Gallery hotkey attempts.
+     * @returns {void}
+     */
+    function showWebLinkedContextRefreshMessage() {
+        showUserMessage("Web-linked Gallery needs this tab to be refreshed after the extension was reloaded.", "error");
+    }
+
+    /**
+     * Shows the standard recovery message for invalidated clipboard hotkey attempts.
+     * @param {"prefix"|"suffix"} type - Clipboard assignment target.
+     * @returns {void}
+     */
+    function showClipboardContextRefreshMessage(type) {
+        const label = type === "suffix" ? "Suffix" : "Prefix";
+        showUserMessage(`${label} assignment needs this tab to be refreshed after the extension was reloaded.`, "error");
+    }
+
+    /**
      * Receives toast requests from background.js and displays them in-page.
      * MV3 service workers have no DOM, so user feedback must be rendered from a content script.
      */
@@ -380,7 +473,7 @@
             update[type] = sanitized;
             // ✅ Check if the prefix/suffix is already set to the same value
             try {
-                if (!chrome?.storage?.sync || !chrome?.runtime) {
+                if (!isExtensionContextUsable() || !chrome?.storage?.sync) {
                     throw new Error("Chrome storage API or runtime is unavailable.");
                 }
 
@@ -395,6 +488,11 @@
                             showUserMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} set to: ${sanitized}`, 'success');
                         } catch (callbackErr) {
                             logDebug(1, `❌ Failed to save ${type}:`, callbackErr.message);
+                            if (isExtensionContextInvalidatedMessage(callbackErr.message)) {
+                                showClipboardContextRefreshMessage(type);
+                                return;
+                            }
+
                             showUserMessage(`Failed to save ${type}.`, 'error');
                         }
                     });
@@ -402,7 +500,12 @@
             } catch (outerErr) {
                 logDebug(1, `❌ Exception saving ${type}:`, outerErr.message);
                 logDebug(2, `❌ Stacktrace saving ${type}: `, outerErr.stack);
-                showUserMessage(`Error saving ${type}. Context may be invalid.`, 'error');
+                if (isExtensionContextInvalidatedMessage(outerErr.message) || !isExtensionContextUsable()) {
+                    showClipboardContextRefreshMessage(type);
+                    return;
+                }
+
+                showUserMessage(`Error saving ${type}.`, 'error');
             }
         } catch (err) {
             logDebug(1, `❌ Exception saving ${type}:`, err.message);
@@ -422,6 +525,12 @@
      */
     async function handleClipboardAssign(type) {
         try {
+            if (!isExtensionContextUsable()) {
+                logDebug(1, `⚠️ Clipboard ${type} hotkey ignored because the extension context is invalidated.`);
+                showClipboardContextRefreshMessage(type);
+                return;
+            }
+
             // ✅ Check if the Clipboard API is available and the document is ready
             // This is important because the Clipboard API is not available in all contexts (e.g., background scripts).
             // The document.readyState check ensures that the document is fully loaded before accessing the clipboard.
@@ -489,12 +598,22 @@
     /**
      * Keydown listener to detect Ctrl+Shift+P/S and dispatch.
      */
-    window.addEventListener('keydown', (event) => {
+    window.addEventListener('keydown', async (event) => {
         if (!event.ctrlKey || !event.altKey) return;
         if (event.code !== 'KeyP' && event.code !== 'KeyS') return;
 
+        const actionType = event.code === 'KeyP' ? 'prefix' : 'suffix';
+
         // ✅ Check if feature is enabled by user
         try {
+            if (!isExtensionContextUsable()) {
+                logDebug(1, `⚠️ Clipboard ${actionType} hotkey ignored because the extension context is invalidated.`);
+                showClipboardContextRefreshMessage(actionType);
+                return;
+            }
+
+            await ensureClipboardConfigFresh("clipboard assignment hotkey");
+
             if (typeof enableClipboardHotkeysCache === 'undefined') {
                 logDebug(1, '❌ Clipboard hotkeys config not yet initialized.');
                 return;
@@ -503,11 +622,16 @@
             if (!enableClipboardHotkeysCache) return;
 
             event.preventDefault();
-            const actionType = event.code === 'KeyP' ? 'prefix' : 'suffix';
             logDebug(2, `🧩 Clipboard hotkey triggered: ${actionType.toUpperCase()}`);
             handleClipboardAssign(actionType);
 
         } catch (err) {
+            if (isExtensionContextInvalidatedMessage(err?.message)) {
+                logDebug(1, `⚠️ Clipboard ${actionType} hotkey could not refresh settings because the extension context is invalidated.`);
+                showClipboardContextRefreshMessage(actionType);
+                return;
+            }
+
             logDebug(1, '❌ Error checking clipboard hotkeys feature:', err.message);
             logDebug(2, '❌ Stacktrace: ', err.stack);
         }
@@ -534,6 +658,12 @@
             if (!event.altKey || !event.shiftKey) return;
             if (event.code !== "KeyW") return;
 
+            if (!isExtensionContextUsable()) {
+                logDebug(1, "⚠️ Web-linked Gallery hotkey ignored because the extension context is invalidated.");
+                showWebLinkedContextRefreshMessage();
+                return;
+            }
+
             event.preventDefault();
             event.stopPropagation();
 
@@ -547,8 +677,14 @@
                 }
             );
         } catch (err) {
+            if (isExtensionContextInvalidatedMessage(err.message)) {
+                logDebug(1, "⚠️ Web-linked Gallery hotkey failed because the extension context is invalidated.");
+                showWebLinkedContextRefreshMessage();
+                return;
+            }
+
             logDebug(1, `❌ Hotkey handler failed (Alt+Shift+W): ${err.message}`);
         }
     });
 
-})();    
+})();

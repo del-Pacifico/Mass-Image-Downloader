@@ -48,6 +48,9 @@ const INSPECTOR_DEFAULT_MIN_WIDTH = 800;
 const INSPECTOR_DEFAULT_MIN_HEIGHT = 600;
 let inspectorMinWidthCache = INSPECTOR_DEFAULT_MIN_WIDTH;
 let inspectorMinHeightCache = INSPECTOR_DEFAULT_MIN_HEIGHT;
+const INSPECTOR_CONFIG_STALE_MS = 60000;
+let inspectorConfigLastHydratedAt = 0;
+let inspectorConfigHydrationInFlight = null;
 const INSPECTOR_IMAGE_WRAPPER_SELECTOR = "figure, picture, .Image, .Logo";
 const INSPECTOR_OVERLAY_BUTTON_MIN_SIZE = 40;
 const INSPECTOR_OVERLAY_ANCHOR_PADDING = 8;
@@ -68,6 +71,13 @@ async function initConfig() {
         "minHeight",
 		    "debugLogLevel"
       ], (data) => {
+        if (chrome.runtime.lastError) {
+          logDebug(1, "❌ Image Inspector settings load failed:", chrome.runtime.lastError.message);
+          resolve();
+          return;
+        }
+
+        data = data || {};
         iiEnabledFromOptions = data.imageInspectorEnabled === true;
         iiDevMode = data.imageInspectorDevMode === true;
         iiCloseOnSave = data.imageInspectorCloseOnSave === true;
@@ -88,6 +98,7 @@ async function initConfig() {
           : INSPECTOR_DEFAULT_MIN_HEIGHT;
 
         if (!isNaN(level)) debugLogLevelCache = level;
+        inspectorConfigLastHydratedAt = Date.now();
 
         logDebug(1, "🕵️ Image Inspector settings loaded:", {
           iiEnabledFromOptions,
@@ -111,6 +122,53 @@ async function initConfig() {
       resolve();
     }
   });
+}
+
+/**
+ * Checks whether the Image Inspector settings snapshot is ready for hotkey use.
+ * @returns {boolean} True when the local settings are complete and fresh.
+ */
+function isInspectorConfigUsable() {
+  if (!inspectorConfigLastHydratedAt) return false;
+  if ((Date.now() - inspectorConfigLastHydratedAt) > INSPECTOR_CONFIG_STALE_MS) return false;
+
+  return typeof iiEnabledFromOptions === "boolean"
+    && typeof iiDevMode === "boolean"
+    && typeof iiCloseOnSave === "boolean"
+    && typeof showUserFeedbackMessagesCache === "boolean"
+    && Number.isFinite(toastMinVisibleMsCache)
+    && toastMinVisibleMsCache >= 0
+    && toastMinVisibleMsCache <= 10000
+    && Number.isFinite(inspectorMinWidthCache)
+    && inspectorMinWidthCache > 0
+    && Number.isFinite(inspectorMinHeightCache)
+    && inspectorMinHeightCache > 0;
+}
+
+/**
+ * Rehydrates Image Inspector settings only when the local snapshot is stale or incomplete.
+ * @param {string} contextLabel - Short label used in debug logs.
+ * @returns {Promise<boolean>} True when a storage refresh was performed.
+ */
+async function ensureInspectorConfigFresh(contextLabel = "Image Inspector") {
+  if (isInspectorConfigUsable()) {
+    return false;
+  }
+
+  if (!inspectorConfigHydrationInFlight) {
+    logDebug(2, `🔄 Rehydrating Image Inspector settings for ${contextLabel}.`);
+    inspectorConfigHydrationInFlight = initConfig()
+      .catch((err) => {
+        logDebug(1, `❌ Image Inspector settings rehydration failed for ${contextLabel}:`, err?.message || err);
+        throw err;
+      })
+      .finally(() => {
+        inspectorConfigHydrationInFlight = null;
+      });
+  }
+
+  await inspectorConfigHydrationInFlight;
+  return true;
 }
 
 /**
@@ -152,6 +210,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   // Enable/disable toggle
   if ("imageInspectorEnabled" in changes) {
     iiEnabledFromOptions = changes.imageInspectorEnabled.newValue === true;
+    inspectorConfigLastHydratedAt = Date.now();
     logDebug(1, "🕵️ imageInspectorEnabled →", iiEnabledFromOptions);
     if (!iiEnabledFromOptions && iiActiveInPage) {
       teardownImageInspector("disabled-in-options");
@@ -162,6 +221,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   // Developer mode toggle
   if ("imageInspectorDevMode" in changes) {
     iiDevMode = changes.imageInspectorDevMode.newValue === true;
+    inspectorConfigLastHydratedAt = Date.now();
     logDebug(2, "👨🏻‍💻 imageInspectorDevMode →", iiDevMode);
     try { refreshDevBlockIfOpen(); } catch (_) {}
   }
@@ -169,19 +229,25 @@ chrome.storage.onChanged.addListener((changes, area) => {
   // Close-on-save toggle
   if ("imageInspectorCloseOnSave" in changes) {
     iiCloseOnSave = changes.imageInspectorCloseOnSave.newValue === true;
+    inspectorConfigLastHydratedAt = Date.now();
     logDebug(2, "🔄 imageInspectorCloseOnSave →", iiCloseOnSave);
   }
 
   // User feedback toggle
   if ("showUserFeedbackMessages" in changes) {
     showUserFeedbackMessagesCache = changes.showUserFeedbackMessages.newValue !== false;
+    inspectorConfigLastHydratedAt = Date.now();
     logDebug(2, "🔄 showUserFeedbackMessages →", showUserFeedbackMessagesCache);
   }
 
   // Toast duration setting
-  if ("showUserFeedbackMessages" in changes) {
-    showUserFeedbackMessagesCache = changes.showUserFeedbackMessages.newValue !== false;
-    logDebug(2, "🔄 showUserFeedbackMessages →", showUserFeedbackMessagesCache);
+  if ("toastMinVisibleMs" in changes) {
+    const rawToastMinVisibleMs = parseInt(changes.toastMinVisibleMs.newValue ?? 2000, 10);
+    toastMinVisibleMsCache = (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
+      ? rawToastMinVisibleMs
+      : 2000;
+    inspectorConfigLastHydratedAt = Date.now();
+    logDebug(2, "🔄 toastMinVisibleMs →", toastMinVisibleMsCache);
   }
 
   if ("minWidth" in changes) {
@@ -190,6 +256,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     inspectorMinWidthCache = (!isNaN(nextValue) && nextValue >= 1 && nextValue <= 10000)
       ? nextValue
       : INSPECTOR_DEFAULT_MIN_WIDTH;
+    inspectorConfigLastHydratedAt = Date.now();
     logDebug(2, "📐 minWidth →", oldValue, "=>", inspectorMinWidthCache);
     logDebug(3, "🧪 [II trace] Image size minWidth cache updated:", {
       previous: oldValue,
@@ -203,6 +270,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     inspectorMinHeightCache = (!isNaN(nextValue) && nextValue >= 1 && nextValue <= 10000)
       ? nextValue
       : INSPECTOR_DEFAULT_MIN_HEIGHT;
+    inspectorConfigLastHydratedAt = Date.now();
     logDebug(2, "📐 minHeight →", oldValue, "=>", inspectorMinHeightCache);
     logDebug(3, "🧪 [II trace] Image size minHeight cache updated:", {
       previous: oldValue,
@@ -299,6 +367,8 @@ function showUserMsgSafe(text, type = "info") {
     msg.style.zIndex = "2147483647";
 
     document.body.appendChild(msg);
+
+    logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
 
     window[TIMER_KEY] = setTimeout(() => {
       msg.style.opacity = "0";
@@ -399,8 +469,15 @@ function onKeyDown(evt) {
     evt.preventDefault();
     evt.stopPropagation();
 
-    // Toggle the inspector.
-    toggleInspectorViaHotkey();
+    // Toggle after a targeted config refresh only when the local snapshot is stale.
+    ensureInspectorConfigFresh("hotkey toggle")
+      .then(() => {
+        toggleInspectorViaHotkey();
+      })
+      .catch((err) => {
+        logDebug(1, "❌ Image Inspector hotkey could not refresh settings:", err?.message || err);
+        showUserMsgSafe("Image Inspector context changed. Please refresh this page and try again.", "error");
+      });
   } catch (err) {
     logDebug(1, "❌ onKeyDown error:", err?.message || err);
   }
@@ -566,6 +643,103 @@ function getInspectorOverlayParent(img) {
     return img.closest(INSPECTOR_IMAGE_WRAPPER_SELECTOR) || img.parentElement || img;
   } catch (_) {
     return img?.parentElement || img || null;
+  }
+}
+
+/**
+ * Checks whether this content script still has a valid extension runtime context.
+ * @returns {boolean} True when extension runtime APIs can still be used safely.
+ */
+function isExtensionContextUsable() {
+  try {
+    return Boolean(chrome?.runtime?.id);
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
+ * Checks whether an error message indicates that the extension context was invalidated.
+ * @param {string} message - Error message to inspect.
+ * @returns {boolean} True when the context can no longer call extension APIs.
+ */
+function isExtensionContextInvalidatedMessage(message) {
+  return /Extension context invalidated|context invalidated/i.test(String(message || ""));
+}
+
+/**
+ * Shows the standard recovery message for invalidated Image Inspector content scripts.
+ * @returns {void}
+ */
+function showInspectorContextRefreshMessage() {
+  showUserMsgSafe("Image Inspector needs this tab to be refreshed after the extension was reloaded.", "error");
+}
+
+/**
+ * Checks whether a URL looks like a direct supported image resource.
+ * @param {string} url - URL to inspect.
+ * @returns {boolean} True when the URL path ends in a common image extension.
+ */
+function isLikelyDirectImageUrl(url) {
+  try {
+    const parsed = new URL(url, location.href);
+    if (!/^https?:$/i.test(parsed.protocol)) return false;
+    return /\.(jpe?g|png|webp|avif|bmp)(?:$|[?#])/i.test(parsed.pathname);
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
+ * Derives a likely full-size image URL from common gallery thumbnail paths.
+ * @param {string} url - Rendered thumbnail URL.
+ * @returns {string} Full-size candidate URL or an empty string when no thumbnail pattern matches.
+ */
+function deriveFullSizeUrlFromThumbnail(url) {
+  try {
+    if (!isLikelyDirectImageUrl(url)) return "";
+
+    const parsed = new URL(url, location.href);
+    const originalPath = parsed.pathname;
+    const fullSizePath = originalPath.replace(/\/thumbs(?:\/\d+x\d+)?\//i, "/");
+
+    if (fullSizePath === originalPath) return "";
+
+    parsed.pathname = fullSizePath;
+    return parsed.href;
+  } catch (_) {
+    return "";
+  }
+}
+
+/**
+ * Resolves the best downloadable URL for an inspected image.
+ * Prefers a direct image href, then a full-size thumbnail derivation, then the rendered image src.
+ * @param {HTMLImageElement} img - Inspected image element.
+ * @returns {string} Best available absolute image URL.
+ */
+function resolveInspectorImageUrl(img) {
+  try {
+    const renderedUrl = String(img?.currentSrc || img?.src || "");
+    const link = img instanceof Element ? img.closest("a[href]") : null;
+    const href = link?.getAttribute("href") || "";
+    const absoluteHref = href ? new URL(href, location.href).href : "";
+
+    if (absoluteHref && isLikelyDirectImageUrl(absoluteHref)) {
+      logDebug(2, "🔗 Image Inspector: using linked full-size image URL.");
+      return absoluteHref;
+    }
+
+    const derivedFullSizeUrl = deriveFullSizeUrlFromThumbnail(renderedUrl);
+    if (derivedFullSizeUrl) {
+      logDebug(2, "🔗 Image Inspector: using derived full-size image URL from thumbnail.");
+      return derivedFullSizeUrl;
+    }
+
+    return renderedUrl;
+  } catch (err) {
+    logDebug(2, "⚠️ Image Inspector URL resolution failed:", err?.message || err);
+    return String(img?.currentSrc || img?.src || "");
   }
 }
 
@@ -1164,7 +1338,7 @@ function openInspectorPanelForImage(img) {
     scroll.className = "scroll";
 
     // Image metadata.
-    const src = String(img.currentSrc || img.src || "");
+    const src = resolveInspectorImageUrl(img);
     const pageUrl = String(location.href);
     const titleAttr = img.getAttribute("title") || "[ No title ]";
     const altAttr = img.getAttribute("alt") || "[ No description ]";
@@ -1335,7 +1509,7 @@ function openInspectorPanelForImage(img) {
     function updateMetadataForImage(targetImg) {
       try {
         if (!targetImg) return;
-        const currentSrc = String(targetImg.currentSrc || targetImg.src || "");
+        const currentSrc = resolveInspectorImageUrl(targetImg);
         const f = inferFileType(currentSrc);
         const nDim = `${targetImg.naturalWidth || targetImg.width} × ${targetImg.naturalHeight || targetImg.height}px`;
         const rectNow = targetImg.getBoundingClientRect();
@@ -1358,7 +1532,7 @@ function openInspectorPanelForImage(img) {
     function updateDeveloperForImage(targetImg) {
       if (!iiDevMode || !devWrap) return;
       try {
-        const currentSrc = String(targetImg?.currentSrc || targetImg?.src || "");
+        const currentSrc = resolveInspectorImageUrl(targetImg);
         if (devNodeTypeVal) devNodeTypeVal.textContent = targetImg ? targetImg.tagName : "[ N/A ]";
         if (devFullUrlVal) devFullUrlVal.textContent = currentSrc || "[ N/A ]";
         if (devCorsVal) devCorsVal.textContent = "N/A";
@@ -1373,7 +1547,7 @@ function openInspectorPanelForImage(img) {
         if (!targetImg) return;
 
         currentInspectorImage = targetImg;
-        currentInspectorSrc = String(targetImg.currentSrc || targetImg.src || "");
+        currentInspectorSrc = resolveInspectorImageUrl(targetImg);
 
         if (previewImg) {
           previewImg.src = currentInspectorSrc;
@@ -1538,6 +1712,12 @@ function tryOpenImageInNewTab(url) {
  */
 function trySaveImage(url) {
   try {
+    if (!isExtensionContextUsable()) {
+      logDebug(1, "⚠️ Image Inspector save skipped because the extension context is invalidated.");
+      showInspectorContextRefreshMessage();
+      return;
+    }
+
     chrome.runtime.sendMessage(
       { action: "imageInspectorSaveImage", imageUrl: url, source: "imageInspector" },
       (resp) => {
@@ -1551,6 +1731,11 @@ function trySaveImage(url) {
           if (msg.includes("The message port closed before a response was received")) {
             logDebug(2, "ℹ️ Non-fatal messaging error; assuming download started correctly.");
             handleSaveSuccess();
+            return;
+          }
+
+          if (isExtensionContextInvalidatedMessage(msg)) {
+            showInspectorContextRefreshMessage();
             return;
           }
 
@@ -1579,6 +1764,12 @@ function trySaveImage(url) {
       }
     );
   } catch (err) {
+    if (isExtensionContextInvalidatedMessage(err?.message)) {
+      logDebug(1, "⚠️ Image Inspector save failed because the extension context is invalidated.");
+      showInspectorContextRefreshMessage();
+      return;
+    }
+
     showUserMsgSafe("Could not start download.", "error");
     logDebug(1, "❌ trySaveImage error:", err?.message || err);
     logDebug(3, `🐛 Stacktrace: ${err.stack}`);
@@ -1592,6 +1783,12 @@ function trySaveImage(url) {
  */
 function fallbackSave(url) {
   try {
+    if (!isExtensionContextUsable()) {
+      logDebug(1, "⚠️ Image Inspector fallback save skipped because the extension context is invalidated.");
+      showInspectorContextRefreshMessage();
+      return;
+    }
+
     chrome.runtime.sendMessage(
       { action: "imageInspectorSaveImage", imageUrl: url, source: "imageInspector-fallback" },
       (resp2) => {
@@ -1605,6 +1802,11 @@ function fallbackSave(url) {
           if (msg.includes("The message port closed before a response was received")) {
             logDebug(2, "ℹ️ Non-fatal messaging error in fallback; assuming download started correctly.");
             handleSaveSuccess();
+            return;
+          }
+
+          if (isExtensionContextInvalidatedMessage(msg)) {
+            showInspectorContextRefreshMessage();
             return;
           }
 
@@ -1632,6 +1834,12 @@ function fallbackSave(url) {
       }
     );
   } catch (err) {
+    if (isExtensionContextInvalidatedMessage(err?.message)) {
+      logDebug(1, "⚠️ Image Inspector fallback save failed because the extension context is invalidated.");
+      showInspectorContextRefreshMessage();
+      return;
+    }
+
     showUserMsgSafe("Could not start download.", "error");
     logDebug(1, "❌ fallbackSave error:", err?.message || err);
     logDebug(3, `🐛 Stacktrace: ${err.stack}`);
