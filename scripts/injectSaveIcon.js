@@ -296,6 +296,13 @@ function initConfigForInjectSaveIcon(callback) {
             "allowParameterizedCdnUrls", "allowWrappedImageUrls",
             "allowExtendedImageUrls"],
         (data) => {
+            if (chrome.runtime.lastError) {
+                logDebug(1, `❌ Failed to load One-click settings: ${chrome.runtime.lastError.message}`);
+                configCache.showUserFeedbackMessages = true;
+                showUserMessage("Extension context changed. Please refresh this page and try again.", "error");
+                return;
+            }
+
             debugLogLevelCache = parseInt(data.debugLogLevel ?? 1);
 
             configCache.minWidth = parseInt(data.minWidth) || 800;
@@ -624,12 +631,8 @@ function showUserMessage(text, type = "info") {
         const minVisibleMs = Math.max(0, parseInt(configCache.toastMinVisibleMs ?? 2000, 10) || 2000);
         const effectiveDuration = Math.max(baseDuration, minVisibleMs);
 
-        // Define toast color explicitly for this flow.
-        // Error uses red, success uses green, info/default uses blue.
-        const backgroundColor =
-            type === "error"
-                ? "#d9534f"
-                : (type === "success" ? "#28a745" : "#007EE3");
+        // Keep success/info on the project primary feedback color; errors use the recovery color.
+        const backgroundColor = type === "error" ? "#d9534f" : "#007EE3";
 
         // ✅ Last toast wins: remove previous toast + cancel previous timer
         const TOAST_ID = "mdi-user-toast";
@@ -699,7 +702,7 @@ function showUserMessage(text, type = "info") {
         messageElement.style.zIndex = "9999";
         document.body.appendChild(messageElement);
 
-        logDebug(3, `📢 Showing user message: "${text}" (${type})`);
+        logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
 
         // ✅ Store timer id so the next toast can cancel it
         window[TIMER_KEY] = setTimeout(() => {

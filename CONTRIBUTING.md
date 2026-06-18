@@ -1,4 +1,4 @@
-# 🤝 Contributing Guide – Mass Image Downloader
+# 🏔️ Mass Image Downloader – Contributing Guide
 
 Thank you for your interest in contributing to **Mass Image Downloader**!
 This guide provides everything you need to know to start contributing effectively and collaboratively.
@@ -7,15 +7,83 @@ This guide provides everything you need to know to start contributing effectivel
 
 ## 📥 How to Contribute
 
+### Choose the Right Channel
+
+- Use **Issues** for actionable bugs, approved feature requests, documentation problems, edge cases, and investigations.
+- Use **Discussions** for early ideas, open questions, design exploration, or support conversations that are not yet actionable.
+- Use **Pull Requests** only for focused changes linked to an issue or approved discussion.
+
+### Browser Support and QA Baseline
+
+Mass Image Downloader targets QA-validated Chromium-based browsers compatible with Manifest V3.
+
+The project QA baseline is:
+
+- **Brave**: primary QA browser; current QA confirms the documented flows and shortcuts operate as expected.
+- **Vivaldi**: supported and QA-tested; current QA confirms the documented flows and shortcuts operate as expected.
+- **Microsoft Edge**: supported and QA-tested; current QA confirms the documented flows operate as expected, but some extension shortcuts may require manual assignment in the browser shortcut manager.
+- **Opera One**: supported and QA-tested; current QA confirms the documented flows operate as expected, but some browser/profile shortcut conflicts may limit specific shortcuts.
+
+The following browsers are outside the current project QA baseline:
+
+- **Browsers not listed above**: may work, but are not treated as validated unless explicitly added to the QA baseline.
+- **Firefox and non-Chromium browsers**: out of scope because the extension is built for Chromium Manifest V3 APIs.
+
+Shortcut-specific behavior belongs in `docs/hotkeys/hotkeys.md`, not in this contribution guide.
+
+Bug reports from non-baseline Chromium browsers are accepted when they include enough evidence to determine whether the defect is in the extension, browser behavior, permissions, shortcut handling, site-specific behavior, or an unsupported runtime.
+
 ### 🐛 Report a Bug
 
-- Use the [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.md)
-- Include steps to reproduce, screenshots, and console output if possible
+Before opening a bug report, confirm that the behavior is a reproducible defect and not only an unclear observation, browser shortcut conflict, site-specific edge case, or configuration question.
+
+Recommended flow:
+
+1. Confirm you are using the expected extension version.
+2. Reproduce the behavior in a clean, focused scenario.
+3. Check whether the same behavior happens after refreshing the affected tab or reloading the extension.
+4. Capture the environment:
+   - browser and version;
+   - Chromium version when available;
+   - extension version;
+   - operating system;
+   - installation mode.
+5. Capture the relevant settings snapshot, preferably from Settings Peek.
+6. Collect evidence:
+   - exact steps to reproduce;
+   - expected behavior;
+   - actual behavior;
+   - page URL or URL pattern when relevant;
+   - console logs filtered by `[Mass image downloader]`;
+   - screenshots or recordings when visual behavior is involved.
+7. Open a GitHub issue and choose the bug-report option when the problem is reproducible.
+
+Use one issue per defect. If the behavior is unclear or hard to classify, open an investigation instead of forcing it into a bug report.
 
 ### 🌟 Suggest a Feature
 
-- Use the [Feature Request template](.github/ISSUE_TEMPLATE/feature_request.md)
-- Explain your use case and what benefit it adds
+Before opening a feature request, make sure the request describes a user need or workflow improvement, not only an implementation idea.
+
+Recommended flow:
+
+1. Describe the problem or workflow gap.
+2. Explain who benefits and in which scenarios.
+3. Describe the expected behavior from a user perspective.
+4. Identify the affected area:
+   - popup;
+   - Options;
+   - Settings Peek;
+   - Image Inspector;
+   - One-click;
+   - Bulk;
+   - galleries;
+   - hotkeys;
+   - documentation.
+5. Note any constraints or trade-offs, such as browser behavior, MV3 limits, performance, privacy, permissions, or UI complexity.
+6. Add examples, mockups, screenshots, or comparable workflows when useful.
+7. Open a GitHub issue and choose the feature-request option when the proposal is actionable.
+
+Use GitHub Discussions first for early ideas, broad design questions, or proposals that still need scope definition. A discussion can later be promoted to an issue once the expected behavior and scope are clear.
 
 ### 🛠 Submit a Code Contribution
 
@@ -63,6 +131,38 @@ feature/chore branch -> dev -> main -> tag/release
 - Create tags and GitHub releases only from `main`.
 - Keep changes focused and avoid mixing unrelated work in the same branch or pull request.
 
+### Incremental Commit and Push Discipline
+
+During active development, each validated atomic change should be committed and pushed to the current working branch as soon as it is complete.
+
+Use this workflow for every focused improvement, bug fix, documentation correction, or test update:
+
+1. Keep the change scoped to the active issue, discussion, or approved pull request objective.
+2. Review the working tree before staging.
+3. Stage only the files that belong to the completed atomic change.
+4. Run the relevant local validation before committing when the change can affect behavior or repository checks:
+   ```bash
+   npm run check
+   npm test
+   ```
+5. Commit with a clear conventional prefix such as `fix:`, `docs:`, `chore:`, `refactor:`, or `test:`.
+6. Push the commit to the current feature, fix, chore, documentation, or tooling branch immediately.
+
+Do not batch unrelated changes into a single commit. Do not push directly to `dev` or `main` during normal development. Pull requests remain the mechanism for promoting work back into `dev`.
+
+Example:
+
+```bash
+git status --short
+git add -- scripts/clipboardHotkeys.js
+npm run check
+npm test
+git commit -m "fix: handle invalidated clipboard hotkey context"
+git push -u origin fix/rehydrate-content-script-state
+```
+
+In this example, the commit contains only the clipboard hotkey recovery fix and is pushed to the active fix branch. A separate documentation correction or unrelated refactor should use its own focused commit.
+
 ---
 
 ## 🏷️ Issue Title Prefixes
@@ -89,12 +189,192 @@ Examples:
 
 ## 📐 Code Standards
 
-- Use **JavaScript ES6+**
-- No external libraries — all code must remain in pure JS
-- Follow modular principles (1 file = 1 concern)
-- Keep logging consistent: `[Mass image downloader]: emoji + message` (use `logDebug()` from `utils.js`)
-- Comment blocks using clear, concise English
-- Add JSDoc or a concise header comment to every new or changed function, including its purpose, parameters, and return value when applicable
+Code changes must follow these standards:
+
+- Use **JavaScript ES6+**.
+- Do not add external libraries; the extension must remain pure JavaScript.
+- Keep modules focused: prefer **1 file = 1 concern**.
+- Prefer existing project helpers and patterns before adding new abstractions.
+- Add JSDoc or a concise header comment to every new or changed function, including purpose, parameters, and return value when applicable.
+- Write comments in clear, concise English. Comments should explain intent, edge cases, or non-obvious behavior.
+- Keep logging consistent with the project format: `[Mass image downloader]: emoji + message`.
+- Use `logDebug()` where available instead of direct `console.log()`.
+- User-facing recovery messages must also be logged with the final rendered message text:
+  ```js
+  logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
+  ```
+- Avoid false-positive logs. Do not log success unless the action actually completed or the flow has a documented safe-success condition.
+- Keep user-facing messages professional, concise, and actionable.
+
+## 🎨 UI Feedback and Visual Standards
+
+The extension must keep a consistent visual language across popup UI, Options, Settings Peek, Image Inspector, One-click overlays, tooltips, injected panels, and content-script toasts.
+
+### Core Palette
+
+Use the established project palette:
+
+<table>
+  <thead>
+    <tr>
+      <th>Role</th>
+      <th>Color</th>
+      <th>Swatch</th>
+      <th>Usage</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Primary action / info / success</td>
+      <td><code>#007EE3</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#007EE3;border:1px solid #768591;"></span></td>
+      <td>Primary buttons, informational toasts, successful completion toasts, neutral user feedback.</td>
+    </tr>
+    <tr>
+      <td>Secondary accent / border / hover</td>
+      <td><code>#768591</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#768591;border:1px solid #768591;"></span></td>
+      <td>Control borders, hover states, secondary UI accents.</td>
+    </tr>
+    <tr>
+      <td>Light surface</td>
+      <td><code>#F8F8F8</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#F8F8F8;border:1px solid #768591;"></span></td>
+      <td>Panel backgrounds, icon button backgrounds, light control surfaces.</td>
+    </tr>
+    <tr>
+      <td>Panel surface</td>
+      <td><code>#FFFFFF</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#FFFFFF;border:1px solid #768591;"></span></td>
+      <td>Option groups, cards, table cells, and readable panel content areas.</td>
+    </tr>
+    <tr>
+      <td>Text on colored surfaces</td>
+      <td><code>#FFFFFF</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#FFFFFF;border:1px solid #768591;"></span></td>
+      <td>Toast text and button text on colored backgrounds.</td>
+    </tr>
+    <tr>
+      <td>Secondary text</td>
+      <td><code>#6C757D</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#6C757D;border:1px solid #768591;"></span></td>
+      <td>Descriptions, helper text, muted labels, and secondary comments.</td>
+    </tr>
+    <tr>
+      <td>Body text</td>
+      <td><code>#3f3f3f</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#3f3f3f;border:1px solid #768591;"></span></td>
+      <td>Readable table values, regular panel text, and metadata content.</td>
+    </tr>
+    <tr>
+      <td>Subtle separators</td>
+      <td><code>#D0D0D0</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#D0D0D0;border:1px solid #768591;"></span></td>
+      <td>Panel borders, table separators, and low-emphasis dividers.</td>
+    </tr>
+    <tr>
+      <td>Error / recovery required</td>
+      <td><code>#d9534f</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#d9534f;border:1px solid #768591;"></span></td>
+      <td>Error toasts, blocked actions, invalid settings, and refresh-required recovery messages.</td>
+    </tr>
+    <tr>
+      <td>Dark tooltip surface</td>
+      <td><code>#121b3e</code></td>
+      <td><span style="display:inline-block;width:72px;height:18px;background:#121b3e;border:1px solid #768591;"></span></td>
+      <td>Tooltip backgrounds and dark inspector accents already used by existing components.</td>
+    </tr>
+  </tbody>
+</table>
+
+Do not introduce new status colors, such as green success tones, unless the project palette is explicitly expanded in this table and the related UI helpers are updated consistently.
+
+### Toasts
+
+Toast colors must be consistent across all scripts.
+
+Use:
+
+- Info, success, neutral completion, and safe-success messages: `#007EE3`.
+- Errors, blocked actions, invalid settings, and refresh-required recovery messages: `#d9534f`.
+- Toast text: `#FFFFFF`.
+
+The semantic message type (`info`, `success`, `error`) may still be used for logs, duration, or flow meaning, but it must not introduce colors outside the project palette.
+
+Every visible toast or user-facing recovery message must also be logged with the final rendered text:
+
+```js
+logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
+```
+
+Avoid false-positive success messages. Only show success when the action actually completed or when the flow has a documented safe-success condition.
+
+### Buttons and Controls
+
+Buttons should reuse the existing control palette:
+
+- Primary button background: `#007EE3`.
+- Hover or secondary accent: `#768591`.
+- Light controls or icon backgrounds: `#F8F8F8`.
+- Button text on colored backgrounds: `#FFFFFF`.
+
+Icon-only controls should keep the same visual treatment used by the existing One-click and Image Inspector controls.
+
+### Panels and Tables
+
+Settings, Options, Peek, and Inspector panels should remain readable and utilitarian:
+
+- Prefer light panel backgrounds already used by the extension, especially `#F8F8F8`.
+- Use restrained borders and separators based on the existing gray/blue-gray palette.
+- Tables should prioritize scanability: clear row separation, stable alignment, and no decorative color overload.
+- Status or result tables should not introduce new color families unless the palette is formally expanded.
+
+### Tooltips
+
+Tooltips should use the existing dark surface style already present in the extension:
+
+- Dark tooltip background: `#121b3e`.
+- Light text: `#FFFFFF`.
+- Compact padding and restrained border styling.
+- No decorative color families outside the documented palette.
+
+### Scope
+
+This standard applies to:
+
+- popup UI
+- Options UI
+- Settings Peek
+- Image Inspector
+- One-click overlay
+- gallery and bulk toasts
+- content-script recovery messages
+- future user-facing panels, tables, tooltips, and injected controls
+
+## 📚 Documentation Standards
+
+All project documentation should use a project-name-first visible title.
+
+For regular Markdown documentation, the first line should be:
+
+```text
+# 🏔️ Mass Image Downloader – <Document Title>
+```
+
+For Markdown files with YAML frontmatter, keep the frontmatter first and place the visible H1 immediately after the closing `---`:
+
+```markdown
+---
+name: 🏔️ Mass Image Downloader – Bug Report
+about: Report a reproducible bug
+---
+
+# 🏔️ Mass Image Downloader – Bug Report
+```
+
+For YAML-only metadata files, use the same project-name-first format in the visible `name`, `title`, or equivalent display field when such a field exists. Issue title templates such as `[Bug]` or `[Docs]` may keep their operational prefix format.
+
+This standard applies to root documentation, manuals, guides, policies, changelogs, contribution documents, and GitHub issue or pull request templates when practical.
 
 ## 🧪 Local Validation
 
@@ -116,12 +396,84 @@ The same checks run in GitHub Actions for pull requests targeting `dev`.
 
 Contributions must follow the project's development rules:
 
-- Use JavaScript and browser-extension best practices for clear, maintainable code.
 - Keep changes modular, focused, and testable.
+- Keep the PR scope aligned with the issue or approved discussion. Avoid unrelated refactors.
+- Preserve existing business rules unless the issue explicitly requires changing them.
+- Do not alter URL validation, gallery heuristics, download naming rules, hotkey names, or browser behavior assumptions as side effects.
 - Handle errors professionally with clear recovery paths.
-- Account for edge cases, report failures through logs or user-facing messages as appropriate, and continue operating whenever safe. Unhandled catastrophic failures are not acceptable.
-- Avoid bottlenecks in CPU, memory, filesystem, and batch-processing paths.
-- Write code comments, logs, and user-facing messages in professional, approachable English.
+- Report recoverable failures through logs and, when user action is needed, through user-facing messages.
+- Continue operating whenever safe. Unhandled catastrophic failures are not acceptable.
+- Avoid unnecessary CPU, memory, filesystem, tab-management, or batch-processing bottlenecks.
+- Rehydrate cached settings only when the local snapshot is stale, incomplete, or required for the current flow.
+- Keep background refreshes scoped to the settings required by that flow.
+- Follow the MV3 runtime resilience rules for content scripts, hotkeys, background handoffs, and long-lived tabs.
+- Update relevant documentation when behavior, recovery paths, browser support, hotkeys, settings, or known limitations change.
+- Run local validation before opening or updating a pull request:
+  ```bash
+  npm run check
+  npm test
+  ```
+
+### 🩹 Bugfix Scope Discipline
+
+Bugfix work follows the same development standards, best practices, validation requirements, and branch flow defined in this guide.
+
+Bugfixes must use the repository flow:
+
+```text
+feature/chore/fix branch -> dev -> main -> tag/release
+```
+
+Bugfix work must stay focused on the confirmed defect and must not introduce unnecessary bottlenecks, broad refactors, or unrelated behavioral changes.
+
+Before changing code:
+
+- Identify the exact failing behavior.
+- Identify the expected behavior.
+- Identify the affected flow, module, and trigger condition.
+- Confirm whether the issue is a defect, browser limitation, site-specific edge case, or expected behavior.
+- Prefer the smallest correction that restores the expected behavior.
+
+During implementation:
+
+- Follow the project code standards and development rules.
+- Keep the correction scoped to the confirmed defect.
+- Do not broaden the fix into unrelated refactors or feature work.
+- Do not change neighboring workflows unless the defect proves they share the same root cause.
+- Do not alter URL validation, gallery heuristics, naming rules, hotkey mappings, browser support assumptions, or UI behavior as side effects.
+- Preserve existing successful flows and documented fallback behavior.
+- Avoid adding new operational bottlenecks unless they are required to correct the defect and are bounded, documented, and validated.
+- Update `CHANGELOG.md` for every user-visible or behavior-relevant bugfix.
+
+After implementation:
+
+- Run the relevant validation commands.
+- Re-test the failing scenario.
+- Re-test the closest related flows that could be affected.
+- Record residual limitations or follow-up investigations separately instead of hiding them inside the bugfix.
+
+---
+
+## 🧩 MV3 Runtime Resilience Rules
+
+Browser-extension changes must account for Manifest V3 lifecycle behavior, especially when workflows involve content scripts, hotkeys, popup/background handoff, or `chrome.runtime.sendMessage`.
+
+When implementing or refactoring extension workflows:
+
+- Distinguish whether the entry point is **background-owned** (`chrome.commands`, popup-triggered background injection, service-worker orchestration) or **page-side** (`keydown` listeners or already-injected content scripts).
+- Assume long-lived tabs may contain content scripts injected before an extension reload. Those scripts can still receive DOM events, but their extension context may be invalidated.
+- Handle `Extension context invalidated` explicitly when a page-side script can no longer call extension APIs.
+- Provide a clear user-facing recovery path when safe recovery is not possible, usually asking the user to refresh the affected tab.
+- Do not leave recoverable MV3 lifecycle failures as console-only errors.
+- Do not show false success messages after failed injection, failed handoff, or invalidated runtime access.
+- Rehydrate cached settings only when the local snapshot is stale, incomplete, or required for the current flow.
+- Keep background refreshes scoped to the settings required by that flow.
+- Preserve existing business logic unless the issue explicitly requires changing it. Do not alter URL validation, gallery heuristics, download naming rules, or hotkey names as a side effect of lifecycle fixes.
+- Any visible toast/user feedback must also be logged with the final rendered text, using the project format:
+  ```js
+  logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
+  ```
+- If the change introduces or documents browser-specific behavior, shortcut conflicts, MV3 recovery behavior, or long-lived tab limitations, update the relevant documentation.
 
 ---
 
@@ -153,6 +505,7 @@ Discussions should use the correct category and descriptive labels when availabl
 
 This project partially uses tools based on artificial intelligence (AI) for assistance, such as: 
 
+- Codex CLI
 - Copilot 
 - ChatGPT 
 - Gemini 

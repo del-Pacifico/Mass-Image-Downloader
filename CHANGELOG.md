@@ -1,6 +1,45 @@
-# 📦 Changelog - Mass Image Downloader
+# 🏔️ Mass Image Downloader – Changelog
 
 This project follows [Semantic Versioning](https://semver.org/).
+
+---
+
+## [2.8.186] - 2026-06-02
+
+### Fixed
+
+- Added conditional state rehydration for long-lived tabs so settings-dependent actions can recover stale or incomplete cached settings without requiring a page refresh.
+- Hardened download naming and path generation so Bulk, manual download, Image Inspector saves, and gallery downloads refresh naming/folder settings only when the local snapshot is stale or incomplete.
+- Improved hotkey-driven content script reliability for Clipboard Hotkeys, Settings Peek, and Image Inspector by validating local settings before executing cached-state-dependent actions.
+- Improved Clipboard Hotkeys recovery after extension reloads so invalidated prefix/suffix hotkey attempts show refresh guidance before settings rehydration or clipboard access.
+- Added clearer recovery handling for One-click settings load failures when the extension runtime context has changed.
+- Added fallback toast rendering from the background service worker when long-lived tabs no longer have an active content-script message receiver after extension reloads.
+- Improved Settings Peek recovery after extension reloads by releasing stale hotkey listeners, avoiding false "opened" logs, and logging/showing a clear refresh-needed message when the page-side runtime context is invalidated.
+- Standardized user-feedback toast logging so visible messages are recorded with the final rendered text across shared utilities, Options, popup, Image Inspector, gallery extractors, Settings Peek, and One-click flows.
+- Replaced Settings Peek clipboard-based JSON copy with an Open Settings JSON action that avoids page-level Clipboard API permission-policy blocks.
+- Aligned One-click success toast styling with the documented project feedback palette.
+- Added bounded retry backoff for automatic One-click icon injection in newly opened Web-linked Gallery tabs when Chromium reports that the main frame is not ready yet.
+- Improved Image Inspector recovery after extension reloads by showing a refresh-needed message on invalidated save attempts and by preferring linked full-size image URLs over rendered thumbnails when opening or saving from the panel.
+- Improved Web-linked Gallery and Settings Peek hotkey recovery after extension reloads so invalidated page-side handlers show repeatable refresh-needed feedback instead of failing silently or only logging to the console.
+- Suppressed stale Settings Peek hotkey recovery toasts when a newer valid Settings Peek instance is already active in the same tab after popup-driven reinjection.
+- Aligned Settings Peek recovery toasts with the shared in-page toast channel so rapid recovery messages respect the user-configured minimum visible time without overlapping.
+- Documented the browser QA baseline in the contribution guide and moved browser-specific shortcut behavior to the hotkeys documentation.
+- Added Vivaldi to the documented browser QA coverage and header badges after successful QA coverage for the current test pass.
+- Documented why MV3 extension reloads can affect long-lived tabs differently depending on whether a workflow is background-owned or page-side content-script-owned.
+- Aligned documentation H1 titles with the project documentation naming standard.
+- Aligned the root README H1 with the project documentation naming standard.
+- Added MV3 runtime resilience rules to the contribution guide for future content-script, hotkey, background handoff, and long-lived tab work.
+- Added bugfix scope discipline rules to the contribution guide so corrective work remains focused on the confirmed defect and avoids unrelated flow changes.
+- Refined contribution code standards and development rules to clarify scope discipline, logging, recovery paths, business-rule preservation, documentation updates, and local validation expectations.
+- Added the documentation title standard to the contribution guide and aligned root documents, manuals, and GitHub templates with the project-name-first heading convention.
+- Added UI feedback and visual standards to the contribution guide, including the project palette for toasts, buttons, panels, tables, and tooltips.
+- Clarified the contribution guide flows for bug reports and feature suggestions so users prepare evidence, scope, and the right channel before selecting an issue form.
+- Added Codex CLI to the AI-assisted contribution tools list.
+
+### Validation
+
+- Confirmed extension compliance with `npm run check`.
+- Confirmed automated tests with `npm test`.
 
 ---
 
