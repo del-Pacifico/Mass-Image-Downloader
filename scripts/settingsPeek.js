@@ -15,9 +15,15 @@ if (!window.__mdi_settingsPeekInjected) {
     // such as peekTransparencyLevel, showUserFeedbackMessages, etc.
     let configCache = {};
     let debugLogLevelCache = 1;
+    const CONFIG_CACHE_STALE_MS = 60000;
+    const SETTINGS_PEEK_ACTIVE_TOKEN_ATTR = "data-mdi-settings-peek-active-token";
+    const settingsPeekInstanceToken = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    let configLastHydratedAt = 0;
+    let configHydrationInFlight = null;
 
     // Initialize config and listener after storage loads
     (async function () {
+        markSettingsPeekInstanceActive();
         logStartup();
         await initConfig();
         registerMessageListener();
@@ -46,6 +52,7 @@ if (!window.__mdi_settingsPeekInjected) {
 
                     configCache = data ?? {};
                     debugLogLevelCache = parseInt(configCache.debugLogLevel ?? 1);
+                    configLastHydratedAt = Date.now();
                     logDebug(1, "⚙️ Debug level loaded:", debugLogLevelCache);
                     resolve();
                 });
@@ -54,6 +61,43 @@ if (!window.__mdi_settingsPeekInjected) {
                 resolve();
             }
         });
+    }
+
+    /**
+     * Checks whether the Settings Peek config snapshot is complete enough to open the panel.
+     * @returns {boolean} True when the local snapshot is initialized and fresh.
+     */
+    function isPeekConfigUsable() {
+        if (!configLastHydratedAt) return false;
+        if ((Date.now() - configLastHydratedAt) > CONFIG_CACHE_STALE_MS) return false;
+        return configCache && typeof configCache === "object";
+    }
+
+    /**
+     * Rehydrates Settings Peek config only when the local snapshot is stale or incomplete.
+     * @param {string} contextLabel - Short label used in debug logs.
+     * @returns {Promise<boolean>} True when a storage refresh was performed.
+     */
+    async function ensurePeekConfigFresh(contextLabel = "Settings Peek") {
+        if (isPeekConfigUsable()) {
+            return false;
+        }
+
+        if (!configHydrationInFlight) {
+            logDebug(2, `🔄 Rehydrating Settings Peek config for ${contextLabel}.`);
+            configHydrationInFlight = initConfig()
+                .catch((err) => {
+                    logDebug(1, `❌ Settings Peek config rehydration failed for ${contextLabel}: ${err.message}`);
+                    logDebug(2, `🐛 Stack trace: ${err.stack}`);
+                    throw err;
+                })
+                .finally(() => {
+                    configHydrationInFlight = null;
+                });
+        }
+
+        await configHydrationInFlight;
+        return true;
     }
 
     /**
@@ -78,7 +122,14 @@ if (!window.__mdi_settingsPeekInjected) {
     }
 
     // ⌨️ Hotkey: Toggle Settings Peek panel (Alt + Shift + S)
-    document.addEventListener("keydown", (e) => {
+    document.addEventListener("keydown", settingsPeekHotkeyHandler, true);
+
+    /**
+     * Handles the Settings Peek hotkey and releases stale listeners after extension reloads.
+     * @param {KeyboardEvent} e - Browser keydown event.
+     * @returns {void}
+     */
+    function settingsPeekHotkeyHandler(e) {
         try {
             const target = e.target;
 
@@ -96,6 +147,18 @@ if (!window.__mdi_settingsPeekInjected) {
 
             // Check for Alt + Shift + S → View Settings (Peek)
             if (e.altKey && e.shiftKey && key === "s") {
+                if (!isExtensionContextUsable()) {
+                    if (isSupersededSettingsPeekInstance()) {
+                        logDebug(2, "ℹ️ Stale Settings Peek listener ignored because a newer instance is active.");
+                        return;
+                    }
+
+                    showSettingsPeekRefreshMessage();
+                    logDebug(1, "⚠️ Settings Peek hotkey ignored because the extension context is invalidated.");
+                    return;
+                }
+
+                markSettingsPeekInstanceActive();
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -109,15 +172,182 @@ if (!window.__mdi_settingsPeekInjected) {
             logDebug(1, `❌ Peek hotkey handler failed: ${err.message}`);
             logDebug(2, `🐛 Stack trace: ${err.stack}`);
         }
-    }, true);
+    }
+
+    /**
+     * Checks whether this content script still has a valid extension runtime context.
+     * @returns {boolean} True when extension runtime APIs can still be used safely.
+     */
+    function isExtensionContextUsable() {
+        try {
+            return Boolean(chrome?.runtime?.id && chrome.runtime.getURL("html/peekOptions.html"));
+        } catch (err) {
+            return false;
+        }
+    }
+
+    /**
+     * Marks this content-script instance as the active Settings Peek handler for the page.
+     * @returns {void}
+     */
+    function markSettingsPeekInstanceActive() {
+        try {
+            document.documentElement?.setAttribute(SETTINGS_PEEK_ACTIVE_TOKEN_ATTR, settingsPeekInstanceToken);
+        } catch (_) {}
+    }
+
+    /**
+     * Checks whether another Settings Peek instance has become active after this one.
+     * @returns {boolean} True when this listener should stay silent.
+     */
+    function isSupersededSettingsPeekInstance() {
+        try {
+            const activeToken = document.documentElement?.getAttribute(SETTINGS_PEEK_ACTIVE_TOKEN_ATTR);
+            return Boolean(activeToken && activeToken !== settingsPeekInstanceToken);
+        } catch (_) {
+            return false;
+        }
+    }
+
+    /**
+     * Shows the standard recovery message for Settings Peek after extension reloads.
+     * @returns {void}
+     */
+    function showSettingsPeekRefreshMessage() {
+        showPeekRecoveryMessage("MID: Settings Peek needs this tab to be refreshed after the extension was reloaded.", "error");
+    }
+
+    /**
+     * Shows a small page-side recovery message when the extension runtime context was invalidated.
+     * @param {string} text - Message to show to the user.
+     * @param {"info"|"success"|"error"} type - Visual message type.
+     * @returns {void}
+     */
+    function showPeekRecoveryMessage(text, type = "info") {
+        try {
+            const container = document.body || document.documentElement;
+            if (!container) return;
+
+            const toastType = ["info", "success", "error"].includes(type) ? type : "info";
+            const finalText = /^MID:/i.test(text) ? text : `MID: ${text}`;
+            const minVisibleMs = getToastMinVisibleMs();
+            const baseDuration = toastType === "error" ? 10000 : 5000;
+            const effectiveDuration = Math.max(baseDuration, minVisibleMs);
+            const TOAST_ID = "mdi-user-toast";
+            const TIMER_KEY = "__mdiUserToastTimer";
+            const MINUNTIL_KEY = "__mdiUserToastMinUntil";
+            const DEFER_KEY = "__mdiUserToastDeferTimer";
+            const PENDING_KEY = "__mdiUserToastPending";
+
+            try {
+                const legacyToast = document.getElementById("__mdi_peekRecoveryToast");
+                if (legacyToast) legacyToast.remove();
+
+                if (window.__mdiPeekRecoveryToastTimer) {
+                    clearTimeout(window.__mdiPeekRecoveryToastTimer);
+                    window.__mdiPeekRecoveryToastTimer = null;
+                }
+            } catch (_) {}
+
+            try {
+                const now = Date.now();
+                const minUntil = window[MINUNTIL_KEY] || 0;
+
+                if (minVisibleMs > 0 && now < minUntil) {
+                    window[PENDING_KEY] = { text: finalText, type: toastType };
+
+                    if (window[DEFER_KEY]) {
+                        clearTimeout(window[DEFER_KEY]);
+                        window[DEFER_KEY] = null;
+                    }
+
+                    window[DEFER_KEY] = setTimeout(() => {
+                        const pending = window[PENDING_KEY];
+                        window[PENDING_KEY] = null;
+                        window[DEFER_KEY] = null;
+
+                        if (pending && pending.text) {
+                            showPeekRecoveryMessage(pending.text, pending.type || "info");
+                        }
+                    }, Math.max(0, minUntil - now));
+
+                    return;
+                }
+            } catch (_) {}
+
+            try {
+                const existing = document.getElementById(TOAST_ID);
+                if (existing) existing.remove();
+
+                if (window[TIMER_KEY]) {
+                    clearTimeout(window[TIMER_KEY]);
+                    window[TIMER_KEY] = null;
+                }
+            } catch (_) {}
+
+            try {
+                window[MINUNTIL_KEY] = Date.now() + minVisibleMs;
+            } catch (_) {}
+
+            const toast = document.createElement("div");
+            toast.id = TOAST_ID;
+            toast.setAttribute("role", "status");
+            toast.setAttribute("aria-live", "polite");
+            toast.textContent = finalText;
+            container.appendChild(toast);
+
+            logDebug(2, `📢 Showing user message: "${finalText}" (${toastType})`);
+
+            toast.style.cssText = [
+                "position:fixed",
+                "top:18px",
+                "right:18px",
+                "max-width:360px",
+                "padding:12px 14px",
+                "border-radius:6px",
+                "font:13px/1.35 Arial, sans-serif",
+                "color:#fff",
+                `background:${toastType === "error" ? "#d9534f" : "#007EE3"}`,
+                "box-shadow:0 4px 14px rgba(0,0,0,.22)",
+                "z-index:2147483647",
+                "opacity:1",
+                "transition:opacity .2s ease",
+                "white-space:normal",
+                "word-break:break-word"
+            ].join(";");
+
+            window[TIMER_KEY] = setTimeout(() => {
+                toast.style.opacity = "0";
+                setTimeout(() => {
+                    try { toast.remove(); } catch (_) {}
+                }, 250);
+                window[TIMER_KEY] = null;
+            }, effectiveDuration);
+        } catch (err) {
+            logDebug(1, `❌ Failed to show Settings Peek recovery message: ${err.message}`);
+        }
+    }
+
+    /**
+     * Reads the user-configured toast minimum visible time from the cached Settings Peek config.
+     * @returns {number} Configured minimum visible time in milliseconds, or 2000 as defensive default.
+     */
+    function getToastMinVisibleMs() {
+        const rawToastMinVisibleMs = parseInt(configCache?.toastMinVisibleMs ?? 2000, 10);
+        return (!isNaN(rawToastMinVisibleMs) && rawToastMinVisibleMs >= 0 && rawToastMinVisibleMs <= 10000)
+            ? rawToastMinVisibleMs
+            : 2000;
+    }
 
     /**
      * Toggles the Peek panel on/off.
      * If the panel already exists, it will be removed.
      * Otherwise, it will be injected.
      */
-    function togglePeekPanel() {
+    async function togglePeekPanel() {
         try {
+            markSettingsPeekInstanceActive();
+
             const existing = document.getElementById("__mdi_peekOverlay");
             // If panel exists, remove it
             if (existing) {
@@ -126,11 +356,19 @@ if (!window.__mdi_settingsPeekInjected) {
                 return;
             }
 
+            await ensurePeekConfigFresh("panel toggle");
+
             // Otherwise, inject it
-            injectPeekPanel();
-            logDebug(1, "✅ Peek panel opened (toggle).");
+            const didOpen = injectPeekPanel();
+            if (didOpen) {
+                logDebug(1, "✅ Peek panel opened (toggle).");
+            }
 
         } catch (err) {
+            if (/Extension context invalidated/i.test(err.message || "")) {
+                showSettingsPeekRefreshMessage();
+            }
+
             logDebug(1, `❌ Failed to toggle Peek panel: ${err.message}`);
             logDebug(2, `🐛 Stack trace: ${err.stack}`);
         }
@@ -138,13 +376,14 @@ if (!window.__mdi_settingsPeekInjected) {
 
 
     /**
-     * Injects the peek panel overlay if it is not already present
+     * Injects the peek panel overlay if it is not already present.
+     * @returns {boolean} True when the panel is present or was injected successfully.
      */
     function injectPeekPanel() {
         try {
             if (document.getElementById("__mdi_peekOverlay")) {
                 logDebug(2, "🟡 Peek overlay already visible. Ignoring.");
-                return;
+                return true;
             }
 
             const overlay = document.createElement("div");
@@ -212,9 +451,15 @@ if (!window.__mdi_settingsPeekInjected) {
 
             document.addEventListener("keydown", escKeyHandler);
             logDebug(1, "🪟 Peek overlay injected into page.");
+            return true;
         } catch (err) {
+            if (/Extension context invalidated/i.test(err.message || "")) {
+                showSettingsPeekRefreshMessage();
+            }
+
             logDebug(1, `❌ Error injecting peek overlay: ${err.message}`);
             logDebug(2, `🐛 Stack trace: ${err.stack}`);
+            return false;
         }
     }
 

@@ -1,4 +1,4 @@
-name: Hotfix (Production)
+name: 🏔️ Mass Image Downloader – Hotfix (Production)
 description: Critical fix that must be released ASAP to mitigate a production issue.
 title: "[Hotfix] "
 labels:

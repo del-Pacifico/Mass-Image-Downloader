@@ -954,9 +954,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const msg = document.createElement("div");
         const duration = type === 'error' ? 10000 : 5000;
         const backgroundColor = type === 'error' ? '#d9534f' : '#007EE3';
+        const finalText = text;
 
-        logDebug(2, `📢 Message to user: ${text}`);
-        msg.textContent = text;
+        logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
+        msg.textContent = finalText;
         msg.style.position = "fixed";
         msg.style.top = "20px";
         msg.style.right = "20px";

@@ -75,7 +75,8 @@ function showUserMessage(text, type = "info") {
         const backgroundColor = (type === "error") ? "#d9534f" : "#007EE3";
 
         const messageElement = document.createElement("div");
-        messageElement.textContent = "Mass image downloader: " + text;
+        const finalText = "Mass image downloader: " + text;
+        messageElement.textContent = finalText;
         messageElement.style.position = "fixed";
         messageElement.style.top = "20px";
         messageElement.style.right = "20px";
@@ -90,7 +91,7 @@ function showUserMessage(text, type = "info") {
         messageElement.style.zIndex = "9999";
         document.body.appendChild(messageElement);
 
-        logDebug(3, `📢 Showing user message: "${text}" (${type})`);
+        logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
 
         setTimeout(() => {
             messageElement.style.opacity = "0";
