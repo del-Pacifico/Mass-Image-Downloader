@@ -377,11 +377,15 @@
      * - "patritcy-00.html" -> "patritcy"
      * - "gallery_01.php"   -> "gallery"
      * - "set123-004.asp"   -> "set123"
+     * - "00.html"          -> "numeric"  // ✅ NEW: unified token
+     * - "01.html"          -> "numeric"  // ✅ NEW: unified token
      * @param {string} segment - Raw last path segment.
      * @returns {string} A normalized slug base used for structural comparison.
      */
     function normalizeGallerySlug(segment) {
         try {
+
+            // ✅ Normalize case and trim whitespace
             const safeSegment = String(segment || "").toLowerCase().trim();
 
             if (!safeSegment) return "";
@@ -403,7 +407,16 @@
                 .replace(/^-+|-+$/g, "")
                 .trim();
 
+            // ✅ FIX Bug#73: If the normalized base is empty and the original slug was purely numeric,
+            // return a fixed token so all numeric slugs share the same base.
+            if (!normalized && /^\d+$/.test(noExt)) {
+                return "numeric";
+            }
+
+            // Fallback: if normalized is empty but noExt has content (e.g., "00" is numeric),
+            // we already handled it above. For safety, keep the original fallback.
             return normalized || noExt || cleanSegment;
+            
         } catch (err) {
             logDebug(2, `⚠️ Failed to normalize gallery slug: ${err.message}`);
             return "";
