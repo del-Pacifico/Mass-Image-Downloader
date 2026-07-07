@@ -17,7 +17,7 @@
 
 Mass Image Downloader is a Chromium Manifest V3 extension for collecting and downloading images at scale from open tabs, single pages, and multi-page galleries while keeping results filtered, named, and reproducible.
 
-## Features
+## ✨ Features
 
 - Bulk image download across open tabs.
 - Gallery extraction for direct links, visual galleries, and web-linked gallery pages.
@@ -28,15 +28,18 @@ Mass Image Downloader is a Chromium Manifest V3 extension for collecting and dow
 - Clipboard hotkeys for dataset labeling.
 - Toast notifications, badge states, debug levels, pacing, batching, and concurrency controls.
 
-## Installation
+## 🏗️ Installation
 
 1. Clone this repository using HTTPS or SSH:
+
    ```bash
    git clone https://github.com/del-Pacifico/Mass-Image-Downloader.git
    ```
+
    ```bash
    git clone git@github.com:del-Pacifico/Mass-Image-Downloader.git
    ```
+
 2. Open a Chromium-based browser and go to the extensions page:
    - Edge: `edge://extensions`
    - Brave: `brave://extensions`
@@ -48,14 +51,14 @@ Mass Image Downloader is a Chromium Manifest V3 extension for collecting and dow
 
 For the long-form unpacked installation notes, see the [Extended Project Overview](docs/project-overview-extended.md#-installation-developer-mode--unpacked).
 
-## Quick Start
+## 🚀 Quick Start
 
 1. Pin the extension icon.
 2. Open the popup and choose a download mode.
 3. Configure formats, size filters, naming, pacing, and gallery limits from the Options page.
 4. Run the workflow from the popup or with the configured keyboard shortcuts.
 
-## Validation
+## ✅ Validation
 
 Contributors can run local compliance checks before opening a pull request:
 
@@ -66,7 +69,7 @@ npm test
 
 These commands validate the extension manifest, declared paths, version alignment, command limits, required permissions, and JavaScript syntax.
 
-## Documentation
+## 📑 Documentation
 
 - [Documentation Hub](docs/README.md) - entry point for all manuals.
 - [User Manual](docs/user-manual/README.md) - basic usage and workflows.
@@ -76,7 +79,7 @@ These commands validate the extension manifest, declared paths, version alignmen
 - [Extended Project Overview](docs/project-overview-extended.md) - the previous long-form README preserved as a reference, including [Release Highlights](docs/project-overview-extended.md#-release-highlights).
 - [Hotkeys Policy](docs/hotkeys/hotkeys.md) - official shortcut policy.
 
-## Requirements
+## 📋 Requirements
 
 - Chromium-based browser.
 - Minimum Chromium version: `93`.
@@ -85,7 +88,7 @@ These commands validate the extension manifest, declared paths, version alignmen
 - Google Chrome has not been validated by the project QA process.
 - Browser-level shortcut conflicts or restrictions may require manual configuration.
 
-## Version
+## 🏷️ Version
 
 The current public version is shown by the GitHub Release badge above.
 
@@ -97,7 +100,13 @@ For source-level validation, check:
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
 
-## Contributing
+## 🏛️ Project Philosophy
+
+Mass Image Downloader is built on a set of core principles: reliability, user control, performance, security, quality, and open collaboration.
+
+These values guide every decision – from code architecture to user feedback design. For a deeper dive, see the full **[Project Philosophy](docs/philosophy.md)** document.
+
+## 🤝 Contributing
 
 Contributions should follow the project flow: feature or chore branch, PR to `dev`, merge to `main`, then tag/release.
 
@@ -105,13 +114,13 @@ All issues, pull requests, and discussions should use the repository's descripti
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md).
 
-## Support the Project
+## 🆘 Support the Project
 
 If Mass Image Downloader helps your workflow, consider starring the repository, opening focused issues, sharing reproducible test cases, or contributing documentation and fixes through the standard branch flow.
 
 Responsible feedback is especially useful for gallery edge cases, browser compatibility checks, and real-world configuration scenarios.
 
-## Acknowledgements
+## 😌 Acknowledgements
 
 Thank you for using Mass Image Downloader and supporting a focused, privacy-friendly tool for collecting images with predictable, browser-native workflows.
 
@@ -119,7 +128,7 @@ Built for power users, researchers, curators, QA teams, dataset builders, and au
 
 Made with ❤️ by Del-Pacifico.
 
-## License
+## ⚖️ License
 
 Mass Image Downloader is licensed under the [Mozilla Public License 2.0](LICENSE).
 
