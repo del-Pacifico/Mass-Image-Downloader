@@ -17,6 +17,8 @@
 
 Mass Image Downloader is a Chromium Manifest V3 extension for collecting and downloading images at scale from open tabs, single pages, and multi-page galleries while keeping results filtered, named, and reproducible.
 
+---
+
 ## ✨ Features
 
 - Bulk image download across open tabs.
@@ -27,6 +29,8 @@ Mass Image Downloader is a Chromium Manifest V3 extension for collecting and dow
 - Image Inspector mode with preview, metadata, navigation, and save controls.
 - Clipboard hotkeys for dataset labeling.
 - Toast notifications, badge states, debug levels, pacing, batching, and concurrency controls.
+
+---
 
 ## 🏗️ Installation
 
@@ -51,12 +55,16 @@ Mass Image Downloader is a Chromium Manifest V3 extension for collecting and dow
 
 For the long-form unpacked installation notes, see the [Extended Project Overview](docs/project-overview-extended.md#-installation-developer-mode--unpacked).
 
+---
+
 ## 🚀 Quick Start
 
 1. Pin the extension icon.
 2. Open the popup and choose a download mode.
 3. Configure formats, size filters, naming, pacing, and gallery limits from the Options page.
 4. Run the workflow from the popup or with the configured keyboard shortcuts.
+
+---
 
 ## ✅ Validation
 
@@ -69,6 +77,8 @@ npm test
 
 These commands validate the extension manifest, declared paths, version alignment, command limits, required permissions, and JavaScript syntax.
 
+---
+
 ## 📑 Documentation
 
 - [Documentation Hub](docs/README.md) - entry point for all manuals.
@@ -79,6 +89,8 @@ These commands validate the extension manifest, declared paths, version alignmen
 - [Extended Project Overview](docs/project-overview-extended.md) - the previous long-form README preserved as a reference, including [Release Highlights](docs/project-overview-extended.md#-release-highlights).
 - [Hotkeys Policy](docs/hotkeys/hotkeys.md) - official shortcut policy.
 
+---
+
 ## 📋 Requirements
 
 - Chromium-based browser.
@@ -87,6 +99,8 @@ These commands validate the extension manifest, declared paths, version alignmen
 - QA tested primarily on Brave, with additional QA coverage on Microsoft Edge, Opera One, and Vivaldi.
 - Google Chrome has not been validated by the project QA process.
 - Browser-level shortcut conflicts or restrictions may require manual configuration.
+
+---
 
 ## 🏷️ Version
 
@@ -100,11 +114,15 @@ For source-level validation, check:
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
 
+---
+
 ## 🏛️ Project Philosophy
 
 Mass Image Downloader is built on a set of core principles: reliability, user control, performance, security, quality, and open collaboration.
 
 These values guide every decision – from code architecture to user feedback design. For a deeper dive, see the full **[Project Philosophy](docs/philosophy.md)** document.
+
+---
 
 ## 🤝 Contributing
 
@@ -114,11 +132,15 @@ All issues, pull requests, and discussions should use the repository's descripti
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md).
 
+---
+
 ## 🆘 Support the Project
 
 If Mass Image Downloader helps your workflow, consider starring the repository, opening focused issues, sharing reproducible test cases, or contributing documentation and fixes through the standard branch flow.
 
 Responsible feedback is especially useful for gallery edge cases, browser compatibility checks, and real-world configuration scenarios.
+
+---
 
 ## 😌 Acknowledgements
 
@@ -127,6 +149,8 @@ Thank you for using Mass Image Downloader and supporting a focused, privacy-frie
 Built for power users, researchers, curators, QA teams, dataset builders, and automation workflows that need controlled output without external services, tracking, or unnecessary complexity.
 
 Made with ❤️ by Del-Pacifico.
+
+---
 
 ## ⚖️ License
 
