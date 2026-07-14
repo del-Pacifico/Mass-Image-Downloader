@@ -77,7 +77,7 @@ npm test
 
 These commands validate the extension manifest, declared paths, version alignment, command limits, required permissions, and JavaScript syntax.
 
----
+Contributions should follow the project flow: feature or chore branch, PR to `dev`, merge to `main`, then tag/release.
 
 ## 📑 Documentation
 
@@ -89,7 +89,7 @@ These commands validate the extension manifest, declared paths, version alignmen
 - [Extended Project Overview](docs/project-overview-extended.md) - the previous long-form README preserved as a reference, including [Release Highlights](docs/project-overview-extended.md#-release-highlights).
 - [Hotkeys Policy](docs/hotkeys/hotkeys.md) - official shortcut policy.
 
----
+## Acknowledgements
 
 ## 📋 Requirements
 
