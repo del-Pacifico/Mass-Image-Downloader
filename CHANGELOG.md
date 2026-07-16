@@ -8,6 +8,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Prevented `Uncaught SyntaxError: Identifier 'debugLogLevelCache' has already been declared` and similar errors on direct image pages by wrapping the entire `injectSaveIcon.js` script in an IIFE with a guard flag. The script now runs only once per tab, eliminating all global declarations and avoiding re‑declaration issues when the script is injected multiple times (e.g., due to retries or repeated hotkey presses). ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
+
 - Prevented `Uncaught SyntaxError: Identifier 'SUPPORTED_IMAGE_EXTENSIONS' has already been declared` on direct image pages by adding a guard... ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
 
 - Web‑linked gallery now correctly groups pages with purely numeric slugs (e.g., `00.html` … `14.html`). The `normalizeGallerySlug()` helper returns a fixed token (`"numeric"`) when the normalized base is empty and the original slug consists only of digits, allowing `isSameGalleryStructure` to recognise all numeric‑only pages as part of the same sequence. This resolves the "No dominant image group found" error and restores the expected tab‑opening flow. ([#73](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/73))
