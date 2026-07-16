@@ -40,6 +40,9 @@ const AFFILIATE_PARAMS = [
 ];
 // --- End of constants ---
 
+// ✅ Cache for debug log level (explicit declaration)
+let debugLogLevelCache = 1;
+
 /**
  * Logs debug messages based on user-defined log level.
  * @param {number|string} levelOfLog - Log level (0-3) or message string.
@@ -499,6 +502,14 @@ function initConfigForInjectSaveIcon(callback) {
 // Inject the save icon over the best image candidate
 (function injectOneClickIcon() {
     try {
+        
+        // 🛡️ Early exit if already injected (EdgeCase #78)
+        if (window.__mdi_injectSaveIconInjected) {
+            logDebug(2, "ℹ️ One-click icon already injected (early exit). Skipping.");
+            return;
+        }
+        window.__mdi_injectSaveIconInjected = true;
+
         initConfigForInjectSaveIcon(() => {
             if (document.readyState === 'complete') {
                 detectContextAndProceed();

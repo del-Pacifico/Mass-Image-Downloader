@@ -8,6 +8,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Prevented `Uncaught SyntaxError: Identifier 'SUPPORTED_IMAGE_EXTENSIONS' has already been declared` on direct image pages by adding a guard... ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
+
 - Web‑linked gallery now correctly groups pages with purely numeric slugs (e.g., `00.html` … `14.html`). The `normalizeGallerySlug()` helper returns a fixed token (`"numeric"`) when the normalized base is empty and the original slug consists only of digits, allowing `isSameGalleryStructure` to recognise all numeric‑only pages as part of the same sequence. This resolves the "No dominant image group found" error and restores the expected tab‑opening flow. ([#73](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/73))
 
 - One‑click save icon now uses a multi‑factor scoring heuristic to prioritise the main gallery image over advertisement thumbnails. The selection logic considers displayed size (`offsetWidth × offsetHeight`), main content containers, ad containers, affiliate link patterns, aspect ratio, and DOM position. Affiliate links are penalised with a graduated penalty (−80% for all three conditions, −50% for two, −30% for one). This resolves the issue where the icon was incorrectly placed on high‑resolution advertisement thumbnails displayed at small sizes. ([#74](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/74))
