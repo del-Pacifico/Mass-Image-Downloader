@@ -8,6 +8,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Moved the initial toast notification for Web‑linked Gallery to the content script to ensure immediate user feedback, even when the page scan takes several seconds. This aligns the flow with the behavior of other gallery extraction flows. ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
+
 - Prevented `Uncaught SyntaxError: Identifier 'debugLogLevelCache' has already been declared` and similar errors on direct image pages by wrapping the entire `injectSaveIcon.js` script in an IIFE with a guard flag. The script now runs only once per tab, eliminating all global declarations and avoiding re‑declaration issues when the script is injected multiple times (e.g., due to retries or repeated hotkey presses). ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
 
 - Prevented `Uncaught SyntaxError: Identifier 'SUPPORTED_IMAGE_EXTENSIONS' has already been declared` on direct image pages by adding a guard... ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))

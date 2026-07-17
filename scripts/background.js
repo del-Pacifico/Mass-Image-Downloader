@@ -1164,11 +1164,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                     throw new Error("No valid web-linked gallery URLs were received.");
                 }
 
-                // ✅ UX: b) MID: Web-linked Gallery - analyzing / send to download
-                if (isTabOrigin) {
-                    sendUserToastToTab(tabId, `MID: Web-linked gallery: found ${total} page(s). Opening...`, "info");
-                }
-
                 // Acknowledge the content-script handoff immediately. Opening many tabs can
                 // outlive the MV3 message callback in some Chromium browsers, producing a
                 // false "unexpected response" toast even though the background flow succeeds.

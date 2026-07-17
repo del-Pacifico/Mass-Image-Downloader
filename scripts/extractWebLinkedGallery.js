@@ -567,6 +567,8 @@
         try {
 
             logDebug(1, "🔗 Script injected: Extract Web-Linked Gallery");
+            // Inform the user that the web-linked gallery detection has started
+            showUserMessage("MID: Web-linked gallery started. Scanning page...", "info");
 
             const results = [];
 
