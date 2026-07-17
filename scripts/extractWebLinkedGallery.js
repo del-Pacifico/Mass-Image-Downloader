@@ -953,7 +953,7 @@
                 }
 
                 // ✅ UX: Inform the user about the number of candidate pages found and that the handoff to background is occurring
-                showUserMessage(`MID: Web-linked gallery: found ${urlsToSend.length} candidate pages. Handing off to background...`, "info");
+                showUserMessage(`MID: Web-linked gallery: found ${urlsToSend.length} candidate pages!`, "info");
 
                 logDebug(2, "🧠 END: Gallery grouping.");
                 logDebug(1, `📤 Sending ${urlsToSend.length} grouped web-linked gallery URLs to background.`);
