@@ -24,6 +24,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 - **Project Philosophy** – Added a dedicated `docs/philosophy.md` document and a corresponding section in the root `README.md` to articulate the core principles guiding the project: reliability, user control, performance, security, transparency, quality, and open collaboration.
 
+### Documentation
+
+- Enhanced `CONTRIBUTING.md` with clear guidance on the Discussion → Issue flow, a dedicated Edge Cases section, stronger Pull Request requirements (must reference an Issue or Discussion), a Pull Request Review Process section, and developer responsibilities for AI‑assisted contributions. The incremental commit discipline and local validation reporting are now also clarified. 
+
 ---
 
 ## [2.8.186] - 2026-06-02
