@@ -8,6 +8,14 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Fixed the user‑feedback toast sequence for Web‑linked Gallery. The flow now shows distinct messages for each phase: start, candidates found, opening pages, and completion. This resolves duplicate and missing toast notifications. ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
+
+- Moved the initial toast notification for Web‑linked Gallery to the content script to ensure immediate user feedback, even when the page scan takes several seconds. This aligns the flow with the behavior of other gallery extraction flows. ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
+
+- Prevented `Uncaught SyntaxError: Identifier 'debugLogLevelCache' has already been declared` and similar errors on direct image pages by wrapping the entire `injectSaveIcon.js` script in an IIFE with a guard flag. The script now runs only once per tab, eliminating all global declarations and avoiding re‑declaration issues when the script is injected multiple times (e.g., due to retries or repeated hotkey presses). ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
+
+- Prevented `Uncaught SyntaxError: Identifier 'SUPPORTED_IMAGE_EXTENSIONS' has already been declared` on direct image pages by adding a guard... ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
+
 - Web‑linked gallery now correctly groups pages with purely numeric slugs (e.g., `00.html` … `14.html`). The `normalizeGallerySlug()` helper returns a fixed token (`"numeric"`) when the normalized base is empty and the original slug consists only of digits, allowing `isSameGalleryStructure` to recognise all numeric‑only pages as part of the same sequence. This resolves the "No dominant image group found" error and restores the expected tab‑opening flow. ([#73](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/73))
 
 - One‑click save icon now uses a multi‑factor scoring heuristic to prioritise the main gallery image over advertisement thumbnails. The selection logic considers displayed size (`offsetWidth × offsetHeight`), main content containers, ad containers, affiliate link patterns, aspect ratio, and DOM position. Affiliate links are penalised with a graduated penalty (−80% for all three conditions, −50% for two, −30% for one). This resolves the issue where the icon was incorrectly placed on high‑resolution advertisement thumbnails displayed at small sizes. ([#74](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/74))
@@ -15,6 +23,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 ### Added
 
 - **Project Philosophy** – Added a dedicated `docs/philosophy.md` document and a corresponding section in the root `README.md` to articulate the core principles guiding the project: reliability, user control, performance, security, transparency, quality, and open collaboration.
+
+### Documentation
+
+- Enhanced `CONTRIBUTING.md` with clear guidance on the Discussion → Issue flow, a dedicated Edge Cases section, stronger Pull Request requirements (must reference an Issue or Discussion), a Pull Request Review Process section, and developer responsibilities for AI‑assisted contributions. The incremental commit discipline and local validation reporting are now also clarified. 
 
 ---
 
