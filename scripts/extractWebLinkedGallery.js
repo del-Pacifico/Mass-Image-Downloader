@@ -567,6 +567,8 @@
         try {
 
             logDebug(1, "🔗 Script injected: Extract Web-Linked Gallery");
+            // Inform the user that the web-linked gallery detection has started
+            showUserMessage("MID: Web-linked gallery started. Scanning page...", "info");
 
             const results = [];
 
@@ -949,6 +951,9 @@
                     showUserMessage("Web-linked gallery rejected. Not enough similar links to form a gallery.", "error");
                     return;
                 }
+
+                // ✅ UX: Inform the user about the number of candidate pages found and that the handoff to background is occurring
+                showUserMessage(`MID: Web-linked gallery: found ${urlsToSend.length} candidate pages!`, "info");
 
                 logDebug(2, "🧠 END: Gallery grouping.");
                 logDebug(1, `📤 Sending ${urlsToSend.length} grouped web-linked gallery URLs to background.`);

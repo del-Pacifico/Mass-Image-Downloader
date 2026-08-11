@@ -1144,29 +1144,26 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             const isTabOrigin = (typeof tabId === "number");
             let handoffAcknowledged = false;
 
-            // ✅ UX: Start toast (web-linked)
-            if (isTabOrigin) {
-                sendUserToastToTab(tabId, "MID: Web-linked gallery started. Scanning page...", "info");
-            }
-
             try {
                 
                 const timing = logTimingStart("processWebLinkedGallery");
                 
                 const candidates = message.images;
+                // ✅ Validate candidates array
                 if (!Array.isArray(candidates) || candidates.length === 0) {
                     throw new Error("Missing or invalid image candidates.");
                 }
 
                 const urls = candidates.filter(url => typeof url === 'string' && url.startsWith('http'));
                 const total = urls.length;
+                // ✅ Validate filtered URLs
                 if (total === 0) {
                     throw new Error("No valid web-linked gallery URLs were received.");
                 }
 
-                // ✅ UX: b) MID: Web-linked Gallery - analyzing / send to download
+                // ✅ User feedback: show initial toast for web-linked gallery opening
                 if (isTabOrigin) {
-                    sendUserToastToTab(tabId, `MID: Web-linked gallery: found ${total} page(s). Opening...`, "info");
+                    sendUserToastToTab(tabId, `MID: Web-linked gallery: opening ${total} pages...`, "info");
                 }
 
                 // Acknowledge the content-script handoff immediately. Opening many tabs can
@@ -1175,6 +1172,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                 respondSafe(sendResponse, { success: true, ack: true, pages: total });
                 handoffAcknowledged = true;
 
+                // ✅ Concurrency control: limit the number of tabs opened simultaneously
                 const concurrencyLimit = Math.max(1, Math.min(10, maxOpenTabs));
                 let opened = 0;
                 let index = 0;
@@ -1187,11 +1185,13 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                 // This will filter out any invalid URLs
                 async function openNextTabsControlled() {
                     try {
+                        // ✅ Calculate delay between tab openings (clamped to 100-3000 ms)
                         const delayBetweenTabs = Math.max(100, Math.min(3000, webLinkedGalleryDelay));
                         logDebug(1, `🔗 BEGIN: Opening ${total} tabs...`);
                         logDebug(2, `⏱️ Delay between openings: ${delayBetweenTabs} ms`);
                         logDebug(3, '');
-                        updateBadge(0); // 🟢 Initialize badge in green
+                        // ✅ Initialize badge in green
+                        updateBadge(0);
 
                         // ✅ Capture base tab index once
                         const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
