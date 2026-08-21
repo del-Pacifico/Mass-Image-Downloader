@@ -516,15 +516,38 @@ function activateImageInspector() {
 
   document.documentElement.style.cursor = "help";
 
+  // Fix77: Mouseover handler for the entire document.
   mouseOverHandler = (ev) => {
     try {
-      if (!iiActiveInPage) return;
-      if (inspectorPanelRoot && inspectorPanelRoot.contains(ev.target)) return;
+      logDebug(2, "🧪 [II trace] mouseOverHandler triggered:", {
+        target: ev.target?.tagName || "[unknown]",
+        targetClass: ev.target?.className || "",
+        targetId: ev.target?.id || "",
+        iiActiveInPage,
+        clientX: ev.clientX,
+        clientY: ev.clientY
+      });
+      
+      // Avoid processing when the inspector is not active or the target is inside the inspector panel.
+      if (!iiActiveInPage) {
+        logDebug(3, "🧪 [II trace] mouseOverHandler: iiActiveInPage is false, returning");
+        return;
+      }
+      // Avoid processing when the target is inside the inspector panel.
+      if (inspectorPanelRoot && inspectorPanelRoot.contains(ev.target)) {
+        logDebug(3, "🧪 [II trace] mouseOverHandler: target is inside inspectorPanelRoot, returning");
+        return;
+      }
+      // Avoid processing when the target is inside the overlay. 
       const img = findValidImgFromEvent(ev);
+      logDebug(3, "🧪 [II trace] mouseOverHandler: findValidImgFromEvent returned:", img ? `valid image (${img.currentSrc || img.src})` : "null");
       if (!img) return;
       const now = Date.now();
       // Throttled.
-      if (now - lastOverlayTs < OVERLAY_THROTTLE_MS) return;
+      if (now - lastOverlayTs < OVERLAY_THROTTLE_MS) {
+        logDebug(3, "🧪 [II trace] mouseOverHandler: throttled, returning");
+        return;
+      }
       lastOverlayTs = now;
       showOverlayForImage(img);
     } catch (err) {
@@ -809,6 +832,16 @@ function pickBestInspectorImage(container) {
  */
 function findValidImgFromEvent(ev) {
   try {
+
+    // Fix77: Add detailed debug logging for event target inspection
+    logDebug(3, "🧪 [II trace] findValidImgFromEvent() called with target:", {
+      tagName: ev.target?.tagName,
+      className: ev.target?.className,
+      id: ev.target?.id,
+      isElement: ev.target instanceof Element,
+      isImage: ev.target instanceof HTMLImageElement
+    });
+
     // Avoid errors when the event or target is missing.
     if (!ev || !ev.target) return null;
 
