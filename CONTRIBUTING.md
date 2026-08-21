@@ -573,6 +573,8 @@ Contributions must follow the project's development rules:
 
 ### 🎯 Minimal Technical Footprint (Zero Over-Engineering)
 
+Every line of code added must justify its existence. Prioritize simplicity, clarity, and minimalism over cleverness or theoretical future-proofing.
+
 - **Solve the actual problem**: Address the specific issue described, not hypothetical future scenarios or unreported edge cases.
 - **Prefer surgical fixes**: Favor minimal, targeted changes over architectural rewrites unless the issue explicitly requires refactoring.
 - **Avoid speculative abstractions**: Do not introduce state machines, event brokers, or wrapper layers to prevent theoretical edge cases that lack evidence.
@@ -581,6 +583,8 @@ Contributions must follow the project's development rules:
 - **Document rejected approaches**: When closing a PR or branch due to over-engineering, archive the SHA in the issue for archaeological reference.
 
 #### 🌍 Global Scope Fixes (80/20 Rule)
+
+The extension must work reliably across the entire web, not just on a handful of popular sites. Fixes should address the underlying pattern rather than the surface symptoms.
 
 - **Solve globally, not locally**: Bug fixes and edge case solutions must work across all websites, frameworks, and CMSs (WordPress, Drupal, React, static sites, etc.)
 - **Avoid CMS-specific selectors**: Do not hardcode CSS classes, HTML structures, or patterns specific to one framework or content management system
