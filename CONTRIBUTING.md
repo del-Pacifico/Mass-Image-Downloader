@@ -580,6 +580,14 @@ Contributions must follow the project's development rules:
 - **Measure before abstracting**: If a pattern appears in two places, solve both directly. Wait for three or more occurrences before creating a shared helper.
 - **Document rejected approaches**: When closing a PR or branch due to over-engineering, archive the SHA in the issue for archaeological reference.
 
+#### 🌍 Global Scope Fixes (80/20 Rule)
+
+- **Solve globally, not locally**: Bug fixes and edge case solutions must work across all websites, frameworks, and CMSs (WordPress, Drupal, React, static sites, etc.)
+- **Avoid CMS-specific selectors**: Do not hardcode CSS classes, HTML structures, or patterns specific to one framework or content management system
+- **Prefer universal heuristics**: Use physical/mathematical approaches (bounding boxes, pointer coordinates, DOM traversal) over pattern-matching specific CMS implementations
+- **CMS-agnostic validation**: If a solution only works for WordPress galleries, it's not a complete fix—it's a workaround that will fail on the next framework
+- **Test the 80%**: Focus on solutions that cover 80% of real-world cases through universal principles, not 100% through brittle, site-specific rules
+
 ---
 
 ### 🩹 Bugfix Scope Discipline
