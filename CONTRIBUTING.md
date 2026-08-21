@@ -139,13 +139,17 @@ Edge cases are narrow, reproducible scenarios that affect a limited set of users
 
 1. Fork the repository
 2. Clone your fork locally using HTTPS or SSH
+
    ```bash
    git clone https://github.com/<your-user>/Mass-Image-Downloader.git
    ```
+
    ```bash
    git clone git@github.com:<your-user>/Mass-Image-Downloader.git
    ```
+
 3. Add the upstream repository and update `dev`
+
    ```bash
    cd Mass-Image-Downloader
    git remote add upstream https://github.com/del-Pacifico/Mass-Image-Downloader.git
@@ -153,16 +157,21 @@ Edge cases are narrow, reproducible scenarios that affect a limited set of users
    git checkout dev
    git pull --ff-only upstream dev
    ```
+
 4. Create a new branch from `dev`
+
    ```bash
    git checkout -b feature/your-description
    ```
+
 5. Make your changes following the coding style and structure
 6. Test your changes locally
+
    ```bash
    npm run check
    npm test
    ```
+
 7. Push your branch and submit a pull request to `dev` using the [PR Template](.github/PULL_REQUEST_TEMPLATE.md)
 
 ---
@@ -269,10 +278,12 @@ npm test
 6. `Push the commit` to the `current feature`, `fix`, `chore`, `documentation`, or tooling branch immediately.
 
 🚫 **Do not:**
+
 - Batch unrelated changes into a single commit.
 - Push directly to `dev` or `main` during normal development.
 
 ✅ **Always:**
+
 - Use **Pull Requests** as the **only** mechanism to promote work into `dev` and `main`.
 - Keep each commit `focused` on a `single`, `atomic` change.
 - Reference the `related Issue` or `Discussion` in the `PR description`.
@@ -559,6 +570,15 @@ Contributions must follow the project's development rules:
   npm run check
   npm test
   ```
+
+### 🎯 Minimal Technical Footprint (Zero Over-Engineering)
+
+- **Solve the actual problem**: Address the specific issue described, not hypothetical future scenarios or unreported edge cases.
+- **Prefer surgical fixes**: Favor minimal, targeted changes over architectural rewrites unless the issue explicitly requires refactoring.
+- **Avoid speculative abstractions**: Do not introduce state machines, event brokers, or wrapper layers to prevent theoretical edge cases that lack evidence.
+- **Reject premature optimization**: Do not add caching, memoization, or lazy loading without profiling evidence of a bottleneck.
+- **Measure before abstracting**: If a pattern appears in two places, solve both directly. Wait for three or more occurrences before creating a shared helper.
+- **Document rejected approaches**: When closing a PR or branch due to over-engineering, archive the SHA in the issue for archaeological reference.
 
 ---
 
