@@ -426,6 +426,7 @@ function attachTooltip(element, text) {
       }
     };
 
+    // Hide the tooltip when the mouse leaves or the element loses focus.
     const hideTooltip = () => {
       try {
         if (tooltipEl) tooltipEl.remove();
@@ -554,6 +555,10 @@ function activateImageInspector() {
       logDebug(1, "❌ mouseOverHandler:", err?.message || err);
     }
   };
+
+  // Fix77: Register the mouseover handler in capture phase to catch events before they reach other elements.
+  try { document.addEventListener("mouseover", mouseOverHandler, true); } catch (_) {}
+  logDebug(3, "🧪 [II trace] activateImageInspector: mouseOverHandler registered");
 
   // Fix77: Hide overlay when tab loses focus or becomes hidden
   window.addEventListener("blur", hideOverlayOnFocusLoss);
