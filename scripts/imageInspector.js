@@ -530,9 +530,28 @@ function activateImageInspector() {
       logDebug(1, "❌ mouseOverHandler:", err?.message || err);
     }
   };
-  document.addEventListener("mouseover", mouseOverHandler, true);
+
+  // Fix77: Hide overlay when tab loses focus or becomes hidden
+  window.addEventListener("blur", hideOverlayOnFocusLoss);
+  document.addEventListener("visibilitychange", hideOverlayOnVisibilityChange);
 
   logDebug(1, "🧩 Image Inspector activated.");
+}
+
+// Fix77: Handler for window blur event
+function hideOverlayOnFocusLoss() {
+  if (overlayEl) {
+    logDebug(2, "🔵 Image Inspector: hiding overlay due to window blur");
+    removeOverlay();
+  }
+}
+
+// Fix77: Handler for document visibility change
+function hideOverlayOnVisibilityChange() {
+  if (document.hidden && overlayEl) {
+    logDebug(2, "👁️ Image Inspector: hiding overlay due to visibility change");
+    removeOverlay();
+  }
 }
 
 // Teardown the inspector.
@@ -543,6 +562,11 @@ function teardownImageInspector(reason) {
   removeOverlay();
   removeInspectorPanel();
   try { document.removeEventListener("mouseover", mouseOverHandler, true); } catch (_) {}
+
+  // Fix77: Remove global focus/visibility listeners
+  try { window.removeEventListener("blur", hideOverlayOnFocusLoss); } catch (_) {}
+  try { document.removeEventListener("visibilitychange", hideOverlayOnVisibilityChange); } catch (_) {}
+  
   document.documentElement.style.cursor = "auto";
 
   logDebug(1, `🧹 Inspector teardown. Reason: ${reason}`);
@@ -861,6 +885,21 @@ function clearOverlayPositionRaf() {
 }
 
 function updateOverlayPosition() {
+  
+  // Fix77: Remove overlay if target image or its parent was destroyed from DOM
+  if (overlayTargetImg && !overlayTargetImg.isConnected) {
+    logDebug(2, "🗑️ Image Inspector: removing overlay (target image disconnected from DOM)");
+    removeOverlay();
+    return;
+  }
+  
+  // Fix77: Remove overlay if parent container was destroyed from DOM
+  if (overlayParent && !overlayParent.isConnected) {
+    logDebug(2, "🗑️ Image Inspector: removing overlay (parent container disconnected from DOM)");
+    removeOverlay();
+    return;
+  }
+  
   if (!overlayEl || !overlayTriggerButton || !overlayParent || !overlayTargetImg) return;
   try {
     const rect = overlayTargetImg.getBoundingClientRect();
@@ -1111,6 +1150,9 @@ function removeOverlay() {
 // Open the inspector panel for a given image.
 function openInspectorPanelForImage(img) {
   try {
+    
+    removeOverlay(); // Fix77: Hide floating icon immediately when panel opens
+    // Remove any existing panel before creating a new one 
     removeInspectorPanel();
 
     // Fixed host container.
