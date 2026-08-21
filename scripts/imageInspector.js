@@ -51,6 +51,7 @@ let inspectorMinHeightCache = INSPECTOR_DEFAULT_MIN_HEIGHT;
 const INSPECTOR_CONFIG_STALE_MS = 60000;
 let inspectorConfigLastHydratedAt = 0;
 let inspectorConfigHydrationInFlight = null;
+// Fix77: Added constants for overlay button and anchor sizes
 const INSPECTOR_IMAGE_WRAPPER_SELECTOR = "figure, picture, .Image, .Logo";
 const INSPECTOR_OVERLAY_BUTTON_MIN_SIZE = 40;
 const INSPECTOR_OVERLAY_ANCHOR_PADDING = 8;
@@ -808,25 +809,53 @@ function pickBestInspectorImage(container) {
  */
 function findValidImgFromEvent(ev) {
   try {
+    // Avoid errors when the event or target is missing.
     if (!ev || !ev.target) return null;
 
     const t = ev.target;
+    // Avoid picking an image that is part of the inspector UI itself.
     if (isInspectorUiNode(t)) return null;
+    // Avoid picking the <body> or <html> elements.
     if (t instanceof HTMLBodyElement || t instanceof HTMLHtmlElement) return null;
 
     const pointerStack = getInspectorPointerStack(ev);
 
     const stackImage = pointerStack.find((node) => node instanceof HTMLImageElement && isValidInspectorImageNode(node));
+    // Prefer the first valid image in the pointer stack.
     if (stackImage) return stackImage;
-
+    // Otherwise, check if the direct target is a valid image.
     if (isValidInspectorImageNode(t)) return t;
-
+    // Otherwise, check if the direct target is a valid wrapper with an image.
     if (!(t instanceof Element)) return null;
 
     const wrapper = getInspectorWrapperFromStack(pointerStack) || t.closest?.(INSPECTOR_IMAGE_WRAPPER_SELECTOR) || null;
+    // Avoid picking a wrapper that is part of the inspector panel itself.
     if (wrapper && !(inspectorPanelRoot && inspectorPanelRoot.contains(wrapper))) {
       const wrapperImg = pickBestInspectorImage(wrapper);
       if (wrapperImg) return wrapperImg;
+    }
+
+    // Fix77: Spatial fallback for cases where the pointer is over a non-image element but an image is nearby.
+    try {
+      const cursorX = ev.clientX;
+      const cursorY = ev.clientY;
+
+      // Only attempt spatial fallback if the cursor coordinates are valid numbers.
+      if (Number.isFinite(cursorX) && Number.isFinite(cursorY)) {
+        const allImages = Array.from(document.querySelectorAll("img"))
+          .filter(isValidInspectorImageNode);
+
+        for (const img of allImages) {
+          const rect = img.getBoundingClientRect();
+          if (cursorX >= rect.left && cursorX <= rect.right &&
+              cursorY >= rect.top && cursorY <= rect.bottom) {
+            logDebug(3, "🧪 [II trace] findValidImgFromEvent() spatial fallback found:", img.currentSrc || img.src);
+            return img;
+          }
+        }
+      }
+    } catch (spatialErr) {
+      logDebug(2, "⚠️ Spatial fallback failed:", spatialErr?.message || spatialErr);
     }
 
     return null;
@@ -875,6 +904,7 @@ function scheduleOverlayRemoval() {
   }, 60);
 }
 
+// Schedule overlay position update using requestAnimationFrame.
 function clearOverlayPositionRaf() {
   if (overlayPositionRaf != null) {
     try {
@@ -884,6 +914,7 @@ function clearOverlayPositionRaf() {
   }
 }
 
+// Update the overlay position to match the target image.
 function updateOverlayPosition() {
   
   // Fix77: Remove overlay if target image or its parent was destroyed from DOM
@@ -925,6 +956,7 @@ function updateOverlayPosition() {
   }
 }
 
+// Schedule an overlay position update using requestAnimationFrame.
 function scheduleOverlayPositionUpdate() {
   if (!overlayEl || !overlayTriggerButton) return;
   clearOverlayPositionRaf();
@@ -1027,19 +1059,24 @@ function showOverlayForImage(img) {
       openInspectorPanelForImage(img);
     });
 
+    // Append the overlay host to the document body.
     document.body.appendChild(host);
     overlayEl = host;
     overlayTriggerButton = btn;
 
+    // Schedule position updates.
     parentPointerEnterHandler = () => {
       clearOverlayRemovalTimer();
     };
+    // Schedule overlay removal when the pointer leaves the parent or overlay.
     parentPointerLeaveHandler = () => {
       scheduleOverlayRemoval();
     };
+    // Schedule overlay removal when the pointer leaves the overlay button.
     overlayPointerEnterHandler = () => {
       clearOverlayRemovalTimer();
     };
+    // Schedule overlay removal when the pointer leaves the overlay button.
     overlayPointerLeaveHandler = () => {
       scheduleOverlayRemoval();
     };
