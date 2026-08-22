@@ -837,17 +837,6 @@ function pickBestInspectorImage(container) {
  */
 function findValidImgFromEvent(ev) {
   try {
-
-    // Fix77: Add detailed debug logging for event target inspection
-    logDebug(3, "🧪 [II trace] findValidImgFromEvent() called with target:", {
-      tagName: ev.target?.tagName,
-      className: ev.target?.className,
-      id: ev.target?.id,
-      isElement: ev.target instanceof Element,
-      isImage: ev.target instanceof HTMLImageElement
-    });
-
-    // Avoid errors when the event or target is missing.
     if (!ev || !ev.target) return null;
 
     const t = ev.target;
@@ -856,44 +845,21 @@ function findValidImgFromEvent(ev) {
     // Avoid picking the <body> or <html> elements.
     if (t instanceof HTMLBodyElement || t instanceof HTMLHtmlElement) return null;
 
+    // Prefer the first valid image in the native pointer stack (elementsFromPoint)
     const pointerStack = getInspectorPointerStack(ev);
-
     const stackImage = pointerStack.find((node) => node instanceof HTMLImageElement && isValidInspectorImageNode(node));
-    // Prefer the first valid image in the pointer stack.
     if (stackImage) return stackImage;
-    // Otherwise, check if the direct target is a valid image.
+
+    // Check if the direct target is a valid image
     if (isValidInspectorImageNode(t)) return t;
-    // Otherwise, check if the direct target is a valid wrapper with an image.
+
     if (!(t instanceof Element)) return null;
 
+    // Check if the target is inside a valid wrapper
     const wrapper = getInspectorWrapperFromStack(pointerStack) || t.closest?.(INSPECTOR_IMAGE_WRAPPER_SELECTOR) || null;
-    // Avoid picking a wrapper that is part of the inspector panel itself.
     if (wrapper && !(inspectorPanelRoot && inspectorPanelRoot.contains(wrapper))) {
       const wrapperImg = pickBestInspectorImage(wrapper);
       if (wrapperImg) return wrapperImg;
-    }
-
-    // Fix77: Spatial fallback for cases where the pointer is over a non-image element but an image is nearby.
-    try {
-      const cursorX = ev.clientX;
-      const cursorY = ev.clientY;
-
-      // Only attempt spatial fallback if the cursor coordinates are valid numbers.
-      if (Number.isFinite(cursorX) && Number.isFinite(cursorY)) {
-        const allImages = Array.from(document.querySelectorAll("img"))
-          .filter(isValidInspectorImageNode);
-
-        for (const img of allImages) {
-          const rect = img.getBoundingClientRect();
-          if (cursorX >= rect.left && cursorX <= rect.right &&
-              cursorY >= rect.top && cursorY <= rect.bottom) {
-            logDebug(3, "🧪 [II trace] findValidImgFromEvent() spatial fallback found:", img.currentSrc || img.src);
-            return img;
-          }
-        }
-      }
-    } catch (spatialErr) {
-      logDebug(2, "⚠️ Spatial fallback failed:", spatialErr?.message || spatialErr);
     }
 
     return null;
