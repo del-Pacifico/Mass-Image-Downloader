@@ -8,6 +8,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Prevented orphaned Image Inspector overlays from remaining on screen when the window loses focus, when mouse events are throttled, or when the user manually toggles the Inspector off via hotkey (`Ctrl+Shift+M`). The teardown logic now explicitly clears any active overlay in all three scenarios, ensuring a clean DOM state and preventing ghost panels. ([#77](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/77))
+
 - Fixed the user‑feedback toast sequence for Web‑linked Gallery. The flow now shows distinct messages for each phase: start, candidates found, opening pages, and completion. This resolves duplicate and missing toast notifications. ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
 
 - Moved the initial toast notification for Web‑linked Gallery to the content script to ensure immediate user feedback, even when the page scan takes several seconds. This aligns the flow with the behavior of other gallery extraction flows. ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
@@ -25,6 +27,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 - **Project Philosophy** – Added a dedicated `docs/philosophy.md` document and a corresponding section in the root `README.md` to articulate the core principles guiding the project: reliability, user control, performance, security, transparency, quality, and open collaboration.
 
 ### Documentation
+
+- Updated `CONTRIBUTING.md`: Added the **🎯 Minimal Technical Footprint (Zero Over-Engineering)** and **🌍 Global Scope Fixes (80/20 Rule)** sections to enforce performance-first, scoped, and maintainable solutions in future PRs.
 
 - Enhanced `CONTRIBUTING.md` with clear guidance on the Discussion → Issue flow, a dedicated Edge Cases section, stronger Pull Request requirements (must reference an Issue or Discussion), a Pull Request Review Process section, and developer responsibilities for AI‑assisted contributions. The incremental commit discipline and local validation reporting are now also clarified. 
 
