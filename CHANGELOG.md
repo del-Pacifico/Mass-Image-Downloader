@@ -28,6 +28,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Documentation
 
+- Updated `CONTRIBUTING.md`: comprehensive update adding TOC, pre-requisites, project philosophy, repository structure, team roles, branch/commit conventions, security reporting, release process, and license header standards.
+
 - Updated `CONTRIBUTING.md`: Added the **🎯 Minimal Technical Footprint (Zero Over-Engineering)** and **🌍 Global Scope Fixes (80/20 Rule)** sections to enforce performance-first, scoped, and maintainable solutions in future PRs.
 
 - Enhanced `CONTRIBUTING.md` with clear guidance on the Discussion → Issue flow, a dedicated Edge Cases section, stronger Pull Request requirements (must reference an Issue or Discussion), a Pull Request Review Process section, and developer responsibilities for AI‑assisted contributions. The incremental commit discipline and local validation reporting are now also clarified. 
