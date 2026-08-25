@@ -5,6 +5,127 @@ This guide provides everything you need to know to start contributing effectivel
 
 ---
 
+## 📋 Table of Contents
+
+- [🏔️ Mass Image Downloader – Contributing Guide](#️-mass-image-downloader--contributing-guide)
+  - [📋 Table of Contents](#-table-of-contents)
+  - [✅ Pre-requisites](#-pre-requisites)
+  - [🎯 Project Philosophy](#-project-philosophy)
+  - [🗂️ Repository Structure](#️-repository-structure)
+  - [👥 Team Roles](#-team-roles)
+  - [📥 How to Contribute](#-how-to-contribute)
+    - [Choose the Right Channel](#choose-the-right-channel)
+    - [💪🏼 Browser Support and QA Baseline](#-browser-support-and-qa-baseline)
+      - [⛔ Browsers outside the current project QA baseline](#-browsers-outside-the-current-project-qa-baseline)
+    - [🌟 Suggest a Feature](#-suggest-a-feature)
+    - [🐛 Report a Bug](#-report-a-bug)
+    - [🧩 Edge Cases](#-edge-cases)
+    - [🛠 Submit a Code Contribution](#-submit-a-code-contribution)
+    - [👀 Pull Request Review Process](#-pull-request-review-process)
+    - [📝 Markdown Format for All Posts](#-markdown-format-for-all-posts)
+  - [🏗️ Development Flow](#️-development-flow)
+  - [🌿 Branch and Commit Conventions](#-branch-and-commit-conventions)
+    - [Branch Naming](#branch-naming)
+    - [Commit Messages](#commit-messages)
+    - [🥷🏼 Incremental Commit and Push Discipline](#-incremental-commit-and-push-discipline)
+  - [🏷️ Issue Title Prefixes](#️-issue-title-prefixes)
+  - [🏷️ Labeling Rules](#️-labeling-rules)
+  - [📐 Code Standards](#-code-standards)
+  - [🎨 UI Feedback and Visual Standards](#-ui-feedback-and-visual-standards)
+    - [Core Palette](#core-palette)
+    - [Toasts](#toasts)
+    - [Buttons and Controls](#buttons-and-controls)
+    - [Panels and Tables](#panels-and-tables)
+    - [Tooltips](#tooltips)
+    - [Scope](#scope)
+  - [📚 Documentation Standards](#-documentation-standards)
+  - [🧪 Local Validation](#-local-validation)
+  - [🧑‍💻 Development Rules](#-development-rules)
+    - [🎯 Minimal Technical Footprint (Zero Over-Engineering)](#-minimal-technical-footprint-zero-over-engineering)
+      - [🌍 Global Scope Fixes (80/20 Rule)](#-global-scope-fixes-8020-rule)
+    - [🩹 Bugfix Scope Discipline](#-bugfix-scope-discipline)
+  - [🧩 MV3 Runtime Resilience Rules](#-mv3-runtime-resilience-rules)
+  - [🤖 AI-Assisted Contributions](#-ai-assisted-contributions)
+  - [🔐 Security Vulnerability Reporting](#-security-vulnerability-reporting)
+  - [🏷️ Release Process](#️-release-process)
+  - [📜 License Header](#-license-header)
+  - [💬 Need Help?](#-need-help)
+
+---
+
+## ✅ Pre-requisites
+
+Before you start contributing, make sure you have:
+
+- **Node.js** (LTS version recommended) and **npm** installed.
+- A **Chromium-based browser** for local QA:
+  - **Brave** (primary QA browser — preferred)
+  - Vivaldi, Microsoft Edge, or Opera One (supported alternatives)
+- Basic familiarity with **Chrome Extension Manifest V3** architecture.
+- Understanding of the project's [core philosophy](docs/philosophy.md) — **required reading** before your first contribution.
+
+---
+
+## 🎯 Project Philosophy
+
+Mass Image Downloader is guided by seven core principles that shape every decision:
+
+1. **Reliability Above All** — The extension keeps working under adverse conditions.
+2. **Granular User Control** — Users have dozens of configurable options.
+3. **Performance and Efficiency** — Minimal browser overhead.
+4. **Security and Privacy** — Minimal permissions, no sensitive data storage.
+5. **Transparency and Debuggability** — Four-level logging and clear user messages.
+6. **Quality and Maintainability** — Strict modularity and exhaustive documentation.
+7. **Open Collaboration and Ethics** — Transparent processes and peer review.
+
+📖 **Read the full philosophy in [`docs/philosophy.md`](docs/philosophy.md).** This is required reading before contributing.
+
+---
+
+## 🗂️ Repository Structure
+
+Familiarize yourself with the codebase layout:
+
+```text
+Mass-Image-Downloader/
+├── .github/           # GitHub templates (CODEOWNERS, Issues, PR templates, etc.)
+├── assets/            # Static assets (images, icons)
+├── docs/              # Project documentation (philosophy, hotkeys, guides)
+├── html/              # HTML files (popup, options, content scripts)
+├── ico/               # Icon files for the extension
+├── scripts/           # Core extension logic (content scripts, background, helpers)
+├── tests/             # Node.js compliance and unit tests
+├── .gitignore         # Git ignore rules
+├── .hintrc            # HTML hinting configuration (editor support)
+├── CHANGELOG.md       # Release history
+├── CODE_OF_CONDUCT.md # Community code of conduct
+├── CONTRIBUTING.md    # Contribution guidelines (this file)
+├── LICENSE            # License summary (MPL 2.0)
+├── manifest.json      # Extension manifest (MV3)
+├── package.json       # Node dependencies and scripts
+├── README.md          # Project overview and quick start
+├── SECURITY.md        # Security policy and vulnerability reporting
+└── VERSION            # Current version string
+```
+
+**Key rule:** Keep modules focused — prefer **1 file = 1 concern**.
+
+---
+
+## 👥 Team Roles
+
+Understanding who does what helps you direct your contributions effectively:
+
+| Role | GitHub Handle | Responsibility |
+|------|--------------|----------------|
+| **Founder & Maintainer** | `sergiopalmah` | Project direction, roadmap, final PR approval, merges to `main`, release management. Sole code owner per `CODEOWNERS`. |
+| **Senior Collaborator** | `agentsmid` | Code implementation, local QA (automated + manual), atomic commits and pushes. |
+| **Community Contributors** | *You!* | Bug reports, feature proposals, documentation improvements, code contributions via PR. |
+
+> **Note:** All contributions — regardless of source — are reviewed manually before merge. There are no automatic approvals.
+
+---
+
 ## 📥 How to Contribute
 
 ### Choose the Right Channel
@@ -41,7 +162,7 @@ The project QA baseline is:
 
 #### ⛔ Browsers outside the current project QA baseline
 
-🚨 Atention: The following browsers are outside the current project QA baseline:
+🚨 **Attention:** The following browsers are outside the current project QA baseline:
 
 - **Browsers not listed above**: may work, but are not treated as validated unless explicitly added to the QA baseline.
 - **Firefox and non-Chromium browsers**: out of scope because the extension is built for Chromium Manifest V3 APIs.
@@ -58,10 +179,10 @@ Before opening a feature request, make sure the request describes a user need or
 
 Recommended flow:
 
-1. Describe the problem or workflow gap.
-2. Explain who benefits and in which scenarios.
-3. Describe the expected behavior from a user perspective.
-4. Identify the affected area:
+1. Describe the `problem` or `workflow gap`.
+2. Explain `who benefits` and in `which scenarios`.
+3. Describe the `expected behavior` from a **user perspective**.
+4. Identify the `affected area`:
    - popup;
    - Options;
    - Settings Peek;
@@ -71,46 +192,46 @@ Recommended flow:
    - galleries;
    - hotkeys;
    - documentation.
-5. Note any constraints or trade-offs, such as browser behavior, MV3 limits, performance, privacy, permissions, or UI complexity.
-6. Add examples, mockups, screenshots, or comparable workflows when useful.
-7. Open a GitHub issue and choose the feature-request option when the proposal is actionable.
+5. Note any `constraints` or `trade-offs`, such as browser behavior, MV3 limits, performance, privacy, permissions, or UI complexity.
+6. Add `examples`, `mockups`, `screenshots`, or comparable `workflows` when useful.
+7. Open a `GitHub issue` and choose the feature-request option when the proposal is actionable.
 
-Use GitHub Discussions first for early ideas, broad design questions, or proposals that still need scope definition. A discussion can later be promoted to an issue once the expected behavior and scope are clear.
+> Use GitHub Discussions first for early ideas, broad design questions, or proposals that still need scope definition. A discussion can later be promoted to an issue once the expected behavior and scope are clear.
 
 --- 
 
 ### 🐛 Report a Bug
 
-Before opening a bug report, confirm that the behavior is a reproducible defect and not only an unclear observation, browser shortcut conflict, site-specific edge case, or configuration question.
+**Before opening a bug report**, confirm that the behavior is a reproducible defect and not only `an unclear observation`, `browser shortcut conflict`, `site-specific edge case`, or `configuration question`.
 
 Recommended flow:
 
-1. Confirm you are using the expected extension version.
-2. Reproduce the behavior in a clean, focused scenario.
-3. Check whether the same behavior happens after refreshing the affected tab or reloading the extension.
-4. Capture the environment:
+1. Confirm you are using the expected `extension version`.
+2. `Reproduce the behavior` in a clean, focused scenario.
+3. Check whether the `same behavior` happens after refreshing the affected tab or reloading the extension.
+4. `Capture` the environment:
    - browser and version;
    - Chromium version when available;
    - extension version;
    - operating system;
    - installation mode.
-5. Capture the relevant settings snapshot, preferably from Settings Peek.
-6. Collect evidence:
+5. Capture the `relevant settings snapshot`, preferably from Settings Peek (You can find it under **📋 Open Settings JSON** at the bottom of Settings Peek).
+6. Collect `evidence`:
    - exact steps to reproduce;
    - expected behavior;
    - actual behavior;
    - page URL or URL pattern when relevant;
    - console logs filtered by `[Mass image downloader]`;
    - screenshots or recordings when visual behavior is involved.
-7. Open a GitHub issue and choose the bug-report option when the problem is reproducible.
+7. Open a `GitHub issue` and choose the bug-report option when the problem is reproducible.
 
-Use one issue per defect. If the behavior is unclear or hard to classify, open an investigation instead of forcing it into a bug report.
+> 🔥 Use one issue per defect. If the behavior is unclear or hard to classify, **open an investigation (Discussion)** instead of forcing it into a bug report.
 
 ---
 
 ### 🧩 Edge Cases
 
-Edge cases are narrow, reproducible scenarios that affect a limited set of users, pages, or configurations. They are often visual, layout-related, or triggered by specific site behaviors.
+Edge cases are `narrow`, reproducible scenarios that affect a limited set of users, pages, or configurations. They are often visual, layout-related, or triggered by specific site behaviors.
 
 **When to open an Edge Case issue:**
 
@@ -131,7 +252,7 @@ Edge cases are narrow, reproducible scenarios that affect a limited set of users
 - `[EdgeCase] Inspector overlay offset in nested responsive layouts`
 - `[EdgeCase] SyntaxError: 'SUPPORTED_IMAGE_EXTENSIONS' already declared on direct image pages`
 
-**Edge cases are treated after confirmed bugs and feature work, but they are still part of the project backlog and will be addressed in future releases.**
+> **Edge cases are treated after confirmed bugs and feature work, but they are still part of the project backlog and will be addressed in future releases.**
 
 ---
 
@@ -158,10 +279,10 @@ Edge cases are narrow, reproducible scenarios that affect a limited set of users
    git pull --ff-only upstream dev
    ```
 
-4. Create a new branch from `dev`
+4. Create a new branch from `dev` following the [branch naming convention](#-branch-and-commit-conventions)
 
    ```bash
-   git checkout -b feature/your-description
+   git checkout -b fix/123-short-description
    ```
 
 5. Make your changes following the coding style and structure
@@ -210,7 +331,7 @@ After you submit a pull request, the review process begins. This section explain
 
 All contributions to the repository — including issue descriptions, comments, discussion posts, pull request descriptions, and review comments — must be written in **Markdown** format.
 
-This ensures consistency, readability, and proper rendering of code blocks, lists, links, and other structured content across GitHub’s interface.
+This ensures consistency, readability, and proper rendering of code blocks, lists, links, and other structured content across GitHub's interface.
 
 **Guidelines:**
 
@@ -242,6 +363,64 @@ feature/chore branch -> dev -> main -> tag/release
 
 ---
 
+## 🌿 Branch and Commit Conventions
+
+### Branch Naming
+
+All branches must follow this pattern:
+
+```text
+<type>/<issue-number>-<short-description>
+```
+
+**Types:**
+
+| Type | Use for |
+|------|---------|
+| `feature` | New functionality |
+| `fix` | Bug fixes |
+| `docs` | Documentation changes |
+| `chore` | Maintenance, tooling, CI |
+| `refactor` | Code restructuring without behavior change |
+| `test` | Adding or updating tests |
+| `style` | Formatting, whitespace, semicolons |
+
+**Examples:**
+
+```text
+fix/77-minimal-overlay-orphan
+feature/89-bulk-download-progress-bar
+docs/102-update-hotkeys-guide
+```
+
+### Commit Messages
+
+This project follows **Conventional Commits**. Every commit message must use this format:
+
+```text
+<type>(<scope>): <description> (#<issue-number>)
+```
+
+**Common scopes:** `image-inspector`, `bulk-download`, `manifest`, `ui`, `utils`, `popup`, `options`, `hotkeys`, `gallery`
+
+**Examples:**
+
+```text
+fix(image-inspector): prevent orphaned overlays on blur (#77)
+feat(bulk-download): add progress bar with cancel button (#89)
+docs(hotkeys): update shortcut table for Opera One (#102)
+```
+
+**Rules:**
+
+- Use the present tense (`add` not `added`, `fix` not `fixed`).
+- Use imperative mood (`change` not `changes` or `changed`).
+- Do not capitalize the first letter of the description.
+- Do not end the description with a period.
+- Reference the related issue number in every commit.
+
+---
+
 ### 🥷🏼 Incremental Commit and Push Discipline
 
 During active development, `each validated atomic change` **must be committed and pushed** to the current working branch as soon as it is complete.
@@ -268,7 +447,7 @@ npm test
 
 **Important**: The test results must be included as a comment in the associated Issue or Pull Request. This provides transparency and allows reviewers to confirm that the change does not introduce regressions. Example:
 
-```bash
+```text
 ✅ Local validation passed:
 - npm run check → all checks passed
 - npm test → 3 tests passed, 0 failed
@@ -292,10 +471,10 @@ Example:
 
 ```bash
 git status --short
-git add -- scripts/clipboardHotkeys.js
+git add scripts/clipboardHotkeys.js
 npm run check
 npm test
-git commit -m "fix: handle invalidated clipboard hotkey context"
+git commit -m "fix: handle invalidated clipboard hotkey context (#88)"
 git push -u origin fix/rehydrate-content-script-state
 ```
 
@@ -322,6 +501,30 @@ Examples:
 - `[Bug] Valid X/Twitter image URLs with query parameters are rejected`
 - `[Investigation] Align One-click icon with shared validation`
 - `[EdgeCase] Inspector overlay offset in nested responsive layouts`
+
+---
+
+## 🏷️ Labeling Rules
+
+All issues, pull requests, and discussions must use the necessary descriptive labels from the repository label set.
+
+Use labels to describe:
+
+- Work type: `type:*`
+- Affected area: `scope:*`
+- Priority or lifecycle state: `priority:*`, `status:*`, `needs:*`, or `dev:*`
+- Behavior impact when relevant: `behavior:*`
+
+Recommended minimums:
+
+- Issues: `type:*` + `scope:*` + `priority:*` or `needs:*` + `status:*`
+- Pull requests: `type:*` + `scope:*` + `behavior:*` when applicable + `dev:*` or `status:*`
+- Release work: `type: release` + `scope: release` + the appropriate release status label
+- Documentation or repository maintenance: `type: documentation` or `type: chore` + `scope: repo-maintenance`
+- Investigations: `type: investigation` + `needs: triage` or `needs: reproduction`
+- Performance work: `type: performance` + the affected `scope:*` + a priority label
+
+Discussions should use the correct category and descriptive labels when available. If a discussion is promoted to an issue, the new issue must be labeled before it is considered ready for planning.
 
 ---
 
@@ -356,78 +559,18 @@ The extension must keep a consistent visual language across popup UI, Options, S
 
 Use the established project palette:
 
-<table>
-  <thead>
-    <tr>
-      <th>Role</th>
-      <th>Color</th>
-      <th>Swatch</th>
-      <th>Usage</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Primary action / info / success</td>
-      <td><code>#007EE3</code></td>
-      <td><span style="display:inline-block;width:72px;height:18px;background:#007EE3;border:1px solid #768591;"></span></td>
-      <td>Primary buttons, informational toasts, successful completion toasts, neutral user feedback.</td>
-    </tr>
-    <tr>
-      <td>Secondary accent / border / hover</td>
-      <td><code>#768591</code></td>
-      <td><span style="display:inline-block;width:72px;height:18px;background:#768591;border:1px solid #768591;"></span></td>
-      <td>Control borders, hover states, secondary UI accents.</td>
-    </tr>
-    <tr>
-      <td>Light surface</td>
-      <td><code>#F8F8F8</code></td>
-      <td><span style="display:inline-block;width:72px;height:18px;background:#F8F8F8;border:1px solid #768591;"></span></td>
-      <td>Panel backgrounds, icon button backgrounds, light control surfaces.</td>
-    </tr>
-    <tr>
-      <td>Panel surface</td>
-      <td><code>#FFFFFF</code></td>
-      <td><span style="display:inline-block;width:72px;height:18px;background:#FFFFFF;border:1px solid #768591;"></span></td>
-      <td>Option groups, cards, table cells, and readable panel content areas.</td>
-    </tr>
-    <tr>
-      <td>Text on colored surfaces</td>
-      <td><code>#FFFFFF</code></td>
-      <td><span style="display:inline-block;width:72px;height:18px;background:#FFFFFF;border:1px solid #768591;"></span></td>
-      <td>Toast text and button text on colored backgrounds.</td>
-    </tr>
-    <tr>
-      <td>Secondary text</td>
-      <td><code>#6C757D</code></td>
-      <td><span style="display:inline-block;width:72px;height:18px;background:#6C757D;border:1px solid #768591;"></span></td>
-      <td>Descriptions, helper text, muted labels, and secondary comments.</td>
-    </tr>
-    <tr>
-      <td>Body text</td>
-      <td><code>#3f3f3f</code></td>
-      <td><span style="display:inline-block;width:72px;height:18px;background:#3f3f3f;border:1px solid #768591;"></span></td>
-      <td>Readable table values, regular panel text, and metadata content.</td>
-    </tr>
-    <tr>
-      <td>Subtle separators</td>
-      <td><code>#D0D0D0</code></td>
-      <td><span style="display:inline-block;width:72px;height:18px;background:#D0D0D0;border:1px solid #768591;"></span></td>
-      <td>Panel borders, table separators, and low-emphasis dividers.</td>
-    </tr>
-    <tr>
-      <td>Error / recovery required</td>
-      <td><code>#d9534f</code></td>
-      <td><span style="display:inline-block;width:72px;height:18px;background:#d9534f;border:1px solid #768591;"></span></td>
-      <td>Error toasts, blocked actions, invalid settings, and refresh-required recovery messages.</td>
-    </tr>
-    <tr>
-      <td>Dark tooltip surface</td>
-      <td><code>#121b3e</code></td>
-      <td><span style="display:inline-block;width:72px;height:18px;background:#121b3e;border:1px solid #768591;"></span></td>
-      <td>Tooltip backgrounds and dark inspector accents already used by existing components.</td>
-    </tr>
-  </tbody>
-</table>
+| Role | Color | Usage |
+|------|-------|-------|
+| Primary action / info / success | `#007EE3` | Primary buttons, informational toasts, successful completion toasts, neutral user feedback. |
+| Secondary accent / border / hover | `#768591` | Control borders, hover states, secondary UI accents. |
+| Light surface | `#F8F8F8` | Panel backgrounds, icon button backgrounds, light control surfaces. |
+| Panel surface | `#FFFFFF` | Option groups, cards, table cells, and readable panel content areas. |
+| Text on colored surfaces | `#FFFFFF` | Toast text and button text on colored backgrounds. |
+| Secondary text | `#6C757D` | Descriptions, helper text, muted labels, and secondary comments. |
+| Body text | `#3f3f3f` | Readable table values, regular panel text, and metadata content. |
+| Subtle separators | `#D0D0D0` | Panel borders, table separators, and low-emphasis dividers. |
+| Error / recovery required | `#d9534f` | Error toasts, blocked actions, invalid settings, and refresh-required recovery messages. |
+| Dark tooltip surface | `#121b3e` | Tooltip backgrounds and dark inspector accents already used by existing components. |
 
 Do not introduce new status colors, such as green success tones, unless the project palette is explicitly expanded in this table and the related UI helpers are updated consistently.
 
@@ -571,6 +714,8 @@ Contributions must follow the project's development rules:
   npm test
   ```
 
+---
+
 ### 🎯 Minimal Technical Footprint (Zero Over-Engineering)
 
 Every line of code added must justify its existence. Prioritize simplicity, clarity, and minimalism over cleverness or theoretical future-proofing.
@@ -582,6 +727,8 @@ Every line of code added must justify its existence. Prioritize simplicity, clar
 - **Measure before abstracting**: If a pattern appears in two places, solve both directly. Wait for three or more occurrences before creating a shared helper.
 - **Document rejected approaches**: When closing a PR or branch due to over-engineering, archive the SHA in the issue for archaeological reference.
 
+---
+
 #### 🌍 Global Scope Fixes (80/20 Rule)
 
 The extension must work reliably across the entire web, not just on a handful of popular sites. Fixes should address the underlying pattern rather than the surface symptoms.
@@ -589,7 +736,7 @@ The extension must work reliably across the entire web, not just on a handful of
 - **Solve globally, not locally**: Bug fixes and edge case solutions must work across all websites, frameworks, and CMSs (WordPress, Drupal, React, static sites, etc.)
 - **Avoid CMS-specific selectors**: Do not hardcode CSS classes, HTML structures, or patterns specific to one framework or content management system
 - **Prefer universal heuristics**: Use physical/mathematical approaches (bounding boxes, pointer coordinates, DOM traversal) over pattern-matching specific CMS implementations
-- **CMS-agnostic validation**: If a solution only works for WordPress galleries, it's not a complete fix—it's a workaround that will fail on the next framework
+- **CMS-agnostic validation**: If a solution only works for WordPress galleries, it's not a complete fix — it's a workaround that will fail on the next framework
 - **Test the 80%**: Focus on solutions that cover 80% of real-world cases through universal principles, not 100% through brittle, site-specific rules
 
 ---
@@ -663,30 +810,6 @@ When implementing or refactoring extension workflows:
 
 ---
 
-## 🏷️ Labeling Rules
-
-All issues, pull requests, and discussions must use the necessary descriptive labels from the repository label set.
-
-Use labels to describe:
-
-- Work type: `type:*`
-- Affected area: `scope:*`
-- Priority or lifecycle state: `priority:*`, `status:*`, `needs:*`, or `dev:*`
-- Behavior impact when relevant: `behavior:*`
-
-Recommended minimums:
-
-- Issues: `type:*` + `scope:*` + `priority:*` or `needs:*` + `status:*`
-- Pull requests: `type:*` + `scope:*` + `behavior:*` when applicable + `dev:*` or `status:*`
-- Release work: `type: release` + `scope: release` + the appropriate release status label
-- Documentation or repository maintenance: `type: documentation` or `type: chore` + `scope: repo-maintenance`
-- Investigations: `type: investigation` + `needs: triage` or `needs: reproduction`
-- Performance work: `type: performance` + the affected `scope:*` + a priority label
-
-Discussions should use the correct category and descriptive labels when available. If a discussion is promoted to an issue, the new issue must be labeled before it is considered ready for planning.
-
----
-
 ## 🤖 AI-Assisted Contributions
 
 This project encourages the responsible use of AI tools to assist development, but **all contributions remain subject to manual review** and project standards.
@@ -701,6 +824,7 @@ AI tools may assist in **code generation**, **documentation**, **formatting**, o
 - **Clearly disclose AI assistance** in the PR description, including which tool(s) were used and which parts of the code, documentation, or tests were AI‑assisted.
 
 **Example disclosure:**
+
 > This PR includes code generated with the assistance of [Tool Name] for the following parts: [specific functions or files]. The code was reviewed, validated, and integrated by the author. [Tool Name] was also used to format the documentation and generate test stubs.
 
 **General guidelines:**
@@ -713,8 +837,78 @@ We support responsible and transparent use of AI to accelerate development, with
 
 ---
 
+## 🔐 Security Vulnerability Reporting
+
+If you discover a security vulnerability in Mass Image Downloader, **do not open a public issue**.
+
+Instead, please report it privately via:
+
+- **GitHub Security Advisories**: [Report a vulnerability](https://github.com/del-Pacifico/Mass-Image-Downloader/security/advisories/new)
+- Or contact the maintainer directly via the email listed in the repository profile.
+
+Please include:
+
+- A description of the vulnerability and its potential impact.
+- Steps to reproduce or a proof-of-concept.
+- The affected version(s) and browser(s).
+- Any suggested remediation or patch.
+
+We will acknowledge receipt within 48 hours and provide a timeline for resolution. Credit will be given to reporters who follow responsible disclosure practices.
+
+---
+
+## 🏷️ Release Process
+
+Releases are managed exclusively by the project maintainer (`sergiopalmah`). The release flow is:
+
+```text
+dev -> main -> tag -> GitHub Release
+```
+
+**Steps:**
+
+1. All approved PRs are merged into `dev` during the development cycle.
+2. When the release is ready, `dev` is merged into `main` via a release PR.
+3. A Git tag is created from `main` following [Semantic Versioning](https://semver.org/):
+   - `MAJOR` — Breaking changes or significant architectural shifts.
+   - `MINOR` — New features, enhancements, or non-breaking improvements.
+   - `PATCH` — Bug fixes, edge cases, documentation corrections.
+4. A GitHub Release is published with release notes derived from `CHANGELOG.md`.
+5. The extension package is built and attached to the release.
+
+**Community contributors do not create releases.** Focus your contributions on issues, discussions, and PRs targeting `dev`.
+
+---
+
+## 📜 License Header
+
+Mass Image Downloader is licensed under the **Mozilla Public License 2.0**.
+
+Every source code file (`.html`, `.js`, `.mjs`, `.html`, etc.) must include the following header at the top:
+
+```javascript
+// # This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+// # If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+// #
+// # Original Author: Sergio Palma Hidalgo
+// # Project URL: https://github.com/del-Pacifico/Mass-Image-Downloader
+// # Copyright (c) 2025 Sergio Palma Hidalgo
+// # All rights reserved.
+
+// [filename] - Mass Image Downloader
+```
+
+**Rules:**
+
+- The legal block must remain unaltered in every file.
+- The last descriptive line (`// [filename] - Mass Image Downloader`) should be adapted to the file's name and purpose.
+- New files must include this header. Modified files must preserve it.
+- This ensures proper intellectual property attribution and license compliance.
+
+---
+
 ## 💬 Need Help?
 
-Feel free to [start a discussion](https://github.com/del-Pacifico/mass-image-downloader/discussions) or open an issue with your question. We’re happy to assist!
+Feel free to [start a discussion](https://github.com/del-Pacifico/mass-image-downloader/discussions) or open an issue with your question. We're happy to assist!
 
-> Contributions with the project, of all kinds are welcome — from typo fixes to major features. Let’s build something great and useful together! 🚀
+> Contributions of all kinds are welcome — from typo fixes to major features. Let's build something great and useful together! 🚀
