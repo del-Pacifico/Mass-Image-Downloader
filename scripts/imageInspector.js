@@ -862,6 +862,24 @@ function findValidImgFromEvent(ev) {
       if (wrapperImg) return wrapperImg;
     }
 
+    // Fix77: Spatial fallback for sites whose hover target is a non-image element
+    // (card wrappers or transparent overlays) while a valid image sits under
+    // the cursor. Bounded to small subtrees so the scan stays cheap.
+    if (t instanceof Element && Number.isFinite(ev.clientX) && Number.isFinite(ev.clientY)) {
+      const subtreeImgs = t.querySelectorAll("img");
+      if (subtreeImgs.length > 0 && subtreeImgs.length <= 32) {
+        for (const img of subtreeImgs) {
+          if (!isValidInspectorImageNode(img)) continue;
+          const rect = img.getBoundingClientRect();
+          if (ev.clientX >= rect.left && ev.clientX <= rect.right &&
+              ev.clientY >= rect.top && ev.clientY <= rect.bottom) {
+            logDebug(3, "🧪 [II trace] findValidImgFromEvent() spatial fallback found:", img.currentSrc || img.src);
+            return img;
+          }
+        }
+      }
+    }
+
     return null;
   } catch (_) {
     return null;
