@@ -26,6 +26,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Question issue template** – Added `.github/ISSUE_TEMPLATE/question.yml` (GitHub Issue Form) providing a structured `[Question]` channel for support requests and open questions, completing the issue template set (Bug, Hotfix, Investigation, Edge Case, Feature Request, Documentation, Question).
+
 - **Project Philosophy** – Added a dedicated `docs/philosophy.md` document and a corresponding section in the root `README.md` to articulate the core principles guiding the project: reliability, user control, performance, security, transparency, quality, and open collaboration.
 
 ### Documentation
