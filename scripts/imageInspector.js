@@ -51,6 +51,7 @@ let inspectorMinHeightCache = INSPECTOR_DEFAULT_MIN_HEIGHT;
 const INSPECTOR_CONFIG_STALE_MS = 60000;
 let inspectorConfigLastHydratedAt = 0;
 let inspectorConfigHydrationInFlight = null;
+// Fix77: Added constants for overlay button and anchor sizes
 const INSPECTOR_IMAGE_WRAPPER_SELECTOR = "figure, picture, .Image, .Logo";
 const INSPECTOR_OVERLAY_BUTTON_MIN_SIZE = 40;
 const INSPECTOR_OVERLAY_ANCHOR_PADDING = 8;
@@ -425,6 +426,7 @@ function attachTooltip(element, text) {
       }
     };
 
+    // Hide the tooltip when the mouse leaves or the element loses focus.
     const hideTooltip = () => {
       try {
         if (tooltipEl) tooltipEl.remove();
@@ -515,24 +517,70 @@ function activateImageInspector() {
 
   document.documentElement.style.cursor = "help";
 
+  // Fix77: Mouseover handler for the entire document.
   mouseOverHandler = (ev) => {
     try {
-      if (!iiActiveInPage) return;
-      if (inspectorPanelRoot && inspectorPanelRoot.contains(ev.target)) return;
+      logDebug(2, "🧪 [II trace] mouseOverHandler triggered:", {
+        target: ev.target?.tagName || "[unknown]",
+        targetClass: ev.target?.className || "",
+        targetId: ev.target?.id || "",
+        iiActiveInPage,
+        clientX: ev.clientX,
+        clientY: ev.clientY
+      });
+      
+      // Avoid processing when the inspector is not active or the target is inside the inspector panel.
+      if (!iiActiveInPage) {
+        logDebug(3, "🧪 [II trace] mouseOverHandler: iiActiveInPage is false, returning");
+        return;
+      }
+      // Avoid processing when the target is inside the inspector panel.
+      if (inspectorPanelRoot && inspectorPanelRoot.contains(ev.target)) {
+        logDebug(3, "🧪 [II trace] mouseOverHandler: target is inside inspectorPanelRoot, returning");
+        return;
+      }
+      // Avoid processing when the target is inside the overlay. 
       const img = findValidImgFromEvent(ev);
+      logDebug(3, "🧪 [II trace] mouseOverHandler: findValidImgFromEvent returned:", img ? `valid image (${img.currentSrc || img.src})` : "null");
       if (!img) return;
       const now = Date.now();
       // Throttled.
-      if (now - lastOverlayTs < OVERLAY_THROTTLE_MS) return;
+      if (now - lastOverlayTs < OVERLAY_THROTTLE_MS) {
+        logDebug(3, "🧪 [II trace] mouseOverHandler: throttled, returning");
+        return;
+      }
       lastOverlayTs = now;
       showOverlayForImage(img);
     } catch (err) {
       logDebug(1, "❌ mouseOverHandler:", err?.message || err);
     }
   };
-  document.addEventListener("mouseover", mouseOverHandler, true);
+
+  // Fix77: Register the mouseover handler in capture phase to catch events before they reach other elements.
+  try { document.addEventListener("mouseover", mouseOverHandler, true); } catch (_) {}
+  logDebug(3, "🧪 [II trace] activateImageInspector: mouseOverHandler registered");
+
+  // Fix77: Hide overlay when tab loses focus or becomes hidden
+  window.addEventListener("blur", hideOverlayOnFocusLoss);
+  document.addEventListener("visibilitychange", hideOverlayOnVisibilityChange);
 
   logDebug(1, "🧩 Image Inspector activated.");
+}
+
+// Fix77: Handler for window blur event
+function hideOverlayOnFocusLoss() {
+  if (overlayEl) {
+    logDebug(2, "🔵 Image Inspector: hiding overlay due to window blur");
+    removeOverlay();
+  }
+}
+
+// Fix77: Handler for document visibility change
+function hideOverlayOnVisibilityChange() {
+  if (document.hidden && overlayEl) {
+    logDebug(2, "👁️ Image Inspector: hiding overlay due to visibility change");
+    removeOverlay();
+  }
 }
 
 // Teardown the inspector.
@@ -543,6 +591,11 @@ function teardownImageInspector(reason) {
   removeOverlay();
   removeInspectorPanel();
   try { document.removeEventListener("mouseover", mouseOverHandler, true); } catch (_) {}
+
+  // Fix77: Remove global focus/visibility listeners
+  try { window.removeEventListener("blur", hideOverlayOnFocusLoss); } catch (_) {}
+  try { document.removeEventListener("visibilitychange", hideOverlayOnVisibilityChange); } catch (_) {}
+  
   document.documentElement.style.cursor = "auto";
 
   logDebug(1, `🧹 Inspector teardown. Reason: ${reason}`);
@@ -787,22 +840,44 @@ function findValidImgFromEvent(ev) {
     if (!ev || !ev.target) return null;
 
     const t = ev.target;
+    // Avoid picking an image that is part of the inspector UI itself.
     if (isInspectorUiNode(t)) return null;
+    // Avoid picking the <body> or <html> elements.
     if (t instanceof HTMLBodyElement || t instanceof HTMLHtmlElement) return null;
 
+    // Prefer the first valid image in the native pointer stack (elementsFromPoint)
     const pointerStack = getInspectorPointerStack(ev);
-
     const stackImage = pointerStack.find((node) => node instanceof HTMLImageElement && isValidInspectorImageNode(node));
     if (stackImage) return stackImage;
 
+    // Check if the direct target is a valid image
     if (isValidInspectorImageNode(t)) return t;
 
     if (!(t instanceof Element)) return null;
 
+    // Check if the target is inside a valid wrapper
     const wrapper = getInspectorWrapperFromStack(pointerStack) || t.closest?.(INSPECTOR_IMAGE_WRAPPER_SELECTOR) || null;
     if (wrapper && !(inspectorPanelRoot && inspectorPanelRoot.contains(wrapper))) {
       const wrapperImg = pickBestInspectorImage(wrapper);
       if (wrapperImg) return wrapperImg;
+    }
+
+    // Fix77: Spatial fallback for sites whose hover target is a non-image element
+    // (card wrappers or transparent overlays) while a valid image sits under
+    // the cursor. Bounded to small subtrees so the scan stays cheap.
+    if (t instanceof Element && Number.isFinite(ev.clientX) && Number.isFinite(ev.clientY)) {
+      const subtreeImgs = t.querySelectorAll("img");
+      if (subtreeImgs.length > 0 && subtreeImgs.length <= 32) {
+        for (const img of subtreeImgs) {
+          if (!isValidInspectorImageNode(img)) continue;
+          const rect = img.getBoundingClientRect();
+          if (ev.clientX >= rect.left && ev.clientX <= rect.right &&
+              ev.clientY >= rect.top && ev.clientY <= rect.bottom) {
+            logDebug(3, "🧪 [II trace] findValidImgFromEvent() spatial fallback found:", img.currentSrc || img.src);
+            return img;
+          }
+        }
+      }
     }
 
     return null;
@@ -851,6 +926,7 @@ function scheduleOverlayRemoval() {
   }, 60);
 }
 
+// Schedule overlay position update using requestAnimationFrame.
 function clearOverlayPositionRaf() {
   if (overlayPositionRaf != null) {
     try {
@@ -860,7 +936,23 @@ function clearOverlayPositionRaf() {
   }
 }
 
+// Update the overlay position to match the target image.
 function updateOverlayPosition() {
+  
+  // Fix77: Remove overlay if target image or its parent was destroyed from DOM
+  if (overlayTargetImg && !overlayTargetImg.isConnected) {
+    logDebug(2, "🗑️ Image Inspector: removing overlay (target image disconnected from DOM)");
+    removeOverlay();
+    return;
+  }
+  
+  // Fix77: Remove overlay if parent container was destroyed from DOM
+  if (overlayParent && !overlayParent.isConnected) {
+    logDebug(2, "🗑️ Image Inspector: removing overlay (parent container disconnected from DOM)");
+    removeOverlay();
+    return;
+  }
+  
   if (!overlayEl || !overlayTriggerButton || !overlayParent || !overlayTargetImg) return;
   try {
     const rect = overlayTargetImg.getBoundingClientRect();
@@ -886,6 +978,7 @@ function updateOverlayPosition() {
   }
 }
 
+// Schedule an overlay position update using requestAnimationFrame.
 function scheduleOverlayPositionUpdate() {
   if (!overlayEl || !overlayTriggerButton) return;
   clearOverlayPositionRaf();
@@ -988,19 +1081,24 @@ function showOverlayForImage(img) {
       openInspectorPanelForImage(img);
     });
 
+    // Append the overlay host to the document body.
     document.body.appendChild(host);
     overlayEl = host;
     overlayTriggerButton = btn;
 
+    // Schedule position updates.
     parentPointerEnterHandler = () => {
       clearOverlayRemovalTimer();
     };
+    // Schedule overlay removal when the pointer leaves the parent or overlay.
     parentPointerLeaveHandler = () => {
       scheduleOverlayRemoval();
     };
+    // Schedule overlay removal when the pointer leaves the overlay button.
     overlayPointerEnterHandler = () => {
       clearOverlayRemovalTimer();
     };
+    // Schedule overlay removal when the pointer leaves the overlay button.
     overlayPointerLeaveHandler = () => {
       scheduleOverlayRemoval();
     };
@@ -1111,6 +1209,9 @@ function removeOverlay() {
 // Open the inspector panel for a given image.
 function openInspectorPanelForImage(img) {
   try {
+    
+    removeOverlay(); // Fix77: Hide floating icon immediately when panel opens
+    // Remove any existing panel before creating a new one 
     removeInspectorPanel();
 
     // Fixed host container.
