@@ -8,6 +8,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Improved Image Inspector hover target resolution for sites whose hover target is a wrapper element instead of the image itself, such as styled-components grids (500px), carousel containers, and nested layout wrappers. A bounded spatial fallback now matches the pointer position against candidate images within the hovered subtree only, preserving the existing direct-target and wrapper-resolution paths while keeping the scan bounded and free of site-specific selectors. This restores the hover overlay on galleries that previously never triggered the inspector, in line with the project's global-scope fix rules. ([#77](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/77))
+
 - Prevented orphaned Image Inspector overlays from remaining on screen when the window loses focus, when mouse events are throttled, or when the user manually toggles the Inspector off via hotkey (`Ctrl+Shift+M`). The teardown logic now explicitly clears any active overlay in all three scenarios, ensuring a clean DOM state and preventing ghost panels. ([#77](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/77))
 
 - Fixed the user‑feedback toast sequence for Web‑linked Gallery. The flow now shows distinct messages for each phase: start, candidates found, opening pages, and completion. This resolves duplicate and missing toast notifications. ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
