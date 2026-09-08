@@ -24,17 +24,28 @@
     - [🧵 3.2 Concurrency vs Stability](#-32-concurrency-vs-stability)
     - [🧠 3.3 Automation vs Manual Control](#-33-automation-vs-manual-control)
     - [📊 3.4 Global Rules vs Feature-Specific Rules](#-34-global-rules-vs-feature-specific-rules)
+    - [🧠 3.5 Heuristics vs. Strict DOM Selectors (Multi-Factor Scoring)](#-35-heuristics-vs-strict-dom-selectors-multi-factor-scoring)
+      - [⚖️ Design choice:](#️-design-choice)
   - [🔗 4. Cross-Feature Interactions](#-4-cross-feature-interactions)
     - [🏷️ 4.1 Badge State as a Shared Signal](#️-41-badge-state-as-a-shared-signal)
     - [🔎 4.2 Peek as the Runtime Source of Truth](#-42-peek-as-the-runtime-source-of-truth)
     - [⚙️ 4.3 Global Settings Impact Across Features](#️-43-global-settings-impact-across-features)
     - [🧠 4.4 Temporary State Reuse and Isolation](#-44-temporary-state-reuse-and-isolation)
+    - [🔔 4.5 Toast Sequencing and Content Script Handoff](#-45-toast-sequencing-and-content-script-handoff)
+      - [🤔 Challenge](#-challenge)
+      - [👉 Design response:](#-design-response)
   - [🧪 5. Edge Cases and Failure Modes](#-5-edge-cases-and-failure-modes)
     - [🖼️ 5.1 Inconsistent Gallery Structures](#️-51-inconsistent-gallery-structures)
     - [⏳ 5.2 Lazy Loading and Deferred Images](#-52-lazy-loading-and-deferred-images)
     - [🔁 5.3 Duplicate Images with Different URLs](#-53-duplicate-images-with-different-urls)
     - [⌨️ 5.4 Hotkey Capture and Site Interference](#️-54-hotkey-capture-and-site-interference)
     - [🧩 5.5 Extension and Browser Conflicts](#-55-extension-and-browser-conflicts)
+    - [🖼️ 5.6 Complex DOM Wrappers and Spatial Fallback](#️-56-complex-dom-wrappers-and-spatial-fallback)
+      - [🤔 Challenge with complex wrappers](#-challenge-with-complex-wrappers)
+      - [👉 Design response](#-design-response-1)
+    - [🧹 5.7 Overlay Orphaning and Lifecycle Safety](#-57-overlay-orphaning-and-lifecycle-safety)
+      - [🤔 Challenge](#-challenge-1)
+      - [👉 Design response](#-design-response-2)
   - [🚫 6. Anti-Patterns and Misuse Scenarios](#-6-anti-patterns-and-misuse-scenarios)
     - [⚠️ 6.1 Over-Aggressive Thresholds](#️-61-over-aggressive-thresholds)
     - [📈 6.2 Extreme Concurrency and Batch Values](#-62-extreme-concurrency-and-batch-values)
@@ -91,6 +102,7 @@ This manual is intended for:
 - Future maintainers revisiting design context
 
 It assumes familiarity with:
+
 - All features described in the User Manual
 - Execution flows documented in the Technical User Manual
 - Browser extension concepts (content scripts, background processes)
@@ -127,17 +139,20 @@ Understanding these principles helps explain many design decisions that may othe
 All operations in Mass Image Downloader are **explicitly initiated by the user**.
 
 There are no:
+
 - Background jobs
 - Automatic scans
 - Scheduled tasks
 - Passive listeners performing work
 
 Every execution begins with a clear user action, such as:
+
 - Clicking a feature in the popup
 - Pressing a hotkey
 - Interacting with an injected UI element
 
 This design:
+
 - Prevents unexpected downloads
 - Avoids resource usage without user intent
 - Makes behavior predictable and debuggable
@@ -151,16 +166,19 @@ This design:
 Each feature is designed as an **atomic execution unit**.
 
 This means:
+
 - Features do not depend on the internal state of other features
 - Temporary state is not shared across executions
 - Failures in one feature do not corrupt others
 
 Examples:
+
 - Bulk Image Download does not reuse gallery state
 - Image Inspector runs independently of batch logic
 - One-click Download Icon does not inherit gallery limits
 
 Atomicity improves:
+
 - Reliability
 - Debuggability
 - Long-term maintainability
@@ -170,11 +188,13 @@ Atomicity improves:
 ### 🚫 2.3 No Background Polling or Persistent Jobs
 
 Mass Image Downloader intentionally avoids:
+
 - Background polling
 - Long-lived timers
 - Persistent asynchronous jobs
 
 Reasons:
+
 - Browser extensions have strict lifecycle constraints
 - Persistent jobs increase memory usage and instability
 - Silent background behavior violates user expectations
@@ -188,6 +208,7 @@ Reasons:
 Privacy is enforced through **absence of storage**, not policy.
 
 Key rules:
+
 - No download history is stored
 - No page URLs are persisted
 - No behavioral profiling exists
@@ -196,6 +217,7 @@ Key rules:
 Only user configuration is persisted.
 
 This ensures:
+
 - Zero long-term tracking
 - No data accumulation over time
 - Predictable, stateless behavior
@@ -219,16 +241,19 @@ There are no “free” decisions — each gain comes with a cost.
 One of the most visible trade-offs is between **execution speed** and **image selection accuracy**.
 
 Faster configurations:
+
 - Use lower similarity thresholds
 - Allow smaller image sizes
 - Favor direct URL extraction
 
 More accurate configurations:
+
 - Enforce stricter size thresholds
 - Use similarity grouping
 - Limit batch size and concurrency
 
 Design choice:
+
 - The system defaults favor **accuracy over speed**
 - Speed can be increased deliberately by relaxing constraints
 
@@ -241,16 +266,19 @@ Design choice:
 Concurrency improves throughput but directly impacts browser stability.
 
 High concurrency:
+
 - Opens more tabs simultaneously
 - Increases memory and CPU usage
 - Risks site throttling or crashes
 
 Low concurrency:
+
 - Reduces system pressure
 - Improves predictability
 - Increases total execution time
 
 Design choice:
+
 - Concurrency is always bounded
 - There is no “unlimited” mode
 - Rate limiting complements concurrency to smooth execution
@@ -264,14 +292,17 @@ Design choice:
 The extension deliberately offers **both automated and manual flows**.
 
 Automated flows:
+
 - Bulk Image Download
 - Gallery extraction modes
 
 Manual flows:
+
 - Image Inspector
 - One-click Download Icon
 
 Design choice:
+
 - Automation handles common, repeatable patterns
 - Manual tools exist for precision and verification
 
@@ -284,20 +315,44 @@ Design choice:
 Global rules simplify consistency but reduce flexibility.
 
 Examples of global rules:
+
 - Minimum image size
 - Allowed formats
 - Filename conventions
 
 Feature-specific rules:
+
 - Gallery similarity thresholds
 - Web-linked gallery concurrency
 - Bulk batch limits
 
 Design choice:
+
 - Global rules define a baseline contract
 - Feature-specific rules refine behavior locally
 
 > This balance prevents configuration explosion while preserving control.
+
+### 🧠 3.5 Heuristics vs. Strict DOM Selectors (Multi-Factor Scoring)
+
+Historically, identifying the "main" image on a page relied on strict DOM selectors or simple size thresholds. However, modern sites frequently serve high-resolution advertisement or affiliate thumbnails that easily bypass size filters.
+To solve this, the One-click Download Icon now employs a multi-factor scoring heuristic rather than rigid rules.
+
+The selection logic evaluates:
+
+- Displayed size (`offsetWidth × offsetHeight`)
+- Main content containers vs. ad/affiliate containers
+- Aspect ratio and DOM position
+
+#### ⚖️ Design choice:
+
+**Instead of blocking** specific `ad networks` (which is fragile and out of scope), the system applies a `graduated penalty` to affiliate and `ad links`:
+
+- −80% for all three conditions
+- −50% for two
+- −30% for one
+
+> This **trade-off** favors `main gallery` content dynamically, preserving the extension's `global-scope philosophy` without requiring site-specific CSS selectors.
 
 ---
 
@@ -316,16 +371,19 @@ This section explains how features interact indirectly and what assumptions can 
 The extension badge acts as a **global execution indicator**.
 
 Key characteristics:
+
 - Badge state reflects the **current active execution**, not a specific feature
 - Only one execution flow is active at a time
 - Badge color and counter are reset at the start of each operation
 
 Implications:
+
 - Badge behavior is consistent across features
 - Users can rely on badge color to infer system state
 - Feature-specific details are intentionally abstracted away
 
 Design choice:
+
 - The badge communicates *status*, not *context*
 - Detailed context belongs in logs or Peek
 
@@ -336,15 +394,18 @@ Design choice:
 The Peek panel is the **authoritative view of effective configuration** at runtime.
 
 Important properties:
+
 - Peek reflects settings as loaded by the background layer
 - It does not display unsaved UI state
 - It updates dynamically when settings change
 
 Cross-feature relevance:
+
 - All features consume the same global configuration snapshot
 - Peek provides a single point of verification regardless of feature used
 
 Design choice:
+
 - One runtime truth prevents configuration ambiguity
 - Peek is informational, not interactive
 
@@ -355,15 +416,18 @@ Design choice:
 Some settings intentionally affect **multiple features simultaneously**.
 
 Examples:
+
 - Minimum image size applies to all extraction modes
 - Allowed formats affect every download path
 - Filename rules are enforced globally
 
 Consequences:
+
 - Changing a global setting may alter behavior in unexpected places
 - Feature-level tuning must respect global constraints
 
 Design choice:
+
 - Shared rules enforce consistency
 - Users must reason globally, not per feature
 
@@ -374,18 +438,35 @@ Design choice:
 Temporary state is **execution-scoped**, not feature-scoped.
 
 Rules:
+
 - State exists only during a single execution
 - No state survives between executions
 - State is not reused across features
 
 This ensures:
+
 - Predictable behavior
 - No hidden coupling between features
 - Clean restarts for every action
 
 Design choice:
+
 - Isolation over convenience
 - Repeatability over optimization
+
+### 🔔 4.5 Toast Sequencing and Content Script Handoff
+
+User feedback during `long-running workflows` (like *Web-linked Galleries*) must be immediate and sequential.
+
+#### 🤔 Challenge
+
+If the `background service worker` handles the initial toast, **MV3 lifecycle** delays or `page scan durations` can cause the user to think the *extension failed to trigger*.
+
+#### 👉 Design response:
+
+The `initial toast` notification for *Web-linked Galleries* was moved to the `content script` to guarantee **immediate feedback**. Furthermore, the flow now enforces a strict phase-based sequence (`start` → `candidates found` → `opening pages` → `completion`).
+
+> This prevents duplicate or missing notifications and aligns the Web-linked flow with the predictable feedback loops of other gallery extractors.
 
 ---
 
@@ -402,16 +483,19 @@ These cases are not bugs by default; they are **environmental or structural edge
 Not all galleries follow predictable or uniform patterns.
 
 Common issues:
+
 - Mixed thumbnail and full-size images in the same container
 - Decorative images sharing similar paths with real content
 - Galleries split across multiple DOM hierarchies
 
 Effects:
+
 - Similarity grouping may fail to converge
 - Some valid images may be excluded intentionally
 - Noise reduction may appear overly aggressive
 
 Design response:
+
 - Favor false negatives over false positives
 - Require minimum group size to qualify a gallery
 
@@ -424,11 +508,13 @@ Design response:
 Many modern sites load images dynamically based on scroll position or user interaction.
 
 Challenges:
+
 - Images may not exist in the DOM at execution time
 - Placeholder elements may appear instead of real images
 - Resolution may be unknown until fully loaded
 
 Design response:
+
 - The extension does not auto-scroll pages
 - Only fully realized images are considered
 - Users may need to scroll manually before execution
@@ -442,15 +528,18 @@ Design response:
 Some sites serve identical images under different URLs.
 
 Examples:
+
 - Cache-busting query parameters
 - CDN aliases
 - Resolution variants pointing to the same binary
 
 Behavior:
+
 - Duplicate detection operates within a single execution
 - Cross-execution deduplication is intentionally absent
 
 Design response:
+
 - Avoid persistent hashing or fingerprinting
 - Preserve privacy and simplicity
 
@@ -463,10 +552,12 @@ Design response:
 Certain websites intercept keyboard shortcuts for their own functionality.
 
 Consequences:
+
 - Hotkeys may not trigger the extension
 - Behavior may vary between sites
 
 Design response:
+
 - No attempt is made to override site handlers
 - Hotkeys operate only when the page allows propagation
 
@@ -479,19 +570,52 @@ Design response:
 Other extensions or browser features may interfere.
 
 Examples:
+
 - Ad blockers modifying DOM structure
 - Script blockers preventing content scripts
 - Privacy tools restricting tab access
 
 Behavior:
+
 - Feature execution may silently skip targets
 - No explicit error may be shown
 
 Design response:
+
 - Fail safely without crashing
 - Require manual investigation via logs
 
 > Conflicts are treated as environmental limitations, not extension failures.
+
+### 🖼️ 5.6 Complex DOM Wrappers and Spatial Fallback
+
+Many modern galleries (e.g., `styled-components grids`, `carousel containers`, or `nested layout wrappers` like those on **500px** or **Wikimedia Commons**) do not attach hover events directly to the `<img>` node. Instead, the hover target is a complex `wrapper element`.
+
+#### 🤔 Challenge with complex wrappers
+
+Standard event delegation `fails to resolve` the underlying image, causing the *Image Inspector* overlay to never trigger.
+
+#### 👉 Design response
+
+A bounded **spatial fallback** was introduced. When a wrapper is hovered, the content script matches the pointer coordinates against candidate images strictly within that hovered subtree.
+This restores hover detection without leaking outside the target area or relying on brittle, site-specific DOM paths.
+
+### 🧹 5.7 Overlay Orphaning and Lifecycle Safety
+
+Injecting UI overlays (like the *Image Inspector panel* or *One-click icon*) carries the risk of `ghost panels` remaining on screen if the execution context changes unexpectedly.
+
+#### 🤔 Challenge
+If the user switches tabs, the browser `throttles mouse events`, or the extension is `toggled off` via *hotkey*, standard cleanup listeners might not fire.
+
+#### 👉 Design response
+
+The teardown logic now explicitly `clears any active overlay` in three specific scenarios:
+
+- The window loses focus (`blur event`)
+- `Mouse events` are throttled by the browser
+- The user `manually toggles` the Inspector off via hotkey (`Ctrl+Shift+M`)
+
+> This ensures a clean DOM state and prevents stale listeners across all teardown paths, prioritizing UI stability over persistent inspection state.
 
 ---
 
@@ -510,15 +634,18 @@ Understanding what **not** to do is as important as knowing what to do.
 Setting extremely high minimum image dimensions or similarity thresholds often leads to confusion.
 
 Typical symptoms:
+
 - No images are downloaded
 - Galleries appear empty
 - Image Inspector never qualifies candidates
 
 Why this happens:
+
 - Many real-world images are smaller than expected
 - Thumbnails and previews may not meet strict criteria
 
 Design stance:
+
 - Thresholds are filters, not guarantees
 - Conservative values are safer than extreme ones
 
@@ -531,15 +658,18 @@ Design stance:
 Maximizing concurrency and batch size may seem desirable for speed.
 
 Common outcomes:
+
 - Browser slowdown or freezes
 - Tabs failing to load completely
 - Incomplete or aborted extractions
 
 Why this happens:
+
 - Browsers are not designed for uncontrolled parallelism
 - Network and memory contention increase non-linearly
 
 Design stance:
+
 - Bounded concurrency is intentional
 - Stability is favored over peak throughput
 
@@ -552,16 +682,19 @@ Design stance:
 Presets are often misunderstood as performance modes.
 
 Incorrect assumptions:
+
 - “High” means always better
 - Presets adapt dynamically to the site
 - Presets override all other settings
 
 Reality:
+
 - Presets apply predefined values once
 - Manual changes switch the system to Custom mode
 - Presets do not react to runtime conditions
 
 Design stance:
+
 - Presets are starting points, not automation
 
 > Users should verify effective settings via Peek after selecting a preset.
@@ -573,11 +706,13 @@ Design stance:
 Running incompatible features sequentially without resetting expectations can lead to confusion.
 
 Examples:
+
 - Expecting gallery grouping rules to apply to Bulk Image Download
 - Assuming manual tools inherit batch behavior
 - Mixing visual gallery logic with direct image tabs
 
 Design stance:
+
 - Each feature has a clear, limited scope
 - Behavior does not implicitly carry over between modes
 
@@ -606,6 +741,7 @@ The extension intentionally does not provide:
 - Media beyond images (video, audio, documents)
 
 Design rationale:
+
 - These features require persistent background activity
 - They increase security and privacy risks
 - They reduce predictability and user control
@@ -619,12 +755,14 @@ Mass Image Downloader focuses exclusively on **user-driven image extraction**.
 Some limitations are deliberate and permanent.
 
 Examples:
+
 - No persistent download history
 - No cross-session deduplication
 - No automatic retries across sessions
 - No per-site configuration profiles
 
 These limitations:
+
 - Preserve privacy
 - Reduce complexity
 - Avoid hidden state
@@ -638,12 +776,14 @@ Users are expected to manage context explicitly.
 Browser extensions operate under strict constraints.
 
 Key constraints:
+
 - Content scripts run in isolated environments
 - Background processes have lifecycle limits
 - Tab creation and control are sandboxed
 - Permissions are explicit and revocable
 
 Design response:
+
 - All operations are short-lived
 - State is execution-scoped
 - Cleanup is mandatory after each run
@@ -663,11 +803,13 @@ This section discusses **how current design decisions influence future evolution
 Maintaining backward compatibility imposes constraints on change.
 
 Examples:
+
 - Settings must retain semantic meaning
 - Behavior changes require clear versioning
 - Silent breaking changes are avoided
 
 Design stance:
+
 - Stability is prioritized over rapid evolution
 - Major behavior changes require explicit releases
 
@@ -680,11 +822,13 @@ Design stance:
 Some current decisions intentionally limit future possibilities.
 
 Examples:
+
 - Stateless execution limits automation
 - Privacy-first design limits analytics
 - Atomic features limit cross-feature optimization
 
 These constraints are accepted trade-offs:
+
 - Simplicity over automation
 - Transparency over opacity
 - Control over convenience
@@ -698,11 +842,13 @@ These constraints are accepted trade-offs:
 Not all aspects are rigid.
 
 Examples of flexible areas:
+
 - Gallery grouping strategies
 - Performance tuning parameters
 - UI overlays and interaction patterns
 
 Flexibility exists where it does not compromise:
+
 - Stability
 - Privacy
 - Predictability
@@ -716,12 +862,14 @@ Flexibility exists where it does not compromise:
 The Advanced Manual completes the documentation set for **Mass Image Downloader** by explaining **why the system behaves the way it does**, not just how to use it or how it works internally.
 
 This document intentionally focuses on:
+
 - Design rationale
 - Engineering trade-offs
 - System boundaries
 - Real-world edge cases
 
 It does **not** replace:
+
 - The User Manual (Basic)
 - The Technical User Manual
 - Practical configuration guides
@@ -749,6 +897,7 @@ This manual is best consulted when:
 This manual is aligned with the latest stable release from the `main` branch.
 
 For exact version verification, use:
+
 - the root `VERSION` file
 - `manifest.json`
 - `CHANGELOG.md`
