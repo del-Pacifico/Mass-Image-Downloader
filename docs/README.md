@@ -169,7 +169,7 @@ Read this if:
 Use this quick guide:
 
 - **First-time user** → [User Manual (Basic)](user-manual/README.md)
-- Want to **onfigure something** specific → [Configuration Guides](configuration-guides/configuration-guides.md)
+- Want to **configure something** specific → [Configuration Guides](configuration-guides/configuration-guides.md)
 - Want to **understand internals** → [Technical User Manual](technical-manual/README.md)
 - Want to **understand design** decisions and limits → [Advanced Manual](advanced-manual/README.md)
 - Want the **old long-form README** → [Extended Project Overview](project-overview-extended.md)
