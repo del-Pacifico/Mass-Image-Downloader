@@ -168,10 +168,10 @@ Read this if:
 
 Use this quick guide:
 
-- **First-time user** → [User Manual (Basic)](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/user-manual/README.md)
-- Want to **configure something specific** → [Configuration Guides](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/configuration-guides/configuration-guides.md)
-- Want to **understand internals** → [Technical User Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/technical-manual/README.md)
-- Want to **understand design decisions and limits** → [Advanced Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/advanced-manual/README.md)
+- **First-time user** → [User Manual (Basic)](user-manual/README.md)
+- Want to **onfigure something** specific → [Configuration Guides](configuration-guides/configuration-guides.md)
+- Want to **understand internals** → [Technical User Manual](technical-manual/README.md)
+- Want to **understand design** decisions and limits → [Advanced Manual](advanced-manual/README.md)
 - Want the **old long-form README** → [Extended Project Overview](project-overview-extended.md)
 - Want to **understand the principles** behind the project → [Project Philosophy](philosophy.md)
 - **Still need help** after reading the docs? → review [User Manual (Basic) → Getting Help and Providing Feedback](user-manual/README.md): usage questions go to GitHub Discussions, support requests use the `[Question]` issue template
