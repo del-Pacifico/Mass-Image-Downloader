@@ -138,6 +138,7 @@ Instead of saving images one by one, the extension allows you to:
 The extension works entirely **inside your browser** and focuses on being fast, predictable, and respectful of your workflow.
 
 It is especially useful when dealing with websites that contain:
+
 - Large image collections
 - Product catalogs
 - Photo galleries
@@ -156,6 +157,7 @@ This **User Manual (Basic)** is written for:
 
 You **do not need** to understand how the extension is built internally.
 This manual focuses on:
+
 - What each feature does
 - When to use it
 - How to use it safely and correctly
@@ -222,6 +224,7 @@ Follow these steps:
 Once installed, the extension icon should appear in your browser toolbar.
 
 If you do not see the icon:
+
 - Click the Extensions menu (puzzle icon)
 - Pin **Mass Image Downloader** to the toolbar
 
@@ -278,6 +281,7 @@ To open the popup:
 The popup will appear immediately and display the available actions.
 
 If you do not see the icon:
+
 - Click the Extensions menu (🧩 puzzle icon)
 - Pin 🏔️ **Mass Image Downloader** to the toolbar for easier access
 
@@ -309,13 +313,14 @@ Before starting a download process, keep these recommendations in mind:
 
 The popup does not show progress bars.
 Instead, progress and status are communicated through:
+
 - The extension badge
 - Visual feedback messages (when enabled)
 
 More details about these indicators are explained later in this manual.
 
-
 It is recommended to always keep your browser updated to ensure:
+
 - Best performance
 - Compatibility with new features
 - Proper security behavior
@@ -327,6 +332,7 @@ It is recommended to always keep your browser updated to ensure:
 Mass Image Downloader provides several features designed to handle different image extraction scenarios.
 
 This section gives a **high-level overview** of each feature, helping you understand:
+
 - What each feature is for
 - When to use it
 - What kind of results to expect
@@ -342,6 +348,7 @@ This feature allows you to **download images from multiple open tabs at once**.
 It scans the currently open browser tabs, identifies valid images, and downloads them automatically based on your settings.
 
 Use this feature when:
+
 - You have several tabs open, each containing an image
 - You want to save images quickly without opening them one by one
 
@@ -354,6 +361,7 @@ This feature is designed for galleries where **thumbnails link directly to image
 The extension follows those links and downloads the images efficiently, without opening unnecessary pages.
 
 Use this feature when:
+
 - Clicking a thumbnail opens the image directly
 - The gallery consists of linked image files
 
@@ -366,6 +374,7 @@ This feature works with **visual galleries** where images are displayed directly
 The extension analyzes the page and selects images that match size and format criteria.
 
 Use this feature when:
+
 - Images are shown inline on the page
 - There are no direct links to image files
 
@@ -378,6 +387,7 @@ This feature handles galleries where **thumbnails link to separate web pages**, 
 The extension opens those pages automatically, detects the best image available, and downloads it.
 
 Use this feature when:
+
 - Clicking a thumbnail opens a new page with the image
 - The image is loaded dynamically or embedded in content pages
 
@@ -388,10 +398,12 @@ Use this feature when:
 This feature allows you to **quickly view your current settings** without opening the full settings page.
 
 It helps you verify:
+
 - Active configuration values
 - Limits and filters currently in use
 
 Use this feature when:
+
 - You want to double-check settings before starting a download
 - You need quick confirmation without interrupting your workflow
 
@@ -399,14 +411,21 @@ Use this feature when:
 
 ### 🕵️ 4.6 Image Inspector
 
-The Image Inspector allows you to **manually inspect and download a specific image** from the current page.
+The Image Inspector allows you to `manually inspect` and `download` a *specific image* from the current page.
 
-It provides a focused view of image details and gives you full control over the download action.
+It provides a `focused view` of image details and gives you *full control* over the download action.
 
 Use this feature when:
-- You want to download a single image
-- You need to verify image details before saving
-- Automatic extraction is not suitable for the page
+
+- You want to download a `single image`
+- You need to verify `image details` before saving
+- `Automatic extraction` is not suitable for the page
+
+How it behaves on the page:
+
+- Hover over an image to see the 🕵️ icon, then click it to open the inspection panel.
+- On galleries with complex layouts (`grids`, `carousels`, or `images inside boxes` and `links`), the Inspector now *detects images more reliably than before*.
+- When you switch to another window, close the panel, or turn the Inspector off (`Ctrl+Shift+M`), any open overlay closes automatically, so no floating icons are left behind on the page.
 
 ---
 
@@ -442,6 +461,7 @@ Use this feature when:
 - Manual saving would be slow or repetitive
 
 Typical scenarios include:
+
 - Browsing image search results
 - Reviewing product images in separate tabs
 - Collecting reference material
@@ -648,6 +668,7 @@ A web-linked gallery typically works like this:
 - The actual image is displayed inside that page, often with additional content
 
 This structure is common in:
+
 - Photography websites
 - Art portfolios
 - Media platforms
@@ -678,6 +699,7 @@ To extract images from web-linked galleries:
 5. Wait while the extension processes the gallery.
 
 The extension will automatically:
+
 - Open linked pages in the background
 - Detect the main image
 - Download it based on your settings
@@ -686,13 +708,24 @@ The extension will automatically:
 
 ### 📥 8.4 Expected Results
 
+While the process runs, you will see `step-by-step` messages (if `user feedback messages` are *enabled*):
+
+- `Process started` (shown immediately, even while the page is still being scanned)
+- `Candidates found` (how many linked pages will be processed)
+- `Opening pages` (the extension is visiting the linked pages)
+- `Completed` (final result with the number of downloaded images)
+
 After completion:
 
 - Images are downloaded to your default download folder
 - Temporary tabs opened during the process are closed automatically
 - File names are generated to avoid duplicates
 
-If no images are downloaded, it usually means that the linked pages do not contain valid images matching the configured criteria.
+If no images are downloaded, it usually means that the linked pages *do not contain valid images* matching the configured criteria.
+
+> **Note**:
+>
+> Galleries whose pages are named `only with numbers` (for example, `00.html`, `01.html` … `14.html`) are now recognized correctly as a single gallery, so the flow opens and processes them as expected.
 
 ---
 
@@ -732,23 +765,29 @@ If you are unsure: start with **Medium Spec**.
 ### 📁 9.3 File System (Where and What Gets Saved)
 
 #### Choose Download Folder
+
 - **Default system folder** (recommended): downloads go to your browser/system Downloads folder.
 - **Custom folder**: enables a text field where you provide a folder path.
 
 Notes:
+
 - If you use a custom folder, keep it stable (do not rename/move it frequently).
 - If you see downloads going to an unexpected place, double-check which radio is selected.
 
 #### Allowed Image Formats
+
 Select which formats are considered valid:
+
 - **JPG / JPEG / PNG / WEBP** (commonly used)
 - **AVIF / BMP** (optional)
 
 Recommendation:
+
 - Keep JPG/JPEG/PNG enabled for the best compatibility.
 - Enable AVIF only if you know your target sites provide AVIF images.
 
 #### Allow extended image URLs
+
 Enable this if you download from sites that use URL modifiers like `:large` or `:orig` (for example Twitter/X or Pixiv).
 If you mainly download from “classic” galleries, you can keep it off.
 
@@ -759,6 +798,7 @@ If you mainly download from “classic” galleries, you can keep it off.
 Use this to keep your downloads organized.
 
 Modes:
+
 - **None**: keep original naming (recommended to start)
 - **Prefix**: adds text before the filename
 - **Suffix**: adds text after the filename
@@ -766,11 +806,13 @@ Modes:
 - **Timestamp**: adds a timestamp to reduce naming collisions
 
 Examples:
+
 - Prefix: `project_001.jpg`
 - Suffix: `001_reference.jpg`
 - Timestamp: `001_20251223-153012.jpg`
 
 Tip:
+
 - Use short, readable values (e.g., `ref`, `moodboard`, `catalog`).
 - Use the clipboard buttons (📋 / ❌) to paste or clear quickly.
 
@@ -784,11 +826,13 @@ These two values define the minimum size an image must have to be downloaded:
 - **Minimum Image Height (px)** (default: 600)
 
 If nothing downloads:
+
 1. Lower the minimum width/height slightly
 2. Save settings
 3. Retry on the same page
 
 Recommendations:
+
 - For high-quality photos: keep defaults or increase them
 - For smaller galleries or older sites: lower them carefully
 
@@ -801,20 +845,26 @@ Avoid setting them too low, or you may download icons, logos, and decorative ima
 These settings affect all gallery extraction modes.
 
 #### Gallery Image Handling
+
 Choose what happens after gallery images are detected:
+
 - **Download immediately**: fastest, downloads in the background
 - **Open in new tab before downloading**: more visual and controlled (slower), useful when sites load images dynamically
 
 #### Max images per second
+
 Limits how fast gallery images are processed:
+
 - Range: **1 to 10**
 - Default: **3**
 
 Recommendations:
+
 - Lower values (1–2) if a site is sensitive or your PC is slower
 - Higher values (4–6) if the site is stable and your PC is strong
 
 #### Similarity Grouping (Optional, but Useful)
+
 These options help the extension detect “which images belong together” as a gallery:
 
 - **Gallery Similarity Level (%)** (30–100, default: 70)
@@ -831,6 +881,7 @@ These options help the extension detect “which images belong together” as a 
   - Helpful when sites have inconsistent URL patterns (tries again with a more permissive grouping)
 
 Practical guidance:
+
 - If you get too few images: slightly lower similarity or enable fallback
 - If you get unrelated images: increase similarity and/or increase minimum group size
 
@@ -841,21 +892,27 @@ Practical guidance:
 These settings matter when thumbnails link to HTML pages (not direct image files).
 
 #### Max open tabs per gallery
+
 Controls how many linked pages can be opened in parallel:
+
 - Range: **1 to 10**
 - Default: **5**
 
 Recommendations:
+
 - Use 2–4 on slower machines
 - Use 5–8 on stronger machines
 - If your browser becomes slow, lower this first
 
 #### Delay between tab openings (ms)
+
 Controls how quickly pages are opened:
+
 - Range: **100 to 3000 ms**
 - Default: **500 ms**
 
 Recommendations:
+
 - Increase delay if a website blocks or rate-limits you
 - Decrease delay only if the site is stable and responsive
 
@@ -866,13 +923,16 @@ Recommendations:
 These settings apply to Bulk Image Download.
 
 #### Max images per batch
+
 Controls how many images/tabs are processed at once:
+
 - Range: **1 to 50**
 - Recommended: 10–25 for most systems
 
 If your browser freezes or becomes unresponsive, reduce this value.
 
 #### Continue from where it left off
+
 When enabled, the extension tries to resume after interruptions or skipped items.
 Enable it for long sessions.
 
@@ -883,14 +943,17 @@ Enable it for long sessions.
 Peek allows you to quickly review your current configuration without opening the full Settings page.
 
 #### Peek panel transparency
+
 - Range: **0.2 to 1.0**
 - Default: **0.8**
 
 Higher values improve readability. Lower values allow more background visibility.
 
 Note:
+
 - Peek can be accessed from the extension interface.
-- A dedicated keyboard shortcut is also available in this release:
+- A dedicated keyboard shortcut is also available in this release
+
 > **Alt + Shift + S** — Toggle Settings Peek
 
 ---
@@ -900,20 +963,25 @@ Note:
 The One-click Download Icon allows you to quickly download the **best image detected on the current page** using a keyboard shortcut.
 
 #### How it works
-- When activated, a small 💾 icon is injected over the highest-resolution valid image.
+
+- When activated, the extension looks for the main image of the page and injects a small 💾 icon over it.
+- The selection prefers the largest visible image inside the main content, and avoids advertisements, banners, and sponsored thumbnails.
 - Clicking the icon sends the image to the background downloader.
 - All standard rules apply (minimum size, allowed formats, extended URLs).
 
 #### How to enable
+
 1. Open **Settings**
 2. Go to **One-click Download Icon**
 3. Enable **“Enable One-click download icon (via hotkey)”**
 4. Save settings
 
 #### Keyboard shortcut
+
 - **Alt+Shift+I** — injects the one-click download icon
 
 Notes:
+
 - This shortcut works **only if the option is enabled**
 - If no valid images are detected, the icon will not appear
 - This feature is ideal for downloading a single image quickly without using galleries or bulk modes
@@ -925,19 +993,23 @@ Notes:
 Clipboard hotkeys allow you to quickly apply naming rules using text already copied to your clipboard.
 
 #### How it works
+
 When enabled, the extension reads the clipboard content and applies it as a prefix or suffix.
 
 #### How to enable
+
 1. Open **Settings**
 2. Go to **Clipboard Hotkeys**
 3. Enable **“Enable clipboard shortcuts for prefix/suffix”**
 4. Save settings
 
 #### Keyboard shortcuts
+
 - **Ctrl+Alt+P** — set prefix from clipboard (when prefix mode is active)
 - **Ctrl+Alt+S** — set suffix from clipboard (when suffix mode is active)
 
 Notes:
+
 - These shortcuts only work on the active tab
 - The corresponding filename mode (prefix/suffix/both) must be selected
 
@@ -950,6 +1022,7 @@ Notes:
 Enable or disable visual feedback messages shown directly on the page during extension operations.
 
 When enabled, the extension may display messages such as:
+
 - process started
 - process completed
 - validation or runtime errors
@@ -961,6 +1034,7 @@ This is useful when you want visible confirmation without opening developer tool
 Defines the minimum amount of time a toast message remains visible before it can be replaced by a newer one.
 
 This setting helps prevent:
+
 - overlapping notifications
 - messages disappearing too quickly
 - unreadable feedback during fast workflows
@@ -973,12 +1047,15 @@ Use a lower value if you want faster visual turnover during rapid operations.
 ### 🐛 9.13 Debugging (Optional)
 
 #### Console log level (0–3)
+
 Controls how much information is written to the browser console.
 
 For basic users:
+
 - Keep it at **1 (Basic)**
 
 For troubleshooting:
+
 - Increase to **2 (Verbose)** and retry your action
 - Use **3 (Detailed)** only if you are comfortable reading technical logs
 
@@ -1011,6 +1088,7 @@ The counter updates automatically during active operations.
 The badge color indicates the **current state** of the extension.
 
 #### 🟢 Green — Active / In Progress
+
 - The extension is actively processing images
 - Downloads are running normally
 - This is the most common state during operations
@@ -1020,6 +1098,7 @@ This state is used globally across features.
 ---
 
 #### 🔵 Blue — Completed
+
 - The process finished successfully
 - All images were processed or downloaded
 - No further action is required
@@ -1029,20 +1108,24 @@ This state is used globally and indicates a clean completion.
 ---
 
 #### 🟡 Yellow — Processing / Preparing
+
 - The extension is preparing data or analyzing content
 - This may appear briefly before downloads begin
 
 Note:
+
 - This state exists but is currently used only in specific flows
 - Not all features display this state yet
 
 ---
 
 #### 🔴 Red — Error
+
 - An error occurred during processing
 - The operation could not complete as expected
 
 Note:
+
 - Error badge support exists but is not yet applied consistently across all features
 - In some cases, errors are shown only as on-screen messages
 
@@ -1050,15 +1133,20 @@ Note:
 
 ### 💬 10.3 User Feedback Messages
 
-When enabled in Settings, the extension shows **on-screen messages** to provide additional feedback.
+*When enabled in Settings*, the extension `shows on-screen messages` to provide additional feedback.
 
 These messages may inform you about:
 
 - Successful downloads
 - Errors or invalid images
 - Disabled features or missing permissions
+- Long-running flows, such as `Web-linked Galleries`, now show their progress step by step: 
+  - started
+  - candidates found
+  - opening pages
+  - completed.
 
-Messages appear temporarily and disappear automatically.
+> Messages appear temporarily and disappear automatically.
 
 ---
 
@@ -1101,15 +1189,18 @@ These examples can help you decide **which feature to use** and **how to configu
 Designers and creative professionals often need to collect visual references quickly.
 
 Typical use cases include:
+
 - Mood boards
 - Color and style exploration
 - Visual inspiration for layouts or illustrations
 
 Recommended features:
+
 - 📸 Bulk Image Download (when images are already open in tabs)
 - 🌄 Gallery extraction with direct links (for image boards and portfolios)
 
 Recommended tips:
+
 - Increase minimum image size to avoid thumbnails
 - Use filename prefixes to organize by project or theme
 
@@ -1120,15 +1211,18 @@ Recommended tips:
 When archiving visual content for later use, consistency and completeness matter.
 
 Typical use cases include:
+
 - Saving product images
 - Archiving documentation visuals
 - Collecting reference material
 
 Recommended features:
+
 - 🌄 Galleries with direct links
 - 🔗 Web-linked galleries
 
 Recommended tips:
+
 - Enable similarity grouping to avoid duplicates
 - Limit max images per gallery to keep archives manageable
 
@@ -1139,15 +1233,18 @@ Recommended tips:
 Researchers and students often need to collect images as **reference material**, not for redistribution.
 
 Typical use cases include:
+
 - Historical image references
 - Diagrams and figures
 - Visual examples for analysis
 
 Recommended features:
+
 - 🖼️ Visual gallery extraction
 - 🕵️ Image Inspector (for careful, single-image selection)
 
 Recommended tips:
+
 - Keep image size filters moderate
 - Disable automatic tab closing when reviewing content
 
@@ -1158,15 +1255,18 @@ Recommended tips:
 When browsing catalogs or listings, images are often distributed across many pages.
 
 Typical use cases include:
+
 - Product comparison
 - Market research
 - Feature and design analysis
 
 Recommended features:
+
 - 🔗 Web-linked gallery extraction
 - 📸 Bulk Image Download (for product images opened in tabs)
 
 Recommended tips:
+
 - Limit parallel tabs for web-linked galleries
 - Increase delay between tab openings on slower sites
 
@@ -1191,6 +1291,7 @@ To get consistent and predictable results:
 - Use gallery-specific modes instead of Bulk Download when possible
 
 For best performance:
+
 - Close unnecessary tabs
 - Avoid running multiple heavy browser extensions at the same time
 - Reduce batch sizes on slower machines
@@ -1222,6 +1323,7 @@ Avoid these frequent mistakes:
 - Assuming every page structure is supported
 
 If something does not work:
+
 1. Stop the current process
 2. Review settings
 3. Retry with adjusted values
@@ -1305,11 +1407,13 @@ Specifically:
 - No hidden background scripts run outside documented flows
 
 All injected scripts are:
+
 - Part of the extension package
 - Scoped to the current page
 - Triggered explicitly by user actions
 
 Mass Image Downloader **does not perform**:
+
 - Tracking
 - Data exfiltration
 - Crypto mining
@@ -1318,6 +1422,7 @@ Mass Image Downloader **does not perform**:
 - Or something along those lines!
 
 If a feature requires script injection (for example, Image Inspector or One-click Download Icon), it is:
+
 - Clearly documented
 - User-enabled
 - Limited to its intended purpose
@@ -1331,6 +1436,7 @@ If a feature requires script injection (for example, Image Inspector or One-clic
 Mass Image Downloader **does not keep a history of downloaded images**.
 
 The extension does not store:
+
 - A list of previously downloaded images
 - Image URLs from past sessions
 - Any form of long-term download log
@@ -1338,15 +1444,18 @@ The extension does not store:
 During an active operation, the extension may temporarily keep track of images **only within the current execution flow**.
 
 This temporary tracking is used exclusively to:
+
 - Avoid processing the same image more than once
 - Prevent duplicate downloads during the same operation
 
 Once the process finishes:
+
 - All temporary references are discarded
 - No historical data remains stored
 - The next operation always starts from a clean state
 
 This design ensures:
+
 - No persistent tracking
 - No accumulation of usage data
 - No reconstruction of user activity over time
@@ -1365,22 +1474,34 @@ This section explains **where to ask for help**, **how to report issues**, and *
 
 ### 💬 14.1 Where to Ask Questions
 
-If you have questions about how the extension works or how to use a specific feature:
+**Step 1 — Check the documentation first.**
+Most questions about usage, configuration, and internal behavior are already answered in the project documentation set:
+
+- 📚 **Documentation Hub** (`docs/README.md`) — entry point and guide to all documents
+- 👤 **User Manual (Basic)** (`docs/user-manual/README.md`) — feature overview and everyday usage (this document)
+- ⚙️ **Configuration Guides** (`docs/configuration-guides/`) — outcome-driven, step-by-step setups
+- 🧑‍🔧 **Technical User Manual** (`docs/technical-manual/README.md`) — execution flows, internals, and state handling
+- 🧠 **Advanced Manual** (`docs/advanced-manual/README.md`) — design rationale, trade-offs, and edge cases
+- 🏔️ **Extended Project Overview** (`docs/project-overview-extended.md`) — comprehensive reference: options, defaults, release highlights
+- ⌨️ **Hotkeys & Keyboard Shortcuts Policy** (`docs/hotkeys/hotkeys.md`) — shortcut table and browser-specific behavior
+- 🧭 **Project Philosophy** (`docs/philosophy.md`) — the principles guiding the project
+
+**Step 2 — If the documentation does not answer your question:**
 
 - Use **GitHub Discussions**
 - Choose the category that best matches your question
 - Describe what you are trying to do and what you expected to happen
 
 Before posting:
+
 - Check existing discussions
-- Review the User Manual sections related to your question
+- Mention the document sections you already reviewed (this speeds up answers)
 
 GitHub Discussions is the preferred place for:
+
 - Usage questions
 - Configuration help
 - Feature clarification
-
----
 
 ### 🐞 14.2 Reporting Issues
 
@@ -1395,6 +1516,7 @@ When reporting an issue, include:
 - What you expected to happen instead
 
 Helpful additions:
+
 - Screenshots (if applicable)
 - Console messages (if you are comfortable sharing them)
 - Relevant settings values
@@ -1408,6 +1530,7 @@ Helpful additions:
 Suggestions and improvement ideas are welcome.
 
 If you want to suggest:
+
 - UX improvements
 - Documentation clarifications
 - Feature enhancements
