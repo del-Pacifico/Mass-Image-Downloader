@@ -22,12 +22,6 @@ This file acts as the **entry point and launcher**, allowing direct navigation t
   - [📑 Table of Contents](#-table-of-contents)
   - [🧭 How the Documentation Is Organized](#-how-the-documentation-is-organized)
   - [📚 Available Documents](#-available-documents)
-    - [👤 User Manual (Basic)](#-user-manual-basic)
-    - [⚙️ Configuration Guides](#️-configuration-guides)
-    - [🧑‍🔧 Technical User Manual](#-technical-user-manual)
-    - [⌨️ Hotkeys \& Keyboard Shortcuts Policy](#️-hotkeys--keyboard-shortcuts-policy)
-    - [👨🏻‍💻 Advanced Manual](#-advanced-manual)
-    - [📄 Extended Project Overview](#-extended-project-overview)
   - [🧭 Which Document Should I Read First?](#-which-document-should-i-read-first)
   - [🧭 Backlog \& Development Flow](#-backlog--development-flow)
     - [💡 Ideas \& Early Proposals](#-ideas--early-proposals)
@@ -54,96 +48,119 @@ Each document is self-contained and avoids overlap.
 
 ## 📚 Available Documents
 
-### 👤 User Manual (Basic)
+👤 **User Manual (Basic)**
 
-**Purpose:**  
+Purpose:
+
 Learn how to use the extension from a user perspective.
 
-**Read this if:**
+Read this if:
+
 - You are new to Mass Image Downloader
 - You want to understand available features
 - You need basic usage instructions
+📄 Open document:
+➡️ [User Manual (Basic)](user-manual/README.md)
 
-📄 **Open document:**  
-➡️ [User Manual (Basic)](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/user-manual/README.md)
+⚙️ **Configuration Guides**
 
----
+Purpose:
 
-### ⚙️ Configuration Guides
+Configure the extension to achieve specific, real-world results using step-by-step instructions.
 
-**Purpose:**  
-Configure the extension to achieve **specific, real-world results** using step-by-step instructions.
+Read this if:
 
-**Read this if:**
 - You want recommended settings for a specific scenario
 - You need predictable, reproducible behavior
 - You are tuning performance or stability
 - You are troubleshooting configuration issues
 
-📄 **Open document:**  
-➡️ [Configuration Guides](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/configuration-guides/configuration-guides.md)
+📄 Open document:
+➡️ [Configuration Guides](configuration-guides/configuration-guides.md)
 
----
+🧑‍🔧 **Technical User Manual**
 
-### 🧑‍🔧 Technical User Manual
+Purpose:
 
-**Purpose:**  
-Explain **how the extension works internally**, including execution flow, state handling, and feature interaction.
+Explain how the extension works internally, including execution flow, state handling, and feature interaction.
 
-**Read this if:**
+Read this if:
+
 - You want to understand internal behavior
 - You are debugging unexpected outcomes
 - You are reviewing technical design choices
 - You plan to contribute or extend the project
 
-📄 **Open document:**  
-➡️ [Technical User Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/technical-manual/README.md)
+📄 Open document:
+➡️ [Technical User Manual](technical-manual/README.md)
 
----
+⌨️ **Hotkeys & Keyboard Shortcuts Policy**
 
-### ⌨️ Hotkeys & Keyboard Shortcuts Policy
+Purpose:
 
-This section defines the **official keyboard shortcut policy** for Mass Image Downloader.
+Define the official keyboard shortcut policy for Mass Image Downloader.
+
+Read this if:
+
+- You need the reserved shortcut table and browser-specific behavior
+- You are proposing or reviewing a new shortcut
+- You are troubleshooting shortcut conflicts or unassigned bindings
 
 It documents:
+
 - Reserved hotkeys that must remain unchanged
 - Rules and constraints for introducing new shortcuts
 - Conflict avoidance strategies across Chromium browsers
 - Fallback behavior when hotkeys are unavailable
 
-👉 **Source of truth:**  
-- **[Hotkey Policy](hotkeys/hotkeys.md)**
+📄 Open document:
+➡️ [Hotkeys & Keyboard Shortcuts Policy](hotkeys/hotkeys.md)
 
----
+👨🏻‍💻 **Advanced Manual**
 
-### 👨🏻‍💻 Advanced Manual
+Purpose:
 
-**Purpose:**  
-Explain **why the system behaves the way it does**, covering design rationale, trade-offs, boundaries, and edge cases.
+Explain why the system behaves the way it does, covering design rationale, trade-offs, boundaries, and edge cases.
 
-**Read this if:**
+Read this if:
+
 - You want to understand non-obvious behavior
 - You are evaluating design decisions
 - You are assessing feasibility of changes or feature requests
 - You are returning to the project after time away
 
-📄 **Open document:**  
-➡️ [Advanced Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/advanced-manual/README.md)
+📄 Open document:
+➡️ [Advanced Manual](advanced-manual/README.md)
 
----
+📄 **Extended Project Overview**
 
-### 📄 Extended Project Overview
+Purpose:
 
-**Purpose:**  
 Preserve the previous long-form root README as a detailed project-level reference.
 
-**Read this if:**
+Read this if:
+
 - You want the complete overview that used to live in the repository root
 - You need a broad feature, architecture, usage, and policy reference in one place
 - You are reviewing historical README content after the compact README migration
 
-📄 **Open document:**  
+📄 Open document:
 ➡️ [Extended Project Overview](project-overview-extended.md)
+
+🧭 **Project Philosophy**
+
+Purpose:
+
+Articulate the core principles guiding the project: reliability, user control, performance, security, transparency, quality, and open collaboration.
+
+Read this if:
+
+- You want to understand the "why" behind project decisions and boundaries
+- You are evaluating alignment with your own workflow values
+- You are contributing and need the guiding principles
+
+📄 Open document:
+➡️ [Project Philosophy](philosophy.md)
 
 ---
 
@@ -152,10 +169,12 @@ Preserve the previous long-form root README as a detailed project-level referenc
 Use this quick guide:
 
 - **First-time user** → [User Manual (Basic)](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/user-manual/README.md)
-- **Want to configure something specific** → [Configuration Guides](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/configuration-guides/configuration-guides.md)
-- **Want to understand internals** → [Technical User Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/technical-manual/README.md)
-- **Want to understand design decisions and limits** → [Advanced Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/advanced-manual/README.md)
-- **Want the old long-form README** → [Extended Project Overview](project-overview-extended.md)
+- Want to **configure something specific** → [Configuration Guides](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/configuration-guides/configuration-guides.md)
+- Want to **understand internals** → [Technical User Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/technical-manual/README.md)
+- Want to **understand design decisions and limits** → [Advanced Manual](https://github.com/del-Pacifico/Mass-Image-Downloader/blob/main/docs/advanced-manual/README.md)
+- Want the **old long-form README** → [Extended Project Overview](project-overview-extended.md)
+- Want to **understand the principles** behind the project → [Project Philosophy](philosophy.md)
+- **Still need help** after reading the docs? → review [User Manual (Basic) → Getting Help and Providing Feedback](user-manual/README.md): usage questions go to GitHub Discussions, support requests use the `[Question]` issue template
 
 ---
 
@@ -174,6 +193,7 @@ Issues, Pull Requests, and Discussions must use the repository label taxonomy be
 Active development should use small, validated commits pushed to the current work branch. See the root [Contributing Guide](../CONTRIBUTING.md#incremental-commit-and-push-discipline) for the incremental commit and push workflow.
 
 ### 💡 Ideas & Early Proposals
+
 - **Location:** GitHub Discussions
 - Used for:
   - Early ideas and brainstorming
@@ -186,6 +206,7 @@ Active development should use small, validated commits pushed to the current wor
 ---
 
 ### 🗂️ Development Backlog
+
 - **Location:** GitHub Issues
 - The backlog consists of Issues labeled with:
   - `type:*` (classification)
@@ -197,6 +218,7 @@ Active development should use small, validated commits pushed to the current wor
 ---
 
 ### 🚧 Work in Progress
+
 - **Location:** GitHub Issues + Pull Requests
 - An Issue enters active development when:
   - It is assigned or explicitly picked up
@@ -207,6 +229,7 @@ Active development should use small, validated commits pushed to the current wor
 ---
 
 ### 📦 Delivered Work
+
 - **Location:** Merged Pull Requests + `CHANGELOG.md`
 - A change is considered delivered when:
   - The Pull Request is merged
@@ -242,6 +265,7 @@ If observed behavior differs from the documentation:
 ## 🧭 Final Guidance
 
 Mass Image Downloader is designed to be:
+
 - Predictable
 - Explicit
 - User-controlled
