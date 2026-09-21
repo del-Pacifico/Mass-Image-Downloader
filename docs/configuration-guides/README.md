@@ -7,44 +7,37 @@
 ## 📑 Table of Contents
 
 - [🧭 1. Introduction](#-1-introduction)
-  - [🎯 1.1 Purpose of This Document](#-11-purpose-of-this-document)
-  - [🧭 1.2 How This Document Is Organized](#-12-how-this-document-is-organized)
-  - [📌 1.3 What This Document Is — and Is Not](#-13-what-this-document-is--and-is-not)
-  - [🔗 1.4 Relationship With Other Manuals](#-14-relationship-with-other-manuals)
-  - [🧩 1.5 Guide Structure](#-15-guide-structure)
-  - [🚀 1.6 How to Use These Guides Effectively](#-16-how-to-use-these-guides-effectively)
-
+- [🎯 1.1 Purpose of This Document](#-11-purpose-of-this-document)
+- [🧭 1.2 How This Document Is Organized](#-12-how-this-document-is-organized)
+- [📌 1.3 What This Document Is — and Is Not](#-13-what-this-document-is--and-is-not)
+- [🔗 1.4 Relationship With Other Manuals](#-14-relationship-with-other-manuals)
+- [🧩 1.5 Guide Structure](#-15-guide-structure)
+- [🚀 1.6 How to Use These Guides Effectively](#-16-how-to-use-these-guides-effectively)
 - [📸 2. Bulk Image Download](#-2-bulk-image-download)
-  - [✅ 2.1 Reliable & Safe Bulk Image Download (Recommended Baseline)](#-21-reliable--safe-bulk-image-download-recommended-baseline)
-  - [⚡ 2.2 High-Speed Bulk Download on Powerful Machines](#-22-high-speed-bulk-download-on-powerful-machines)
-  - [🐢 2.3 Conservative Bulk Download for Low-Resource Systems](#-23-conservative-bulk-download-for-low-resource-systems)
-
-- [🖼️ 3. Extract Gallery Images (With Direct Links)](#-3-extract-gallery-images-with-direct-links)
-  - [📥 3.1 Clean Gallery Extraction (Immediate Download)](#-31-clean-gallery-extraction-immediate-download)
-  - [🗂️ 3.2 Gallery Extraction Using Background Tabs](#-32-gallery-extraction-using-background-tabs)
-  - [🛡️ 3.3 Handling Large Linked Galleries Safely](#-33-handling-large-linked-galleries-safely)
-
-- [🖼️ 4. Extract Gallery Images (Without Links)](#-4-extract-gallery-images-without-links)
-  - [🔍 4.1 Visual Gallery Detection with Size Filtering](#-41-visual-gallery-detection-with-size-filtering)
-  - [🧪 4.2 Improving Results on Mixed-Content Pages](#-42-improving-results-on-mixed-content-pages)
-
+- [✅ 2.1 Reliable & Safe Bulk Image Download (Recommended Baseline)](#-21-reliable--safe-bulk-image-download-recommended-baseline)
+- [⚡ 2.2 High-Speed Bulk Download on Powerful Machines](#-22-high-speed-bulk-download-on-powerful-machines)
+- [🐢 2.3 Conservative Bulk Download for Low-Resource Systems](#-23-conservative-bulk-download-for-low-resource-systems)
+- [🖼️ 3. Extract Gallery Images (With Direct Links)](#️-3-extract-gallery-images-with-direct-links)
+- [📥 3.1 Clean Gallery Extraction (Immediate Download)](#-31-clean-gallery-extraction-immediate-download)
+- [🗂️ 3.2 Gallery Extraction Using Background Tabs](#️-32-gallery-extraction-using-background-tabs)
+- [🛡️ 3.3 Handling Large Linked Galleries Safely](#️-33-handling-large-linked-galleries-safely)
+- [🖼️ 4. Extract Gallery Images (Without Links)](#️-4-extract-gallery-images-without-links)
+- [🔍 4.1 Visual Gallery Detection with Size Filtering](#-41-visual-gallery-detection-with-size-filtering)
+- [🧪 4.2 Improving Results on Mixed-Content Pages](#-42-improving-results-on-mixed-content-pages)
 - [🌐 5. Web-Linked Galleries](#-5-web-linked-galleries)
-  - [🔗 5.1 Extracting Images from HTML Detail Pages](#-51-extracting-images-from-html-detail-pages)
-  - [🧵 5.2 Controlling Fan-Out and Concurrency](#-52-controlling-fan-out-and-concurrency)
-
+- [🔗 5.1 Extracting Images from HTML Detail Pages](#-51-extracting-images-from-html-detail-pages)
+- [🧵 5.2 Controlling Fan-Out and Concurrency](#-52-controlling-fan-out-and-concurrency)
 - [📁 6. Filename Strategies](#-6-filename-strategies)
-  - [🏷️ 6.1 Clean Filenames with Prefixes and Suffixes](#-61-clean-filenames-with-prefixes-and-suffixes)
-  - [⏱️ 6.2 Timestamp-Based Naming for Large Collections](#-62-timestamp-based-naming-for-large-collections)
-
+- [🏷️ 6.1 Clean Filenames with Prefixes and Suffixes](#️-61-clean-filenames-with-prefixes-and-suffixes)
+- [⏱️ 6.2 Timestamp-Based Naming for Large Collections](#️-62-timestamp-based-naming-for-large-collections)
 - [⚡ 7. Performance & Stability](#-7-performance--stability)
-  - [⚖️ 7.1 Speed vs Stability: Choosing the Right Limits](#-71-speed-vs-stability-choosing-the-right-limits)
-  - [💻 7.2 Recommended Configurations by System Profile](#-72-recommended-configurations-by-system-profile)
-
+- [⚖️ 7.1 Speed vs Stability: Choosing the Right Limits](#️-71-speed-vs-stability-choosing-the-right-limits)
+- [💻 7.2 Recommended Configurations by System Profile](#-72-recommended-configurations-by-system-profile)
 - [🐛 8. Debugging & Diagnostics](#-8-debugging--diagnostics)
-  - [🧪 8.1 Using Debug Logs to Diagnose Configuration Issues](#-81-using-debug-logs-to-diagnose-configuration-issues)
-  - [🚫 8.2 Understanding “No Images Found” Scenarios](#-82-understanding-no-images-found-scenarios)
-
+- [🧪 8.1 Using Debug Logs to Diagnose Configuration Issues](#-81-using-debug-logs-to-diagnose-configuration-issues)
+- [🚫 8.2 Understanding "No Images Found" Scenarios](#-82-understanding-no-images-found-scenarios)
 - [🧾 9. Final Notes](#-9-final-notes)
+
 ---
 
 ## 🧭 1. Introduction
@@ -72,6 +65,7 @@ The focus is on **predictability, safety, and clarity**, not on internal mechani
 This document is organized into **independent configuration scenarios**, grouped by feature domain.
 
 Each section:
+
 - Targets a single, well-defined goal
 - Uses explicit option values
 - Avoids ambiguity or “it depends” guidance
@@ -82,12 +76,14 @@ Each section:
 ### 📌 1.3 What This Document Is — and Is Not
 
 #### ✅ This document **is**:
+
 - A configuration handbook
 - A practical, step-by-step guide
 - Outcome-oriented and reproducible
 - Safe to apply in daily usage
 
 #### ❌ This document **is not**:
+
 - A technical reference
 - An architectural explanation
 - A source code guide
@@ -142,6 +138,7 @@ Every configuration guide follows the same mandatory structure:
 This section covers **Bulk Image Download** configurations, designed to process **direct image URLs opened in browser tabs**.
 
 The guides in this section focus on:
+
 - Predictable behavior
 - Safe defaults
 - Controlled performance
@@ -158,6 +155,7 @@ The guides in this section focus on:
 Download images from open tabs **reliably and safely**, with minimal system impact and predictable results.
 
 This configuration prioritizes:
+
 - Stability over speed
 - Low failure rate
 - Clear progress feedback
@@ -194,6 +192,7 @@ Before applying this configuration:
 > Open the **Options** page and apply the following values:
 
 **Global Settings**
+
 - Allowed formats:  
   - JPG ✅  
   - JPEG ✅  
@@ -203,11 +202,13 @@ Before applying this configuration:
 - Minimum height: `300`
 
 **Bulk Image Download Settings**
+
 - Max simultaneous downloads: `1`
 - Max images per batch: `10`
 - Continue from where it left off: ❌ Disabled
 
 **Filename Settings**
+
 - Filename mode: `Original`
 - Prefix / Suffix: *(empty)*
 
@@ -264,6 +265,7 @@ Once this setup works correctly, you can safely move to more aggressive configur
 Download large numbers of images **as fast as possible** using **controlled parallelism**, while maintaining predictable behavior.
 
 This configuration is designed to **maximize throughput** on systems with:
+
 - Fast CPUs
 - SSD storage
 - Stable, high-bandwidth internet connections
@@ -299,6 +301,7 @@ Before applying this configuration:
 Open the **Options** page and apply the following values:
 
 **Global Settings**
+
 - Allowed formats:  
   - JPG ✅  
   - JPEG ✅  
@@ -308,11 +311,13 @@ Open the **Options** page and apply the following values:
 - Minimum height: `300`
 
 **Bulk Image Download Settings**
+
 - Max simultaneous downloads: `4`
 - Max images per batch: `50`
 - Continue from where it left off: ✅ Enabled
 
 **Filename Settings**
+
 - Filename mode: `Original`
 - Prefix / Suffix: *(optional, user preference)*
 
@@ -368,6 +373,7 @@ When you activate **Bulk Image Download**:
 Download images **safely on low-resource or constrained systems**, minimizing CPU, memory, and disk pressure.
 
 This configuration prioritizes:
+
 - Maximum stability
 - Minimal browser impact
 - Predictable, slow-but-safe execution
@@ -403,6 +409,7 @@ Before applying this configuration:
 Open the **Options** page and apply the following values:
 
 **Global Settings**
+
 - Allowed formats:  
   - JPG ✅  
   - JPEG ✅  
@@ -412,11 +419,13 @@ Open the **Options** page and apply the following values:
 - Minimum height: `300`
 
 **Bulk Image Download Settings**
+
 - Max simultaneous downloads: `1`
 - Max images per batch: `5`
 - Continue from where it left off: ❌ Disabled
 
 **Filename Settings**
+
 - Filename mode: `Original`
 - Prefix / Suffix: *(empty)*
 
@@ -471,6 +480,7 @@ When you activate **Bulk Image Download**:
 This section covers configurations for **galleries where thumbnails link directly to high-resolution image files**.
 
 These guides focus on:
+
 - Clean image extraction
 - Resolution-aware filtering
 - Predictable grouping behavior
@@ -521,6 +531,7 @@ Before applying this configuration:
 Open the **Options** page and apply the following values:
 
 **Global Settings**
+
 - Allowed formats:  
   - JPG ✅  
   - JPEG ✅  
@@ -530,13 +541,16 @@ Open the **Options** page and apply the following values:
 - Minimum height: `600`
 
 **Extract Gallery Images Settings**
+
 - Extract mode: `Immediate`
 - Gallery max images: `10`
 
 **Gallery Finder Settings**
+
 - Path similarity level: `80%`
 
 **Filename Settings**
+
 - Filename mode: `Original`
 - Prefix / Suffix: *(optional)*
 
@@ -623,6 +637,7 @@ Before applying this configuration:
 Open the **Options** page and apply the following values:
 
 **Global Settings**
+
 - Allowed formats:  
   - JPG ✅  
   - JPEG ✅  
@@ -632,13 +647,16 @@ Open the **Options** page and apply the following values:
 - Minimum height: `600`
 
 **Extract Gallery Images Settings**
+
 - Extract mode: `Open in background tab`
 - Gallery max images: `5`
 
 **Gallery Finder Settings**
+
 - Path similarity level: `80%`
 
 **Filename Settings**
+
 - Filename mode: `Original`
 - Prefix / Suffix: *(optional)*
 
@@ -726,6 +744,7 @@ Before applying this configuration:
 Open the **Options** page and apply the following values:
 
 **Global Settings**
+
 - Allowed formats:  
   - JPG ✅  
   - JPEG ✅  
@@ -735,13 +754,16 @@ Open the **Options** page and apply the following values:
 - Minimum height: `800`
 
 **Extract Gallery Images Settings**
+
 - Extract mode: `Open in background tab`
 - Gallery max images: `3`
 
 **Gallery Finder Settings**
+
 - Path similarity level: `85%`
 
 **Filename Settings**
+
 - Filename mode: `Original`
 - Prefix / Suffix: *(recommended for dataset identification)*
 
@@ -844,6 +866,7 @@ Before applying this configuration:
 Open the **Options** page and apply the following values:
 
 **Global Settings**
+
 - Allowed formats:  
   - JPG ✅  
   - JPEG ✅  
@@ -853,13 +876,16 @@ Open the **Options** page and apply the following values:
 - Minimum height: `400`
 
 **Extract Gallery Images Settings**
+
 - Extract mode: `Immediate`
 - Gallery max images: `10`
 
 **Gallery Finder Settings**
+
 - Path similarity level: `75%`
 
 **Filename Settings**
+
 - Filename mode: `Original`
 - Prefix / Suffix: *(optional)*
 
@@ -947,6 +973,7 @@ Before applying this configuration:
 Open the **Options** page and apply the following values:
 
 **Global Settings**
+
 - Allowed formats:  
   - JPG ✅  
   - JPEG ✅  
@@ -956,13 +983,16 @@ Open the **Options** page and apply the following values:
 - Minimum height: `600`
 
 **Extract Gallery Images Settings**
+
 - Extract mode: `Immediate`
 - Gallery max images: `8`
 
 **Gallery Finder Settings**
+
 - Path similarity level: `80%`
 
 **Filename Settings**
+
 - Filename mode: `Original`
 - Prefix / Suffix: *(recommended to identify source)*
 
@@ -1017,6 +1047,7 @@ When you activate **Extract Gallery Images**:
 This section covers configurations for **web-linked galleries**, where thumbnails link to **HTML detail pages** instead of directly to image files.
 
 In these scenarios:
+
 - Thumbnails point to intermediate pages
 - The final image is discovered after navigation
 - Concurrency and fan-out must be controlled carefully
@@ -1067,6 +1098,7 @@ Before applying this configuration:
 Open the **Options** page and apply the following values:
 
 **Global Settings**
+
 - Allowed formats:  
   - JPG ✅  
   - JPEG ✅  
@@ -1076,12 +1108,15 @@ Open the **Options** page and apply the following values:
 - Minimum height: `800`
 
 **Web-Linked Gallery Settings**
+
 - Max open tabs per gallery: `3`
 
 **Gallery Finder Settings**
+
 - Path similarity level: `80%`
 
 **Filename Settings**
+
 - Filename mode: `Original`
 - Prefix / Suffix: *(recommended for dataset grouping)*
 
@@ -1135,6 +1170,7 @@ When you activate **Extract Web-Linked Galleries**:
 Safely extract images from **large or complex web-linked galleries** by **strictly controlling fan-out and concurrency**, preventing browser overload, stalled tabs, or incomplete downloads.
 
 This configuration prioritizes:
+
 - Stability over speed
 - Controlled resource usage
 - Predictable long-running behavior
@@ -1169,6 +1205,7 @@ Before applying this configuration:
 Open the **Options** page and apply the following values:
 
 **Global Settings**
+
 - Allowed formats:  
   - JPG ✅  
   - JPEG ✅  
@@ -1178,12 +1215,15 @@ Open the **Options** page and apply the following values:
 - Minimum height: `900`
 
 **Web-Linked Gallery Settings**
+
 - Max concurrent pages: `1`
 
 **Gallery Finder Settings**
+
 - Path similarity level: `85%`
 
 **Filename Settings**
+
 - Filename mode: `Original`
 - Prefix / Suffix: *(recommended for dataset or batch identification)*
 
@@ -1234,6 +1274,7 @@ When you activate **Extract Web-Linked Galleries**:
 ## 📁 6. Filename Strategies
 
 This section covers **filename configuration strategies** to ensure downloaded images are:
+
 - Easy to identify
 - Consistently named
 - Safe for filesystem usage
@@ -1285,6 +1326,7 @@ Before applying this configuration:
 Open the **Options** page and apply the following values:
 
 **Filename Settings**
+
 - Filename mode:  
   - `Prefix` **or**  
   - `Suffix` **or**  
@@ -1295,6 +1337,7 @@ Open the **Options** page and apply the following values:
   - Example: `gallery01`
 
 **Global Settings**
+
 - Filename sanitization: *(enabled by default)*
 
 > Avoid using special characters in prefixes or suffixes.
@@ -1347,6 +1390,7 @@ When images are downloaded:
 Ensure **global filename uniqueness** when downloading **large image collections** by appending a timestamp to each filename.
 
 This configuration prioritizes:
+
 - Absolute collision avoidance
 - Chronological traceability
 - Safe operation across massive batches
@@ -1485,12 +1529,14 @@ Before applying tuning changes:
 Use the following **incremental tuning approach**:
 
 **Step 1 – Start Conservative**
+
 - Max simultaneous downloads: `1`
 - Batch size / gallery limits: low default values
 
 > Validate stability before proceeding.
 
 **Step 2 – Increase Concurrency Carefully**
+
 - Increase concurrency by **one level at a time**
 - Observe:
   - Browser responsiveness
@@ -1500,6 +1546,7 @@ Use the following **incremental tuning approach**:
 > If instability appears, revert immediately.
 
 **Step 3 – Adjust Batch or Gallery Limits**
+
 - Increase batch size only after concurrency is stable
 - Prefer smaller increments over large jumps
 - Stop increasing once gains flatten
@@ -1587,6 +1634,7 @@ Before applying a profile:
 Apply the profile that best matches your system:
 
 **🟢 Low-Resource Systems**
+
 - Max simultaneous downloads: `1`
 - Max images per batch / gallery limits: `5–10`
 - Web-linked gallery concurrency: `1`
@@ -1596,6 +1644,7 @@ Apply the profile that best matches your system:
   - Systems with limited RAM
 
 **🟡 Medium Systems**
+
 - Max simultaneous downloads: `2`
 - Max images per batch / gallery limits: `20–25`
 - Web-linked gallery concurrency: `2`
@@ -1604,6 +1653,7 @@ Apply the profile that best matches your system:
   - Standard desktops
 
 **🔵 High-Performance Systems**
+
 - Max simultaneous downloads: `4`
 - Max images per batch / gallery limits: `40–50`
 - Web-linked gallery concurrency: `3–4`
@@ -1657,6 +1707,7 @@ When using the appropriate profile:
 This section focuses on **diagnosing configuration-related issues** and understanding why expected results may not occur.
 
 These guides are intended to help you:
+
 - Identify misconfigurations quickly
 - Interpret extension behavior correctly
 - Avoid unnecessary trial-and-error
@@ -1706,6 +1757,7 @@ Before using debug logs:
 Open the **Options** page and apply the following values:
 
 **Debug Settings**
+
 - Debug log level: `2 (Verbose)`  
   *(Use level 3 only for deep inspection)*
 
@@ -1755,6 +1807,7 @@ When you run an extraction or download:
 Understand **why the extension reports “No images found”** and determine whether the cause is a **configuration issue, content limitation, or expected behavior**.
 
 This guide helps distinguish:
+
 - Misconfiguration
 - Unsupported page structures
 - Correct but empty results
@@ -1810,16 +1863,19 @@ Follow this checklist in order:
   - HTML detail pages
 
 **Step 2 – Check Minimum Dimensions**
-- Temporarily lower:
+
+- Temporarily lower
   - Minimum width
   - Minimum height
 - Retry extraction
 
 **Step 3 – Review Allowed Formats**
+
 - Enable all formats temporarily
 - Retry extraction
 
 **Step 4 – Enable Debug Logs**
+
 - Set debug log level to `2`
 - Observe rejection reasons in the console
 
@@ -1864,12 +1920,14 @@ After diagnosis:
 The **Configuration Guides** complete the user-facing documentation set for **Mass Image Downloader** by focusing on **how to configure the system to achieve concrete, reproducible results**.
 
 This document intentionally emphasizes:
+
 - Step-by-step configuration
 - Outcome-driven setups
 - Safe defaults and predictable behavior
 - Real-world scenarios and constraints
 
 It does **not** replace:
+
 - The User Manual (Basic)
 - The Technical User Manual
 - The Advanced Manual
@@ -1881,6 +1939,7 @@ It does **not** replace:
 ### 📌 How to Use This Document
 
 Consult this document when you need to:
+
 - Achieve a specific result using the extension
 - Apply recommended, safe configuration values
 - Tune performance or stability with confidence
@@ -1895,6 +1954,7 @@ Consult this document when you need to:
 These guides apply to the latest stable release from the `main` branch.
 
 For exact version verification, use:
+
 - the root `VERSION` file
 - `manifest.json`
 - `CHANGELOG.md`
@@ -1910,6 +1970,7 @@ If option names, defaults, or documented outcomes change in a future stable rele
 Start with conservative configurations, validate behavior, and then scale intentionally.
 
 Predictable results come from:
+
 - Clear goals
 - Explicit settings
 - Incremental changes
