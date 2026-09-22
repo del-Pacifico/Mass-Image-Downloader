@@ -14,7 +14,8 @@ This manual is intended for end users and explains how to install, configure, an
   - [🧭 1. Introduction](#-1-introduction)
     - [🏔️ 1.1 What is Mass Image Downloader](#️-11-what-is-mass-image-downloader)
     - [👤 1.2 Who This Manual Is For](#-12-who-this-manual-is-for)
-    - [🌐 1.3 Supported Browsers](#-13-supported-browsers)
+    - [🖥️ 1.3 Supported Browsers](#️-13-supported-browsers)
+    - [🌎 1.4 Browser-Specific Notes](#-14-browser-specific-notes)
   - [📦 2. Installation](#-2-installation)
     - [⬇️ 2.1 Downloading the Extension from GitHub](#️-21-downloading-the-extension-from-github)
     - [🧩 2.2 Installing the Extension in the Browser](#-22-installing-the-extension-in-the-browser)
@@ -107,7 +108,7 @@ This manual is intended for end users and explains how to install, configure, an
     - [✅ 12.1 Best Practices for Reliable Downloads](#-121-best-practices-for-reliable-downloads)
     - [🚫 12.2 Known Limitations](#-122-known-limitations)
     - [❗ 12.3 Common Mistakes to Avoid](#-123-common-mistakes-to-avoid)
-  - [🔒 13. Privacy and Data Handling](#-13-privacy-and-data-handling)
+  - [🔐 13. Privacy and Data Handling](#-13-privacy-and-data-handling)
     - [🏠 13.1 Local-Only Operation](#-131-local-only-operation)
     - [🚫 13.2 Data Collection Policy](#-132-data-collection-policy)
     - [🔐 13.3 Permissions Explained](#-133-permissions-explained)
@@ -126,16 +127,16 @@ This manual is intended for end users and explains how to install, configure, an
 
 ### 🏔️ 1.1 What is Mass Image Downloader
 
-**Mass Image Downloader** is a browser extension designed to help you **download multiple images efficiently from web pages**, without doing repetitive manual work.
+**Mass Image Downloader** is a browser extension designed to help you `download multiple images` efficiently from web pages, without doing repetitive manual work.
 
 Instead of saving images one by one, the extension allows you to:
 
-- Download images from multiple open tabs at once
-- Extract images from galleries and collections
-- Automatically filter images by size and format
-- Save images directly to your local download folder
+- `Bulk`: Download images from multiple open tabs at once
+- `Extract images from galleries`: From galleries and collections (with and without links)
+- Automatically `filter images` by size and format
+- `Save images` directly to your local download folder
 
-The extension works entirely **inside your browser** and focuses on being fast, predictable, and respectful of your workflow.
+The extension works entirely **inside your browser** and focuses on being `fast`, `predictable`, and `respectful` of your workflow.
 
 It is especially useful when dealing with websites that contain:
 
@@ -143,8 +144,6 @@ It is especially useful when dealing with websites that contain:
 - Product catalogs
 - Photo galleries
 - Research or reference material
-
----
 
 ### 👤 1.2 Who This Manual Is For
 
@@ -162,62 +161,67 @@ This manual focuses on:
 - When to use it
 - How to use it safely and correctly
 
-If you are looking for deeper technical explanations or internal behavior details, those are covered in separate manuals.
+> If you are looking for deeper technical explanations or internal behavior details, those are covered in separate manuals.
 
----
+### 🖥️ 1.3 Supported Browsers
 
-### 🌐 1.3 Supported Browsers
-
-Mass Image Downloader works on **Chromium-based browsers**.
+**Mass Image Downloader** works on `Chromium-based browsers`.
 
 Supported browsers include:
 
+- Brave (main)
 - Google Chrome
 - Microsoft Edge
-- Brave
-- Other Chromium-based browsers
+- Opera
+- Vivaldi
 
-**Minimum supported browser version:**  
+*Minimum supported browser version:*  
 Chromium 93 or newer
 
-If you are using an older browser version, some features may not work correctly or may not be available.
+> 🚨 If you are using an older browser version, some features may not work correctly or may not be available.
+
+### 🌎 1.4 Browser-Specific Notes
+Although the extension works on all Chromium-based browsers, some behaviors depend on how each browser handles keyboard shortcuts and policies:
+- `Brave`: primary QA-tested browser. All features and hotkeys work as documented.
+- `Microsoft Edge`: all features work, but some hotkeys (such as Image Inspector `Ctrl+Shift+M`) may need to be manually assigned in `edge://extensions/shortcuts`.
+- `Opera One`: all features work, but the Image Inspector hotkey (`Ctrl+Shift+M`) may be intercepted or blocked by the browser before the extension receives it. Use the popup button as a fallback.
+- `Vivaldi`: all features work as documented.
+- *Google Chrome*: not validated by the project QA process.
+
+> If a hotkey does not respond, check your browser's extension shortcut manager and confirm that the shortcut is assigned to Mass Image Downloader.
 
 ---
 
 ## 📦 2. Installation
 
-This section explains how to download and install **Mass Image Downloader** manually from GitHub, and how to prepare your browser for correct operation.
-
----
+This section explains how to download and install **Mass Image Downloader** manually from `GitHub`, and how to prepare your browser for correct operation.
 
 ### ⬇️ 2.1 Downloading the Extension from GitHub
 
-Mass Image Downloader is distributed as **open-source software** through GitHub.
+**Mass Image Downloader** is distributed as `open-source software` through `GitHub`.
 
 To download it:
 
 1. Open the project repository on GitHub.
-2. Go to the **Releases** section.
+2. Go to the `Releases` section.
 3. Locate the latest stable release, or verify the exact version using the root `VERSION` file and `manifest.json`.
 4. Download the source code package (ZIP file).
 5. Extract the ZIP file to a folder on your computer.
 
-Choose a permanent location for this folder.  
-Do not delete or move it after installation, as the browser will reference it.
-
----
+> 🚨 Choose a permanent location for this folder.  
+> Do not delete or move it after installation, as the browser will reference it.
 
 ### 🧩 2.2 Installing the Extension in the Browser
 
-Mass Image Downloader is installed using the **“Load unpacked”** method available in Chromium-based browsers.
+**Mass Image Downloader** is installed using the `Load unpacked` method available in Chromium-based browsers.
 
 Follow these steps:
 
 1. Open your browser.
 2. Navigate to the Extensions page:
    - In the address bar, type `chrome://extensions`
-3. Enable **Developer mode** (toggle in the top-right corner).
-4. Click **Load unpacked**.
+3. Enable `Developer mode` (toggle in the top-right corner).
+4. Click `Load unpacked`.
 5. Select the folder where you extracted the extension files.
 6. Confirm the selection.
 
@@ -225,10 +229,8 @@ Once installed, the extension icon should appear in your browser toolbar.
 
 If you do not see the icon:
 
-- Click the Extensions menu (puzzle icon)
+- Click the Extensions menu (🧩 puzzle icon)
 - Pin **Mass Image Downloader** to the toolbar
-
----
 
 ### ⚙️ 2.3 Required Browser Settings
 
@@ -240,36 +242,32 @@ This setting prevents the browser from asking for confirmation on every download
 
 To disable it:
 
-1. Open browser **Settings**.
-2. Go to **Downloads**.
-3. Turn **off** the option:
+1. Open browser `Settings`.
+2. Go to `Downloads`.
+3. Turn `off` the option:
    - “Ask where to save each file before downloading”
 
-This allows the extension to download images automatically without interruptions.
-
----
+> This allows the extension to download images automatically without interruptions.
 
 #### Recommended Settings Summary
 
 For best results, ensure that:
 
-- Developer mode is enabled
+- `Developer mode` is enabled
 - The extension folder remains unchanged
-- Automatic downloads are allowed
+- `Automatic downloads` are allowed
 - The browser is updated to a supported version
 
-Once installation is complete, you are ready to start using the extension.
+> Once installation is complete, you are ready to start using the extension.
 
 ---
 
 ## 🪟 3. Popup Overview
 
-The popup is the **main control panel** of Mass Image Downloader.  
+The popup is the `main control panel` of **Mass Image Downloader**.  
 From here, you can access all available features and start download processes.
 
-Understanding the popup layout will help you choose the right action and avoid unexpected behavior.
-
----
+> Understanding the popup layout will help you choose the right action and avoid unexpected behavior.
 
 ### 🔓 3.1 Opening the Extension Popup
 
@@ -285,22 +283,18 @@ If you do not see the icon:
 - Click the Extensions menu (🧩 puzzle icon)
 - Pin 🏔️ **Mass Image Downloader** to the toolbar for easier access
 
----
-
 ### 🧭 3.2 Overview of the Popup Layout
 
-The popup is designed to be **simple and action-focused**.
+The popup is designed to be `simple and action-focused`.
 
 Inside the popup, you will typically find:
 
-- Action buttons to start different download modes
-- Short labels describing each feature
-- Access to settings and auxiliary tools
+- `Action buttons` to start different download modes
+- `Short labels` describing each feature
+- Access to `settings` and `auxiliary tools`
 
-Each button represents a **specific feature** of the extension.
+> Each button represents a *specific feature* of the extension. 
 You do not need to configure anything before clicking a button if default settings are in place.
-
----
 
 ### 🎯 3.3 How to Use the Popup Safely
 
@@ -314,12 +308,11 @@ Before starting a download process, keep these recommendations in mind:
 The popup does not show progress bars.
 Instead, progress and status are communicated through:
 
-- The extension badge
-- Visual feedback messages (when enabled)
+- The `extension badge`
+- Visual feedback `messages` (when enabled)
 
 More details about these indicators are explained later in this manual.
-
-It is recommended to always keep your browser updated to ensure:
+It is recommended to *always keep your browser updated* to ensure:
 
 - Best performance
 - Compatibility with new features
@@ -331,32 +324,30 @@ It is recommended to always keep your browser updated to ensure:
 
 Mass Image Downloader provides several features designed to handle different image extraction scenarios.
 
-This section gives a **high-level overview** of each feature, helping you understand:
+This section gives a `high-level overview` of each feature, helping you understand:
 
 - What each feature is for
 - When to use it
 - What kind of results to expect
 
-Detailed step-by-step instructions are provided in later sections.
-
----
+> Detailed step-by-step instructions are provided in later sections.
 
 ### 📸 4.1 Bulk Image Download
 
-This feature allows you to **download images from multiple open tabs at once**.
+This feature allows you to download images from multiple open tabs at once.
 
 It scans the currently open browser tabs, identifies valid images, and downloads them automatically based on your settings.
 
+⚠️ Important: Each tab must contain a direct image URL (for example `https://example.com/photo.jpg`), not an HTML page that shows images. If a tab displays a regular web page, Bulk Image Download will skip it.
+
 Use this feature when:
 
-- You have several tabs open, each containing an image
-- You want to save images quickly without opening them one by one
-
----
+You have several tabs open, each containing a direct image
+You want to save images quickly without opening them one by one
 
 ### 🌄 4.2 Extract Images from Galleries (With Direct Links)
 
-This feature is designed for galleries where **thumbnails link directly to image files**.
+This feature is designed for galleries where `thumbnails link directly to image files`.
 
 The extension follows those links and downloads the images efficiently, without opening unnecessary pages.
 
@@ -365,11 +356,9 @@ Use this feature when:
 - Clicking a thumbnail opens the image directly
 - The gallery consists of linked image files
 
----
-
 ### 🖼️ 4.3 Extract Images from Galleries (Without Links)
 
-This feature works with **visual galleries** where images are displayed directly on the page, without direct links.
+This feature works with `visual galleries` where images are displayed directly on the page, without direct links.
 
 The extension analyzes the page and selects images that match size and format criteria.
 
@@ -378,64 +367,58 @@ Use this feature when:
 - Images are shown inline on the page
 - There are no direct links to image files
 
----
-
 ### 🔗 4.4 Extract Images from Web-Linked Galleries
 
-This feature handles galleries where **thumbnails link to separate web pages**, not directly to images.
+This feature handles galleries where thumbnails link to separate web pages, not directly to images.
 
-The extension opens those pages automatically, detects the best image available, and downloads it.
+The extension opens those pages automatically, detects the best image available, and injects a small 💾 download icon over it. You click the icon to download the image, and the temporary tab closes automatically (if the option is enabled in Settings).
 
 Use this feature when:
 
-- Clicking a thumbnail opens a new page with the image
-- The image is loaded dynamically or embedded in content pages
-
----
+Clicking a thumbnail opens a new page with the image.
+The image is loaded dynamically or embedded in content pages
 
 ### 🔎 4.5 View Settings (Peek)
 
-This feature allows you to **quickly view your current settings** without opening the full settings page.
+This feature allows you to `quickly view your current settings` without opening the full settings page.
 
 It helps you verify:
 
 - Active configuration values
 - Limits and filters currently in use
 
+Peek also includes a **📋 Open Settings JSON** button that exports your current configuration as a JSON file. This is especially useful when reporting issues, as it gives the team an exact snapshot of your settings at the moment of the problem.
+
 Use this feature when:
 
-- You want to double-check settings before starting a download
-- You need quick confirmation without interrupting your workflow
-
----
+You want to double-check settings before starting a download.
+You need quick confirmation without interrupting your workflow.
+You want to attach your current settings to an issue report
 
 ### 🕵️ 4.6 Image Inspector
 
-The Image Inspector allows you to `manually inspect` and `download` a *specific image* from the current page.
+The Image Inspector allows you to `manually inspect` and download a specific image from the current page.
+It provides a focused view of image details and gives you full control over the download action.
 
-It provides a `focused view` of image details and gives you *full control* over the download action.
+To activate Image Inspector, press `Ctrl+Shift+M`. The 🕵️ icon will appear when you hover over an eligible image. Click the icon to open the inspection panel.
+Browser-specific notes:
 
+🤔 **To remember**:
+
+- `Opera One`: the hotkey may be intercepted by the browser. If `Ctrl+Shift+M` does not respond, use the popup button instead.
+- `Microsoft Edge`: you may need to manually assign the hotkey in `edge://extensions/shortcuts`.
 Use this feature when:
-
-- You want to download a `single image`
-- You need to verify `image details` before saving
-- `Automatic extraction` is not suitable for the page
-
-How it behaves on the page:
-
-- Hover over an image to see the 🕵️ icon, then click it to open the inspection panel.
-- On galleries with complex layouts (`grids`, `carousels`, or `images inside boxes` and `links`), the Inspector now *detects images more reliably than before*.
-- When you switch to another window, close the panel, or turn the Inspector off (`Ctrl+Shift+M`), any open overlay closes automatically, so no floating icons are left behind on the page.
+You want to download a single image
+You need to verify image details before saving
+Automatic extraction is not suitable for the page
 
 ---
 
 ## 📸 5. Bulk Image Download
 
-Bulk Image Download is designed to help you **download images from multiple open tabs automatically**, without manual intervention.
+Bulk Image Download is designed to help you `download images from multiple open tabs automatically`, without manual intervention.
 
 This feature is fast, efficient, and ideal when working with many image pages at the same time.
-
----
 
 ### ❓ 5.1 What Bulk Image Download Does
 
@@ -447,9 +430,7 @@ When you start Bulk Image Download, the extension:
 - Downloads the images automatically
 - Closes tabs when the process finishes (depending on configuration)
 
-The process runs in the background and requires no further interaction once started.
-
----
+> The process runs in the background and requires no further interaction once started.
 
 ### 🕒 5.2 When to Use Bulk Image Download
 
@@ -466,8 +447,6 @@ Typical scenarios include:
 - Reviewing product images in separate tabs
 - Collecting reference material
 
----
-
 ### 🪜 5.3 Step-by-Step Usage
 
 To use Bulk Image Download:
@@ -478,9 +457,7 @@ To use Bulk Image Download:
 4. Click 📸 **Bulk Image Download**.
 5. Wait while the extension processes the tabs.
 
-No confirmation dialogs are required if browser download settings are correctly configured.
-
----
+> No confirmation dialogs are required if browser download settings are correctly configured.
 
 ### 🔄 5.4 What Happens During the Process
 
@@ -489,11 +466,11 @@ While the process is running:
 - Tabs are evaluated one by one
 - Images are downloaded in batches
 - Progress is shown using the extension badge
+- If user feedback messages are enabled in Settings, you will also see toast notifications indicating the current phase of the process
+- Detailed logs are written to the browser console (accessible via DevTools)
 - Tabs may close automatically after successful download
 
-The browser remains usable during this time, but it is recommended not to interfere until the process completes.
-
----
+> The browser remains usable during this time, but it is recommended not to interfere until the process completes.
 
 ### ✅ 5.5 Expected Results
 
@@ -503,19 +480,15 @@ After completion:
 - File names are generated automatically to avoid overwriting
 - The extension badge updates to reflect completion
 
-If no valid images are found, no downloads will occur.
-
-This behavior is normal and indicates that the open tabs did not meet the required criteria.
+> If no valid images are found, no downloads will occur. This behavior is normal and indicates that the open tabs did not meet the required criteria.
 
 ---
 
 ## 🌄 6. Extract Images from Galleries (With Direct Links)
 
-This feature is optimized for galleries where **thumbnails link directly to image files** (for example, clicking a thumbnail opens the image itself).
+This feature is optimized for galleries where `thumbnails link directly to image files` (for example, clicking a thumbnail opens the image itself).
 
 It provides a fast and reliable way to download images without opening unnecessary pages.
-
----
 
 ### 🔗 6.1 What This Mode Is For
 
@@ -525,9 +498,7 @@ Use this mode when:
 - Clicking a thumbnail opens the image (not an intermediate page)
 - The gallery structure is simple and consistent
 
-In these cases, the extension can follow the links and download images efficiently.
-
----
+> In these cases, the extension can follow the links and download images efficiently.
 
 ### 🧪 6.2 Typical Gallery Example
 
@@ -537,9 +508,7 @@ A typical supported gallery looks like this:
 - Each thumbnail is clickable
 - The link behind each thumbnail points directly to an image file (JPG, PNG, WEBP, etc.)
 
-This structure is common in image boards, media libraries, and product galleries.
-
----
+> This structure is common in image boards, media libraries, and product galleries.
 
 ### 🪜 6.3 Step-by-Step Usage
 
@@ -547,13 +516,11 @@ To extract images from a gallery with direct links:
 
 1. Open the web page that contains the gallery.
 2. Ensure the thumbnails link directly to image files.
-3. Open the **Mass Image Downloader** popup.
-4. Select **Extract Images from Galleries (With Direct Links)**.
+3. Open the 🏔️ **Mass Image Downloader** popup.
+4. Select 🌄 **Extract Images from Galleries (With Direct Links)**.
 5. Wait while the extension processes the gallery.
 
-The process runs automatically and does not require further input.
-
----
+> The process runs automatically and does not require further input.
 
 ### 🧠 6.4 How Images Are Selected
 
@@ -563,9 +530,7 @@ During extraction, the extension:
 - Filters images based on size and format rules
 - Skips images that do not meet the criteria
 
-Only valid images are selected and downloaded.
-
----
+> Only valid images are selected and downloaded.
 
 ### 📥 6.5 Expected Results
 
@@ -575,17 +540,15 @@ After completion:
 - Files are named automatically to avoid duplicates
 - No additional pages remain open
 
-If the gallery does not contain valid direct image links, no images will be downloaded.
+> If the gallery does not contain valid direct image links, no images will be downloaded.
 
 ---
 
 ## 🖼️ 7. Extract Images from Galleries (Without Links)
 
-This feature is designed for **visual galleries** where images are displayed directly on the page and **do not link to image files**.
+This feature is designed for `visual galleries` where images are displayed directly on the page and `do not link to image files`.
 
 Instead of following links, the extension analyzes the page content and selects images based on visual and size criteria.
-
----
 
 ### 👁️ 7.1 What Is a Visual Gallery
 
@@ -595,9 +558,7 @@ A visual gallery typically has the following characteristics:
 - Thumbnails are not clickable, or clicking them does not open the image file
 - Images may be part of a layout, grid, or article content
 
-This type of gallery is common in blogs, portfolios, news sites, and modern web layouts.
-
----
+> This type of gallery is common in blogs, portfolios, news sites, and modern web layouts.
 
 ### 🧭 7.2 When to Use This Mode
 
@@ -607,9 +568,7 @@ Use this feature when:
 - Images are embedded directly in the page
 - Other gallery extraction modes do not detect images correctly
 
-This mode is especially useful when the page relies on layout-based image presentation.
-
----
+> This mode is especially useful when the page relies on layout-based image presentation.
 
 ### 🪜 7.3 Step-by-Step Usage
 
@@ -617,13 +576,11 @@ To extract images from a visual gallery:
 
 1. Open the page that contains the gallery.
 2. Ensure the images are visible and fully loaded.
-3. Open the **Mass Image Downloader** popup.
-4. Select **Extract Images from Galleries (Without Links)**.
+3. Open the 🏔️ **Mass Image Downloader** popup.
+4. Select 🖼️ **Extract Images from Galleries (Without Links)**.
 5. Wait while the extension analyzes the page.
 
-The extraction process runs automatically.
-
----
+> The extraction process runs automatically.
 
 ### 🎯 7.4 How Images Are Chosen
 
@@ -633,9 +590,7 @@ During analysis, the extension:
 - Applies minimum size and format rules
 - Ignores icons, logos, and decorative images
 
-Only images that meet the criteria are selected for download.
-
----
+> Only images that meet the criteria are selected for download.
 
 ### ✅ 7.5 Expected Results
 
@@ -645,26 +600,24 @@ After completion:
 - Files are named automatically
 - No extra tabs are opened
 
-If no images meet the criteria, no downloads will occur.
+> If no images meet the criteria, no downloads will occur.
 This indicates that the images on the page are too small or do not match the filters.
 
 ---
 
 ## 🔗 8. Extract Images from Web-Linked Galleries
 
-This feature is designed for galleries where **thumbnails link to separate web pages**, not directly to image files.
+This feature is designed for galleries where `thumbnails link to separate web pages`, not directly to image files.
 
 In these cases, the image you want is usually embedded inside a content page.  
 The extension automatically opens those pages, finds the best image available, and downloads it.
-
----
 
 ### 🌐 8.1 What Are Web-Linked Galleries
 
 A web-linked gallery typically works like this:
 
 - A page shows a list or grid of thumbnails
-- Each thumbnail links to a **detail page**
+- Each thumbnail links to a `detail page`
 - The actual image is displayed inside that page, often with additional content
 
 This structure is common in:
@@ -674,8 +627,6 @@ This structure is common in:
 - Media platforms
 - Product or item detail pages
 
----
-
 ### 🧭 8.2 When to Use This Mode
 
 Use this feature when:
@@ -684,9 +635,7 @@ Use this feature when:
 - The image is not directly downloadable from the gallery view
 - Other gallery modes do not extract images correctly
 
-This mode is especially useful for modern websites that separate previews from content pages.
-
----
+> This mode is especially useful for modern websites that separate previews from content pages.
 
 ### 🪜 8.3 Step-by-Step Usage
 
@@ -694,8 +643,8 @@ To extract images from web-linked galleries:
 
 1. Open the page that contains the gallery.
 2. Ensure that thumbnails link to content pages.
-3. Open the **Mass Image Downloader** popup.
-4. Select **Extract Images from Web-Linked Galleries**.
+3. Open the 🏔️**Mass Image Downloader** popup.
+4. Select 🔗 **Extract Images from Web-Linked Galleries**.
 5. Wait while the extension processes the gallery.
 
 The extension will automatically:
@@ -703,8 +652,6 @@ The extension will automatically:
 - Open linked pages in the background
 - Detect the main image
 - Download it based on your settings
-
----
 
 ### 📥 8.4 Expected Results
 
@@ -731,55 +678,47 @@ If no images are downloaded, it usually means that the linked pages *do not cont
 
 ## ⚙️ 9. Settings (User View)
 
-The Settings page lets you control **what counts as a “valid image”**, how fast the extension works, and how downloads are named and saved.
+The Settings page lets you control `what counts as a “valid image”`, how fast the extension works, and how downloads are named and saved.
 
-If something is not downloading as expected, the answer is usually here.
-
----
+> If something is not downloading as expected, the answer is usually here.
 
 ### 🔓 9.1 Accessing the Settings Page
 
 1. Open the **Mass Image Downloader** popup.
-2. Click **Settings**.
+2. Click `Settings`.
 3. A new tab opens with the full configuration panel.
-4. Click **💾 Save Settings** when you are done.
+4. Click `💾 Save Settings` when you are done.
 
-Tip: You can keep the settings tab open while testing different sites.
-
----
+> 💡 You can keep the settings tab open while testing different sites.
 
 ### ⚙️ 9.2 Performance Presets (Recommended Starting Point)
 
 Before changing individual options, choose a preset:
 
-- **Low Spec** — safer for older laptops (slow, minimal parallel work)
-- **Medium Spec** — balanced default for most computers
-- **High Spec** — fastest, more parallel work (requires more RAM/CPU)
-- **Custom (auto-set)** — activates automatically when you manually tweak any option
+- `Low Spec` — safer for older laptops (slow, minimal parallel work)
+- `Medium Spec` — balanced default for most computers
+- `High Spec` — fastest, more parallel work (requires more RAM/CPU)
+- `Custom (auto-set)` — activates automatically when you manually tweak any option
 
-Presets update multiple settings at once (batching, concurrency, filters, gallery behavior).  
-If you are unsure: start with **Medium Spec**.
-
----
+> Presets update multiple settings at once (batching, concurrency, filters, gallery behavior).  
+If you are unsure: start with `Medium Spec`.
 
 ### 📁 9.3 File System (Where and What Gets Saved)
 
 #### Choose Download Folder
 
-- **Default system folder** (recommended): downloads go to your browser/system Downloads folder.
-- **Custom folder**: enables a text field where you provide a folder path.
+- `Default system folder` (recommended): downloads go to your browser/system Downloads folder.
+- `Custom folder`: enables a text field where you provide a folder path.
 
-Notes:
-
-- If you use a custom folder, keep it stable (do not rename/move it frequently).
-- If you see downloads going to an unexpected place, double-check which radio is selected.
+💡 If you use a custom folder, keep it stable (do not rename/move it frequently).
+If you see downloads going to an unexpected place, double-check which radio is selected.
 
 #### Allowed Image Formats
 
 Select which formats are considered valid:
 
-- **JPG / JPEG / PNG / WEBP** (commonly used)
-- **AVIF / BMP** (optional)
+- `JPG` / `JPEG` / `PNG` / `WEBP` (commonly used)
+- `AVIF` / `BMP` (optional)
 
 Recommendation:
 
@@ -791,19 +730,17 @@ Recommendation:
 Enable this if you download from sites that use URL modifiers like `:large` or `:orig` (for example Twitter/X or Pixiv).
 If you mainly download from “classic” galleries, you can keep it off.
 
----
-
 ### 🏷️ 9.4 Filename Customization (Prefix / Suffix / Timestamp)
 
 Use this to keep your downloads organized.
 
 Modes:
 
-- **None**: keep original naming (recommended to start)
-- **Prefix**: adds text before the filename
-- **Suffix**: adds text after the filename
-- **Both**: adds both prefix and suffix
-- **Timestamp**: adds a timestamp to reduce naming collisions
+- `None`: keep original naming (recommended to start)
+- `Prefix`: adds text before the filename
+- `Suffix`: adds text after the filename
+- `Both`: adds both prefix and suffix
+- `Timestamp`: adds a timestamp to reduce naming collisions
 
 Examples:
 
@@ -811,19 +748,15 @@ Examples:
 - Suffix: `001_reference.jpg`
 - Timestamp: `001_20251223-153012.jpg`
 
-Tip:
-
-- Use short, readable values (e.g., `ref`, `moodboard`, `catalog`).
-- Use the clipboard buttons (📋 / ❌) to paste or clear quickly.
-
----
+> 💡 Use short, readable values (e.g., `ref`, `moodboard`, `catalog`).
+Use the clipboard buttons (📋 / ❌) to paste or clear quickly.
 
 ### 📐 9.5 Image Size Filters (Most Common Reason for “No Downloads”)
 
 These two values define the minimum size an image must have to be downloaded:
 
-- **Minimum Image Width (px)** (default: 800)
-- **Minimum Image Height (px)** (default: 600)
+- `Minimum Image Width (px)` (default: 800)
+- `Minimum Image Height (px)` (default: 600)
 
 If nothing downloads:
 
@@ -831,14 +764,12 @@ If nothing downloads:
 2. Save settings
 3. Retry on the same page
 
-Recommendations:
+**Recommendations**:
 
 - For high-quality photos: keep defaults or increase them
 - For smaller galleries or older sites: lower them carefully
 
-Avoid setting them too low, or you may download icons, logos, and decorative images.
-
----
+> Avoid setting them too low, or you may download icons, logos, and decorative images.
 
 ### 🖼️ 9.6 Galleries (Direct Links + Without Links)
 
@@ -848,17 +779,17 @@ These settings affect all gallery extraction modes.
 
 Choose what happens after gallery images are detected:
 
-- **Download immediately**: fastest, downloads in the background
-- **Open in new tab before downloading**: more visual and controlled (slower), useful when sites load images dynamically
+- `Download immediately`: fastest, downloads in the background
+- `Open in new tab before downloading`: more visual and controlled (slower), useful when sites load images dynamically
 
 #### Max images per second
 
 Limits how fast gallery images are processed:
 
-- Range: **1 to 10**
-- Default: **3**
+- Range: `1` to `10`
+- Default: `3`
 
-Recommendations:
+**Recommendations**:
 
 - Lower values (1–2) if a site is sensitive or your PC is slower
 - Higher values (4–6) if the site is stable and your PC is strong
@@ -867,25 +798,21 @@ Recommendations:
 
 These options help the extension detect “which images belong together” as a gallery:
 
-- **Gallery Similarity Level (%)** (30–100, default: 70)
+- `Gallery Similarity Level (%)` (30–100, default: 70)
   - Higher = stricter grouping (fewer, more related images)
   - Lower = more permissive grouping (more images, higher risk of unrelated results)
 
-- **Minimum Group Size** (2–50, default: 3)
+- `Minimum Group Size` (2–50, default: 3)
   - How many similar images must exist before a group is considered a real gallery
 
-- **Enable smart similarity grouping**
+- `Enable smart similarity grouping`
   - Recommended when gallery pages contain many thumbnails and repeated patterns
 
-- **Enable fallback grouping**
+- `Enable fallback grouping`
   - Helpful when sites have inconsistent URL patterns (tries again with a more permissive grouping)
 
-Practical guidance:
-
-- If you get too few images: slightly lower similarity or enable fallback
-- If you get unrelated images: increase similarity and/or increase minimum group size
-
----
+> 💡 If you get too few images: slightly lower similarity or enable fallback.
+If you get unrelated images: increase similarity and/or increase minimum group size
 
 ### 🔗 9.7 Web-Linked Galleries (Thumbnails Open a Page)
 
@@ -895,8 +822,8 @@ These settings matter when thumbnails link to HTML pages (not direct image files
 
 Controls how many linked pages can be opened in parallel:
 
-- Range: **1 to 10**
-- Default: **5**
+- Range: `1` to `10`
+- Default: `5`
 
 Recommendations:
 
@@ -908,15 +835,13 @@ Recommendations:
 
 Controls how quickly pages are opened:
 
-- Range: **100 to 3000 ms**
-- Default: **500 ms**
+- Range: `100` to `3000 ms`
+- Default: `500 ms`
 
-Recommendations:
+💡 Recommendations:
 
 - Increase delay if a website blocks or rate-limits you
 - Decrease delay only if the site is stable and responsive
-
----
 
 ### 📸 9.8 Bulk Image Download (Tabs)
 
@@ -926,17 +851,15 @@ These settings apply to Bulk Image Download.
 
 Controls how many images/tabs are processed at once:
 
-- Range: **1 to 50**
-- Recommended: 10–25 for most systems
+- Range: `1 to 50`
+- Recommended: `10–25` for most systems
 
-If your browser freezes or becomes unresponsive, reduce this value.
+> If your browser freezes or becomes unresponsive, reduce this value.
 
 #### Continue from where it left off
 
 When enabled, the extension tries to resume after interruptions or skipped items.
 Enable it for long sessions.
-
----
 
 ### 🔎 9.9 View Settings (Peek)
 
@@ -944,8 +867,8 @@ Peek allows you to quickly review your current configuration without opening the
 
 #### Peek panel transparency
 
-- Range: **0.2 to 1.0**
-- Default: **0.8**
+- Range: `0.2` to `1.0`
+- Default: `0.8`
 
 Higher values improve readability. Lower values allow more background visibility.
 
@@ -954,39 +877,36 @@ Note:
 - Peek can be accessed from the extension interface.
 - A dedicated keyboard shortcut is also available in this release
 
-> **Alt + Shift + S** — Toggle Settings Peek
-
----
+💡 Hotkey: `Alt + Shift + S` — Toggle Settings Peek
 
 ### 🖱️ 9.10 One-click Download Icon
 
-The One-click Download Icon allows you to quickly download the **best image detected on the current page** using a keyboard shortcut.
+The One-click Download Icon allows you to quickly download the `best image detected on the current page` using a keyboard shortcut.
 
 #### How it works
 
-- When activated, the extension looks for the main image of the page and injects a small 💾 icon over it.
-- The selection prefers the largest visible image inside the main content, and avoids advertisements, banners, and sponsored thumbnails.
+- When activated, a small 💾 icon is injected over the best image detected on the page.
+- The extension automatically prefers the main content image over advertisements, banners, or small thumbnails, so the icon lands on the image you most likely want to save
 - Clicking the icon sends the image to the background downloader.
-- All standard rules apply (minimum size, allowed formats, extended URLs).
+
+> All standard rules apply (minimum size, allowed formats, extended URLs).
 
 #### How to enable
 
-1. Open **Settings**
-2. Go to **One-click Download Icon**
-3. Enable **“Enable One-click download icon (via hotkey)”**
+1. Open `Settings`
+2. Go to `One-click Download Icon`
+3. Enable `“Enable One-click download icon"` (via hotkey)
 4. Save settings
 
 #### Keyboard shortcut
 
-- **Alt+Shift+I** — injects the one-click download icon
+💡 Hotkey: `Alt+Shift+I` — injects the one-click download icon
 
 Notes:
 
-- This shortcut works **only if the option is enabled**
+- This shortcut works *only if the option is enabled*
 - If no valid images are detected, the icon will not appear
 - This feature is ideal for downloading a single image quickly without using galleries or bulk modes
-
----
 
 ### 📋 9.11 Clipboard Hotkeys (Optional)
 
@@ -998,22 +918,20 @@ When enabled, the extension reads the clipboard content and applies it as a pref
 
 #### How to enable
 
-1. Open **Settings**
-2. Go to **Clipboard Hotkeys**
-3. Enable **“Enable clipboard shortcuts for prefix/suffix”**
+1. Open `Settings`
+2. Go to `Clipboard Hotkeys`
+3. Enable `“Enable clipboard shortcuts for prefix/suffix”`
 4. Save settings
 
 #### Keyboard shortcuts
 
-- **Ctrl+Alt+P** — set prefix from clipboard (when prefix mode is active)
-- **Ctrl+Alt+S** — set suffix from clipboard (when suffix mode is active)
+- `Ctrl+Alt+P` — set prefix from clipboard (when prefix mode is active)
+- `Ctrl+Alt+S` — set suffix from clipboard (when suffix mode is active)
 
 Notes:
 
 - These shortcuts only work on the active tab
 - The corresponding filename mode (prefix/suffix/both) must be selected
-
----
 
 ### 📢 9.12 Notifications
 
@@ -1027,7 +945,7 @@ When enabled, the extension may display messages such as:
 - process completed
 - validation or runtime errors
 
-This is useful when you want visible confirmation without opening developer tools.
+> This is useful when you want visible confirmation without opening developer tools.
 
 #### Toast minimum visible time (ms)
 
@@ -1039,10 +957,8 @@ This setting helps prevent:
 - messages disappearing too quickly
 - unreadable feedback during fast workflows
 
-Use a higher value if you prefer slower, easier-to-read notifications.  
-Use a lower value if you want faster visual turnover during rapid operations.
-
----
+> Use a higher value if you prefer slower, easier-to-read notifications.  
+> Use a lower value if you want faster visual turnover during rapid operations.
 
 ### 🐛 9.13 Debugging (Optional)
 
@@ -1050,38 +966,40 @@ Use a lower value if you want faster visual turnover during rapid operations.
 
 Controls how much information is written to the browser console.
 
+Available levels:
+
+- `0 (Silent)`: no logs are generated
+- `1 (Basic)`: default level, recommended for normal use
+- `2 (Verbose)`: include warnings and detailed state transitions
+- `3 (Detailed)`: full trace for deep debugging
+
 For basic users:
 
-- Keep it at **1 (Basic)**
+- Keep it at `1` (default) or `0` if you want the console completely clean
 
 For troubleshooting:
-
-- Increase to **2 (Verbose)** and retry your action
-- Use **3 (Detailed)** only if you are comfortable reading technical logs
+- Increase to `2` (Verbose) and retry your action
+- Use `3` (Detailed) only if you are comfortable reading technical logs
 
 ---
 
 ## 🏷️ 10. Badge and Visual Feedback
 
-Mass Image Downloader uses the extension badge to provide **quick visual feedback** about what the extension is doing.
+Mass Image Downloader uses the extension badge to provide `quick visual feedback` about what the extension is doing.
 
 The badge helps you understand the current state of a process without opening logs or settings.
 This feedback is designed to be simple, non-intrusive, and easy to recognize at a glance.
 
----
-
 ### 🔢 10.1 Badge Counter Meaning
 
-The number shown on the extension icon represents **progress information**.
+The number shown on the extension icon represents `progress information`.
 
 Depending on the feature, the counter may indicate:
 
 - How many images have been processed
 - How many images have been downloaded so far
 
-The counter updates automatically during active operations.
-
----
+> The counter updates automatically during active operations.
 
 ### 🎨 10.2 Badge Colors Explained
 
@@ -1093,9 +1011,7 @@ The badge color indicates the **current state** of the extension.
 - Downloads are running normally
 - This is the most common state during operations
 
-This state is used globally across features.
-
----
+> This state is used globally across features.
 
 #### 🔵 Blue — Completed
 
@@ -1103,9 +1019,7 @@ This state is used globally across features.
 - All images were processed or downloaded
 - No further action is required
 
-This state is used globally and indicates a clean completion.
-
----
+> This state is used globally and indicates a clean completion.
 
 #### 🟡 Yellow — Processing / Preparing
 
@@ -1117,8 +1031,6 @@ Note:
 - This state exists but is currently used only in specific flows
 - Not all features display this state yet
 
----
-
 #### 🔴 Red — Error
 
 - An error occurred during processing
@@ -1129,26 +1041,25 @@ Note:
 - Error badge support exists but is not yet applied consistently across all features
 - In some cases, errors are shown only as on-screen messages
 
----
-
 ### 💬 10.3 User Feedback Messages
 
-*When enabled in Settings*, the extension `shows on-screen messages` to provide additional feedback.
+*When enabled in Settings*, the extension *shows on-screen* `toast messages` to provide additional feedback during all major workflows: 
+
+- Bulk Image Download
+- Gallery Extraction
+- Web-Linked Galleries
+- One-Click Download
+- Image Inspector
+- View Settings (Peek).
 
 These messages may inform you about:
 
+- Process start and progress
 - Successful downloads
 - Errors or invalid images
 - Disabled features or missing permissions
-- Long-running flows, such as `Web-linked Galleries`, now show their progress step by step: 
-  - started
-  - candidates found
-  - opening pages
-  - completed.
 
 > Messages appear temporarily and disappear automatically.
-
----
 
 ### 🧭 10.4 What to Do If the Badge Looks Unexpected
 
@@ -1172,17 +1083,14 @@ The badge is a guide. Settings and page content determine the final result.
 - No badge activity at all  
   → Ensure you selected the correct feature and that the extension is enabled
 
-Visual feedback is meant to guide you, but settings always determine the final behavior.
+> Visual feedback is meant to guide you, but settings always determine the final behavior.
 
 ---
 
 ## 💡 11. Common Use Cases
 
-This section describes **real-world scenarios** where Mass Image Downloader is especially useful.
-
-These examples can help you decide **which feature to use** and **how to configure it** depending on your goal.
-
----
+This section describes `real-world scenarios` where **Mass Image Downloader** is especially useful.
+These examples can help you decide *which feature to use* and *how to configure it* depending on your goal.
 
 ### 🎨 11.1 Design and Creative Research
 
@@ -1199,12 +1107,10 @@ Recommended features:
 - 📸 Bulk Image Download (when images are already open in tabs)
 - 🌄 Gallery extraction with direct links (for image boards and portfolios)
 
-Recommended tips:
+💡 Recommended tips:
 
 - Increase minimum image size to avoid thumbnails
 - Use filename prefixes to organize by project or theme
-
----
 
 ### 🗄️ 11.2 Media and Content Archiving
 
@@ -1221,16 +1127,14 @@ Recommended features:
 - 🌄 Galleries with direct links
 - 🔗 Web-linked galleries
 
-Recommended tips:
+💡 Recommended tips:
 
 - Enable similarity grouping to avoid duplicates
 - Limit max images per gallery to keep archives manageable
 
----
-
 ### 🎓 11.3 Academic and Research Use
 
-Researchers and students often need to collect images as **reference material**, not for redistribution.
+Researchers and students often need to collect images as `reference material`, not for redistribution.
 
 Typical use cases include:
 
@@ -1243,12 +1147,10 @@ Recommended features:
 - 🖼️ Visual gallery extraction
 - 🕵️ Image Inspector (for careful, single-image selection)
 
-Recommended tips:
+💡 Recommended tips:
 
 - Keep image size filters moderate
 - Disable automatic tab closing when reviewing content
-
----
 
 ### 🛍️ 11.4 Product and Catalog Browsing
 
@@ -1265,7 +1167,7 @@ Recommended features:
 - 🔗 Web-linked gallery extraction
 - 📸 Bulk Image Download (for product images opened in tabs)
 
-Recommended tips:
+💡 Recommended tips:
 
 - Limit parallel tabs for web-linked galleries
 - Increase delay between tab openings on slower sites
@@ -1274,33 +1176,29 @@ Recommended tips:
 
 ## ⚠️ 12. Best Practices and Warnings
 
-This section highlights **recommended practices** and **important warnings** to help you use Mass Image Downloader effectively and safely.
+This section highlights `recommended practices` and `important warnings` to help you use Mass Image Downloader effectively and safely.
 
-Following these guidelines will reduce errors and improve results.
-
----
+> Following these guidelines will reduce errors and improve results.
 
 ### ✅ 12.1 Best Practices for Reliable Downloads
 
 To get consistent and predictable results:
 
-- Start with **default settings** and adjust gradually
+- Start with `default settings` and adjust gradually
 - Test features on a small page before large extractions
 - Let one process finish before starting another
 - Keep your browser updated to a supported version
 - Use gallery-specific modes instead of Bulk Download when possible
 
-For best performance:
+💡 For best performance:
 
 - Close unnecessary tabs
 - Avoid running multiple heavy browser extensions at the same time
 - Reduce batch sizes on slower machines
 
----
-
 ### 🚫 12.2 Known Limitations
 
-Mass Image Downloader operates **within browser limitations**.
+**Mass Image Downloader** operates *within browser limitations*.
 
 Be aware of the following:
 
@@ -1309,9 +1207,7 @@ Be aware of the following:
 - Some sites limit how quickly pages can be opened
 - Browser security policies may prevent access to certain image sources
 
-These behaviors are expected and not errors.
-
----
+> 🚨 These behaviors are expected and not errors.
 
 ### ❗ 12.3 Common Mistakes to Avoid
 
@@ -1328,21 +1224,19 @@ If something does not work:
 2. Review settings
 3. Retry with adjusted values
 
-Patience and small adjustments usually solve most issues.
+> Patience and small adjustments usually solve most issues.
 
 ---
 
-## 🔒 13. Privacy and Data Handling
+## 🔐 13. Privacy and Data Handling
 
-Mass Image Downloader is designed with **privacy and transparency** as core principles.
+**Mass Image Downloader** is designed with *privacy and transparency* as core principles.
 
 This section explains how the extension handles your data and what it does *not* do.
 
----
-
 ### 🏠 13.1 Local-Only Operation
 
-All processing performed by Mass Image Downloader happens **locally in your browser**.
+All processing performed by **Mass Image Downloader** happens *locally in your browser*.
 
 This means:
 
@@ -1352,11 +1246,9 @@ This means:
 
 > The extension does not require accounts, logins, or external services.
 
----
-
 ### 🚫 13.2 Data Collection Policy
 
-Mass Image Downloader **does not collect personal data**.
+**Mass Image Downloader** *does not collect personal data*.
 
 Specifically:
 
@@ -1366,8 +1258,6 @@ Specifically:
 - No identifiers or fingerprints are created
 
 > All configuration settings are stored locally using the browser’s storage mechanisms.
-
----
 
 ### 🔐 13.3 Permissions Explained
 
@@ -1381,8 +1271,6 @@ These permissions are used only to:
 
 > Permissions are not used for tracking or analytics purposes.
 
----
-
 ### 🧭 13.4 What This Means for You
 
 As a user, this means:
@@ -1391,17 +1279,15 @@ As a user, this means:
 - The extension operates only when you initiate actions
 - Nothing runs silently in the background without your input
 
-> If privacy is important to you, Mass Image Downloader is designed to respect it.
-
----
+> If privacy is important to you, **Mass Image Downloader** is designed to respect it.
 
 ### 🛡️ 13.5 Script Injection and Security Guarantees
 
-Mass Image Downloader **does not load third-party scripts** and **does not inject malicious code** into web pages.
+**Mass Image Downloader** *does not load third-party scripts* and *does not inject malicious code* into web pages.
 
 Specifically:
 
-- The extension only injects its **own internal scripts**, and only when required by a feature
+- The extension only injects its *own internal scripts*, and only when required by a feature
 - No external JavaScript libraries are downloaded or executed
 - No remote code is fetched at runtime
 - No hidden background scripts run outside documented flows
@@ -1412,28 +1298,26 @@ All injected scripts are:
 - Scoped to the current page
 - Triggered explicitly by user actions
 
-Mass Image Downloader **does not perform**:
+**Mass Image Downloader** *does not perform*:
 
 - Tracking
 - Data exfiltration
 - Crypto mining
 - Hidden automation
 - Exploit-based behavior (worms, hacks, or unauthorized access)
-- Or something along those lines!
+- Or something along those lines! Never!
 
-If a feature requires script injection (for example, Image Inspector or One-click Download Icon), it is:
+If a feature requires script injection (for example, `Image Inspector` or `One-click Download Icon`), it is:
 
 - Clearly documented
 - User-enabled
 - Limited to its intended purpose
 
-> Security and transparency are treated as first-class concerns in the design of the extension.
-
----
+> 🛡️ Security and transparency are treated as `first-class concerns` in the design of the extension.
 
 ### 🧠 13.6 No Download History or Persistent Tracking
 
-Mass Image Downloader **does not keep a history of downloaded images**.
+**Mass Image Downloader** *does not keep a history of downloaded images*.
 
 The extension does not store:
 
@@ -1441,7 +1325,7 @@ The extension does not store:
 - Image URLs from past sessions
 - Any form of long-term download log
 
-During an active operation, the extension may temporarily keep track of images **only within the current execution flow**.
+During an active operation, the extension may temporarily keep track of images *only within the current execution flow*.
 
 This temporary tracking is used exclusively to:
 
@@ -1466,11 +1350,9 @@ This design ensures:
 
 ## 🆘 14. Getting Help and Providing Feedback
 
-Mass Image Downloader is an open-source project, and user feedback plays an important role in its improvement.
+**Mass Image Downloader** is an `open-source project`, and `user feedback` plays an important role in its improvement.
 
-This section explains **where to ask for help**, **how to report issues**, and **how to provide constructive feedback**.
-
----
+This section explains `where to ask for help`, `how to report issues`, and `how to provide constructive feedback`.
 
 ### 💬 14.1 Where to Ask Questions
 
@@ -1479,7 +1361,7 @@ Most questions about usage, configuration, and internal behavior are already ans
 
 - 📚 **Documentation Hub** (`docs/README.md`) — entry point and guide to all documents
 - 👤 **User Manual (Basic)** (`docs/user-manual/README.md`) — feature overview and everyday usage (this document)
-- ⚙️ **Configuration Guides** (`docs/configuration-guides/`) — outcome-driven, step-by-step setups
+- ⚙️ **Configuration Guides** (`docs/configuration-guides/README.md`) — outcome-driven, step-by-step setups
 - 🧑‍🔧 **Technical User Manual** (`docs/technical-manual/README.md`) — execution flows, internals, and state handling
 - 🧠 **Advanced Manual** (`docs/advanced-manual/README.md`) — design rationale, trade-offs, and edge cases
 - 🏔️ **Extended Project Overview** (`docs/project-overview-extended.md`) — comprehensive reference: options, defaults, release highlights
@@ -1488,7 +1370,7 @@ Most questions about usage, configuration, and internal behavior are already ans
 
 **Step 2 — If the documentation does not answer your question:**
 
-- Use **GitHub Discussions**
+- Use `GitHub Discussions`
 - Choose the category that best matches your question
 - Describe what you are trying to do and what you expected to happen
 
@@ -1505,7 +1387,7 @@ GitHub Discussions is the preferred place for:
 
 ### 🐞 14.2 Reporting Issues
 
-If you believe you have found a bug or unexpected behavior, please use **GitHub Issues**.
+If you believe you have found a bug or unexpected behavior, please use `GitHub Issues`.
 
 When reporting an issue, include:
 
@@ -1523,8 +1405,6 @@ Helpful additions:
 
 > Clear and complete reports help issues get resolved faster.
 
----
-
 ### 🤝 14.3 Contributing Feedback
 
 Suggestions and improvement ideas are welcome.
@@ -1539,14 +1419,10 @@ Use GitHub Discussions to start the conversation.
 
 > Even small feedback helps improve the project for everyone.
 
----
-
 ### 🙏 14.4 Final Notes
 
 Thank you for using **Mass Image Downloader**.
-
 This User Manual is part of an ongoing documentation effort and may evolve over time as the extension grows.
-
 Your feedback helps shape future releases.
 
 Made with ❤️ by **Del-Pacifico**
