@@ -7,46 +7,44 @@
 ## 📑 Table of Contents
 
 - [🧭 1. Introduction](#-1-introduction)
-- [🎯 1.1 Purpose of This Document](#-11-purpose-of-this-document)
-- [🧭 1.2 How This Document Is Organized](#-12-how-this-document-is-organized)
-- [📌 1.3 What This Document Is — and Is Not](#-13-what-this-document-is--and-is-not)
-- [🔗 1.4 Relationship With Other Manuals](#-14-relationship-with-other-manuals)
-- [🧩 1.5 Guide Structure](#-15-guide-structure)
-- [🚀 1.6 How to Use These Guides Effectively](#-16-how-to-use-these-guides-effectively)
+  - [🎯 1.1 Purpose of This Document](#-11-purpose-of-this-document)
+  - [🧭 1.2 How This Document Is Organized](#-12-how-this-document-is-organized)
+  - [📌 1.3 What This Document Is — and Is Not](#-13-what-this-document-is--and-is-not)
+  - [🔗 1.4 Relationship With Other Manuals](#-14-relationship-with-other-manuals)
+  - [🧩 1.5 Guide Structure](#-15-guide-structure)
+  - [🚀 1.6 How to Use These Guides Effectively](#-16-how-to-use-these-guides-effectively)
 - [📸 2. Bulk Image Download](#-2-bulk-image-download)
-- [✅ 2.1 Reliable & Safe Bulk Image Download (Recommended Baseline)](#-21-reliable--safe-bulk-image-download-recommended-baseline)
-- [⚡ 2.2 High-Speed Bulk Download on Powerful Machines](#-22-high-speed-bulk-download-on-powerful-machines)
-- [🐢 2.3 Conservative Bulk Download for Low-Resource Systems](#-23-conservative-bulk-download-for-low-resource-systems)
+  - [✅ 2.1 Reliable & Safe Bulk Image Download (Recommended Baseline)](#-21-reliable--safe-bulk-image-download-recommended-baseline)
+  - [⚡ 2.2 High-Speed Bulk Download on Powerful Machines](#-22-high-speed-bulk-download-on-powerful-machines)
+  - [🐢 2.3 Conservative Bulk Download for Low-Resource Systems](#-23-conservative-bulk-download-for-low-resource-systems)
 - [🖼️ 3. Extract Gallery Images (With Direct Links)](#️-3-extract-gallery-images-with-direct-links)
-- [📥 3.1 Clean Gallery Extraction (Immediate Download)](#-31-clean-gallery-extraction-immediate-download)
-- [🗂️ 3.2 Gallery Extraction Using Background Tabs](#️-32-gallery-extraction-using-background-tabs)
-- [🛡️ 3.3 Handling Large Linked Galleries Safely](#️-33-handling-large-linked-galleries-safely)
+  - [📥 3.1 Clean Gallery Extraction (Immediate Download)](#-31-clean-gallery-extraction-immediate-download)
+  - [🗂️ 3.2 Gallery Extraction Using Background Tabs](#️-32-gallery-extraction-using-background-tabs)
+  - [🛡️ 3.3 Handling Large Linked Galleries Safely](#️-33-handling-large-linked-galleries-safely)
 - [🖼️ 4. Extract Gallery Images (Without Links)](#️-4-extract-gallery-images-without-links)
-- [🔍 4.1 Visual Gallery Detection with Size Filtering](#-41-visual-gallery-detection-with-size-filtering)
-- [🧪 4.2 Improving Results on Mixed-Content Pages](#-42-improving-results-on-mixed-content-pages)
+  - [🔍 4.1 Visual Gallery Detection with Size Filtering](#-41-visual-gallery-detection-with-size-filtering)
+  - [🧪 4.2 Improving Results on Mixed-Content Pages](#-42-improving-results-on-mixed-content-pages)
 - [🌐 5. Web-Linked Galleries](#-5-web-linked-galleries)
-- [🔗 5.1 Extracting Images from HTML Detail Pages](#-51-extracting-images-from-html-detail-pages)
-- [🧵 5.2 Controlling Fan-Out and Concurrency](#-52-controlling-fan-out-and-concurrency)
+  - [🔗 5.1 Extracting Images from HTML Detail Pages](#-51-extracting-images-from-html-detail-pages)
+  - [🧵 5.2 Controlling Fan-Out and Concurrency](#-52-controlling-fan-out-and-concurrency)
 - [📁 6. Filename Strategies](#-6-filename-strategies)
-- [🏷️ 6.1 Clean Filenames with Prefixes and Suffixes](#️-61-clean-filenames-with-prefixes-and-suffixes)
-- [⏱️ 6.2 Timestamp-Based Naming for Large Collections](#️-62-timestamp-based-naming-for-large-collections)
+  - [🏷️ 6.1 Clean Filenames with Prefixes and Suffixes](#️-61-clean-filenames-with-prefixes-and-suffixes)
+  - [⏱️ 6.2 Timestamp-Based Naming for Large Collections](#️-62-timestamp-based-naming-for-large-collections)
 - [⚡ 7. Performance & Stability](#-7-performance--stability)
-- [⚖️ 7.1 Speed vs Stability: Choosing the Right Limits](#️-71-speed-vs-stability-choosing-the-right-limits)
-- [💻 7.2 Recommended Configurations by System Profile](#-72-recommended-configurations-by-system-profile)
+  - [⚖️ 7.1 Speed vs Stability: Choosing the Right Limits](#️-71-speed-vs-stability-choosing-the-right-limits)
+  - [💻 7.2 Recommended Configurations by System Profile](#-72-recommended-configurations-by-system-profile)
 - [🐛 8. Debugging & Diagnostics](#-8-debugging--diagnostics)
-- [🧪 8.1 Using Debug Logs to Diagnose Configuration Issues](#-81-using-debug-logs-to-diagnose-configuration-issues)
-- [🚫 8.2 Understanding "No Images Found" Scenarios](#-82-understanding-no-images-found-scenarios)
+  - [🧪 8.1 Using Debug Logs to Diagnose Configuration Issues](#-81-using-debug-logs-to-diagnose-configuration-issues)
+  - [🚫 8.2 Understanding "No Images Found" Scenarios](#-82-understanding-no-images-found-scenarios)
 - [🧾 9. Final Notes](#-9-final-notes)
 
 ---
 
 ## 🧭 1. Introduction
 
-This document serves as the **practical configuration companion** for **Mass Image Downloader**.
+This document serves as the *practical configuration companion* for **Mass Image Downloader**.
 
 Unlike technical or design-focused manuals, this guide is entirely focused on **how to configure the extension to achieve concrete, reproducible results** in real-world scenarios.
-
----
 
 ### 🎯 1.1 Purpose of This Document
 
@@ -56,13 +54,11 @@ Each guide is written to answer the question:
 
 > *What exact configuration do I need to achieve this result?*
 
-The focus is on **predictability, safety, and clarity**, not on internal mechanics.
-
----
+The focus is on `predictability`, `safety`, and `clarity`, not on internal mechanics.
 
 ### 🧭 1.2 How This Document Is Organized
 
-This document is organized into **independent configuration scenarios**, grouped by feature domain.
+This document is organized into *independent configuration scenarios*, grouped by feature domain.
 
 Each section:
 
@@ -70,8 +66,6 @@ Each section:
 - Uses explicit option values
 - Avoids ambiguity or “it depends” guidance
 - Can be followed in isolation
-
----
 
 ### 📌 1.3 What This Document Is — and Is Not
 
@@ -89,19 +83,16 @@ Each section:
 - A source code guide
 - A replacement for UI tooltips
 
----
-
 ### 🔗 1.4 Relationship With Other Manuals
 
 This document complements, but does not overlap with:
 
-- **Technical User Manual** — explains *how the extension works internally*
-- **Advanced Manual** — explains *design rationale, edge cases, and cross-feature behavior*
+- *Technical User Manual* — explains *how the extension works internally*
+- *Advanced Manual* — explains *design rationale, edge cases, and cross-feature behavior*
 
-> If your goal is **configuration**, stay here.  
-> If your goal is **understanding internals or design decisions**, consult the other manuals.
-
----
+> If your goal is `configuration`, **stay here**.
+> If your goal is understanding `how the extension works internally`, consult the **Technical User Manual**.
+> If your goal is understanding `design decisions`, `trade-offs`, and `edge cases`, consult the **Advanced Manual**.
 
 ### 🧩 1.5 Guide Structure
 
@@ -118,16 +109,12 @@ Every configuration guide follows the same mandatory structure:
 > No sections are skipped.  
 > No additional sections are introduced unless explicitly stated.
 
----
-
 ### 🚀 1.6 How to Use These Guides Effectively
 
 - Start with the **Bulk Image Download baseline guide**
 - Apply **one guide at a time**
 - Avoid mixing configurations from different guides unless stated
 - Validate results before moving to higher-performance setups
-
----
 
 ➡️ The next section begins with the **recommended baseline configuration** for most users.
 
@@ -146,8 +133,6 @@ The guides in this section focus on:
 
 > Start with the **baseline configuration** before attempting more aggressive setups.
 
----
-
 ### ✅ 2.1 Reliable & Safe Bulk Image Download (Recommended Baseline)
 
 #### 🎯 Goal
@@ -161,8 +146,6 @@ This configuration prioritizes:
 - Clear progress feedback
 - Safe tab handling
 
----
-
 #### 🧭 When to Use This
 
 Use this configuration when:
@@ -174,8 +157,6 @@ Use this configuration when:
 
 > This is the **recommended starting point** for all users.
 
----
-
 #### 📋 Prerequisites
 
 Before applying this configuration:
@@ -184,8 +165,6 @@ Before applying this configuration:
   (e.g. `.jpg`, `.jpeg`, `.png`, `.webp`)
 - Browser setting **“Ask where to save each file before downloading”** is disabled
 - No other download-heavy tasks are running
-
----
 
 #### ⚙️ Step-by-Step Configuration
 
@@ -198,6 +177,8 @@ Before applying this configuration:
   - JPEG ✅  
   - PNG ✅  
   - WEBP ✅
+  - AVIF ❌ (enable only if your target sites serve AVIF images)
+  - BMP ❌ (enable only if your target sites serve BMP images)
 - Minimum width: `300`
 - Minimum height: `300`
 
@@ -209,12 +190,10 @@ Before applying this configuration:
 
 **Filename Settings**
 
-- Filename mode: `Original`
+- Filename mode: `None` (keep original naming)
 - Prefix / Suffix: *(empty)*
 
 > Do not modify any other settings for this baseline.
-
----
 
 #### ✅ Expected Result
 
@@ -228,8 +207,6 @@ When you activate **Bulk Image Download**:
   - Turns **blue** only when all downloads are complete
 - The browser remains responsive throughout the process
 
----
-
 #### ⚠️ Common Mistakes
 
 - Enabling high concurrency too early
@@ -237,9 +214,7 @@ When you activate **Bulk Image Download**:
 - Using this mode on non-image tabs
 - Mixing this setup with gallery-based configurations
 
-> If no images are downloaded, verify that the tabs contain **direct image URLs**.
-
----
+> 🔥 If no images are downloaded, verify that the tabs contain **direct image URLs**.
 
 #### ⚡ Performance & Stability Notes
 
@@ -250,13 +225,9 @@ When you activate **Bulk Image Download**:
   - Long-running sessions
   - Background usage
 
-Once this setup works correctly, you can safely move to more aggressive configurations.
-
----
+> Once this setup works correctly, you can safely move to more aggressive configurations.
 
 ➡️ Next: **High-Speed Bulk Download on Powerful Machines**
-
----
 
 ### ⚡ 2.2 High-Speed Bulk Download on Powerful Machines
 
@@ -270,8 +241,6 @@ This configuration is designed to **maximize throughput** on systems with:
 - SSD storage
 - Stable, high-bandwidth internet connections
 
----
-
 #### 🧭 When to Use This
 
 Use this configuration when:
@@ -283,8 +252,6 @@ Use this configuration when:
 
 > This setup is **not recommended** for first-time users.
 
----
-
 #### 📋 Prerequisites
 
 Before applying this configuration:
@@ -293,8 +260,6 @@ Before applying this configuration:
 - Tabs contain **direct image URLs only**
 - Your browser remains responsive during multiple parallel downloads
 - You are not running other download-intensive applications
-
----
 
 #### ⚙️ Step-by-Step Configuration
 
@@ -307,6 +272,8 @@ Open the **Options** page and apply the following values:
   - JPEG ✅  
   - PNG ✅  
   - WEBP ✅
+  - AVIF ❌ (enable only if your target sites serve AVIF images)
+  - BMP ❌ (enable only if your target sites serve BMP images)
 - Minimum width: `300`
 - Minimum height: `300`
 
@@ -318,12 +285,10 @@ Open the **Options** page and apply the following values:
 
 **Filename Settings**
 
-- Filename mode: `Original`
+- Filename mode: `None` (keep original naming)
 - Prefix / Suffix: *(optional, user preference)*
 
 > Avoid changing unrelated settings.
-
----
 
 #### ✅ Expected Result
 
@@ -337,8 +302,6 @@ When you activate **Bulk Image Download**:
   - Turns **blue** only after all images are processed
 - Total processing time is significantly reduced
 
----
-
 #### ⚠️ Common Mistakes
 
 - Using this setup on low-memory or older systems
@@ -346,8 +309,6 @@ When you activate **Bulk Image Download**:
 - Assuming higher speed always equals better reliability
 
 > If downloads stall or fail intermittently, reduce concurrency first.
-
----
 
 #### ⚡ Performance & Stability Notes
 
@@ -360,11 +321,7 @@ When you activate **Bulk Image Download**:
 
 > If instability appears, fall back to the **baseline configuration** or reduce parallel downloads.
 
----
-
 ➡️ Next: **Conservative Bulk Download for Low-Resource Systems**
-
----
 
 ### 🐢 2.3 Conservative Bulk Download for Low-Resource Systems
 
@@ -378,8 +335,6 @@ This configuration prioritizes:
 - Minimal browser impact
 - Predictable, slow-but-safe execution
 
----
-
 #### 🧭 When to Use This
 
 Use this configuration when:
@@ -392,8 +347,6 @@ Use this configuration when:
 
 > This setup is ideal for **long-running, unattended sessions**.
 
----
-
 #### 📋 Prerequisites
 
 Before applying this configuration:
@@ -401,8 +354,6 @@ Before applying this configuration:
 - Tabs contain **direct image URLs**
 - No heavy background tasks are running
 - You accept slower overall download speed in exchange for stability
-
----
 
 #### ⚙️ Step-by-Step Configuration
 
@@ -415,6 +366,8 @@ Open the **Options** page and apply the following values:
   - JPEG ✅  
   - PNG ✅  
   - WEBP ❌ *(optional, disable if memory is very limited)*
+  - AVIF ❌ (enable only if your target sites serve AVIF images)
+  - BMP ❌ (enable only if your target sites serve BMP images)
 - Minimum width: `300`
 - Minimum height: `300`
 
@@ -426,12 +379,10 @@ Open the **Options** page and apply the following values:
 
 **Filename Settings**
 
-- Filename mode: `Original`
+- Filename mode: `None` (keep original naming)
 - Prefix / Suffix: *(empty)*
 
 > Do not enable additional features while using this configuration.
-
----
 
 #### ✅ Expected Result
 
@@ -445,8 +396,6 @@ When you activate **Bulk Image Download**:
   - Turns **blue** only after completion
 - Browser responsiveness remains stable
 
----
-
 #### ⚠️ Common Mistakes
 
 - Increasing batch size to “speed things up”
@@ -454,8 +403,6 @@ When you activate **Bulk Image Download**:
 - Using this setup on very large tab sets without supervision
 
 > If performance issues persist, further reduce batch size or close unnecessary tabs.
-
----
 
 #### ⚡ Performance & Stability Notes
 
@@ -468,8 +415,6 @@ When you activate **Bulk Image Download**:
   - Systems under heavy load
 
 > For faster results, upgrade hardware or move to the baseline configuration once stability is confirmed.
-
----
 
 ➡️ End of **Bulk Image Download** configurations.
 
@@ -488,8 +433,6 @@ These guides focus on:
 
 Before using these configurations, ensure that the gallery thumbnails link **directly to image files** (not to HTML pages).
 
----
-
 ### 📥 3.1 Clean Gallery Extraction (Immediate Download)
 
 #### 🎯 Goal
@@ -500,8 +443,6 @@ This configuration prioritizes:
 - Accuracy over speed
 - Clean results
 - Minimal browser disruption
-
----
 
 #### 🧭 When to Use This
 
@@ -514,8 +455,6 @@ Use this configuration when:
 
 > This is the **recommended baseline** for direct-link galleries.
 
----
-
 #### 📋 Prerequisites
 
 Before applying this configuration:
@@ -523,8 +462,6 @@ Before applying this configuration:
 - Thumbnails use `<a>` tags pointing directly to image URLs
 - High-resolution images are larger than thumbnails
 - The gallery does not require JavaScript navigation to load images
-
----
 
 #### ⚙️ Step-by-Step Configuration
 
@@ -537,26 +474,26 @@ Open the **Options** page and apply the following values:
   - JPEG ✅  
   - PNG ✅  
   - WEBP ✅
+  - AVIF ❌ (enable only if your target sites serve AVIF images)
+  - BMP ❌ (enable only if your target sites serve BMP images)
 - Minimum width: `800`
 - Minimum height: `600`
 
 **Extract Gallery Images Settings**
 
-- Extract mode: `Immediate`
-- Gallery max images: `10`
+- Gallery Image Handling: `Download immediately`
+- Max images per second: `10`
 
-**Gallery Finder Settings**
+**Galleries**
 
-- Path similarity level: `80%`
+- Gallery Similarity Level (%): `80`
 
 **Filename Settings**
 
-- Filename mode: `Original`
+- Filename mode: `None` (keep original naming)
 - Prefix / Suffix: *(optional)*
 
 > Avoid modifying unrelated settings.
-
----
 
 #### ✅ Expected Result
 
@@ -568,8 +505,6 @@ When you activate **Extract Gallery Images**:
 - Images download immediately without opening tabs
 - The badge counter updates progressively and completes cleanly
 
----
-
 #### ⚠️ Common Mistakes
 
 - Using this configuration on galleries that link to HTML pages
@@ -578,8 +513,6 @@ When you activate **Extract Gallery Images**:
 - Expecting visual confirmation before download
 
 > If no images are downloaded, verify that the links point directly to image files.
-
----
 
 #### ⚡ Performance & Stability Notes
 
@@ -590,11 +523,7 @@ When you activate **Extract Gallery Images**:
   - Automated workflows
 - For uncertain galleries, consider the tab-based extraction mode
 
----
-
 ➡️ Next: **Gallery Extraction Using Background Tabs**
-
----
 
 ### 🗂️ 3.2 Gallery Extraction Using Background Tabs
 
@@ -607,8 +536,6 @@ This configuration prioritizes:
 - Safer extraction when images are modified at load time
 - Reduced risk of missing the true high-resolution asset
 
----
-
 #### 🧭 When to Use This
 
 Use this configuration when:
@@ -620,8 +547,6 @@ Use this configuration when:
 
 > This setup trades speed for **higher extraction reliability**.
 
----
-
 #### 📋 Prerequisites
 
 Before applying this configuration:
@@ -629,8 +554,6 @@ Before applying this configuration:
 - Thumbnails link directly to image URLs
 - The site allows background tab loading
 - Your system can handle opening multiple tabs temporarily
-
----
 
 #### ⚙️ Step-by-Step Configuration
 
@@ -643,26 +566,26 @@ Open the **Options** page and apply the following values:
   - JPEG ✅  
   - PNG ✅  
   - WEBP ✅
+  - AVIF ❌ (enable only if your target sites serve AVIF images)
+  - BMP ❌ (enable only if your target sites serve BMP images)
 - Minimum width: `800`
 - Minimum height: `600`
 
 **Extract Gallery Images Settings**
 
-- Extract mode: `Open in background tab`
-- Gallery max images: `5`
+- Gallery Image Handling: `Open in new tab before downloading`
+- Max images per second: `5`
 
-**Gallery Finder Settings**
+**Galleries**
 
-- Path similarity level: `80%`
+- Gallery Similarity Level (%): `80`
 
 **Filename Settings**
 
-- Filename mode: `Original`
+- Filename mode: `None` (keep original naming)
 - Prefix / Suffix: *(optional)*
 
 > Avoid increasing gallery limits before validating stability.
-
----
 
 #### ✅ Expected Result
 
@@ -674,8 +597,6 @@ When you activate **Extract Gallery Images**:
 - Background tabs close automatically after download
 - The badge counter reflects cumulative progress
 
----
-
 #### ⚠️ Common Mistakes
 
 - Using high gallery limits on slow systems
@@ -683,8 +604,6 @@ When you activate **Extract Gallery Images**:
 - Assuming this mode is faster than immediate download
 
 > If tabs remain open or downloads stall, reduce the gallery limit.
-
----
 
 #### ⚡ Performance & Stability Notes
 
@@ -697,11 +616,7 @@ When you activate **Extract Gallery Images**:
 
 > For maximum speed on simple galleries, prefer **Immediate Download** mode.
 
----
-
 ➡️ Next: **Handling Large Linked Galleries Safely**
-
----
 
 ### 🛡️ 3.3 Handling Large Linked Galleries Safely
 
@@ -714,8 +629,6 @@ This configuration prioritizes:
 - Predictable memory usage
 - Graceful progress on large datasets
 
----
-
 #### 🧭 When to Use This
 
 Use this configuration when:
@@ -727,8 +640,6 @@ Use this configuration when:
 
 > This setup is optimized for **scale**, not speed.
 
----
-
 #### 📋 Prerequisites
 
 Before applying this configuration:
@@ -736,8 +647,6 @@ Before applying this configuration:
 - Thumbnails link directly to image files
 - You have validated extraction on smaller galleries
 - You are willing to process the gallery incrementally
-
----
 
 #### ⚙️ Step-by-Step Configuration
 
@@ -750,26 +659,26 @@ Open the **Options** page and apply the following values:
   - JPEG ✅  
   - PNG ✅  
   - WEBP ✅
+  - AVIF ❌ (enable only if your target sites serve AVIF images)
+  - BMP ❌ (enable only if your target sites serve BMP images)
 - Minimum width: `1000`
 - Minimum height: `800`
 
 **Extract Gallery Images Settings**
 
-- Extract mode: `Open in background tab`
-- Gallery max images: `3`
+- Gallery Image Handling: `Open in new tab before downloading`
+- Max images per second: `3`
 
-**Gallery Finder Settings**
+**Galleries**
 
-- Path similarity level: `85%`
+- Gallery Similarity Level (%): `85`
 
 **Filename Settings**
 
-- Filename mode: `Original`
+- Filename mode: `None` (keep original naming)
 - Prefix / Suffix: *(recommended for dataset identification)*
 
 > Do not increase limits during the first run.
-
----
 
 #### ✅ Expected Result
 
@@ -781,8 +690,6 @@ When you activate **Extract Gallery Images**:
 - High-resolution images are extracted without duplication
 - The badge counter progresses steadily until completion
 
----
-
 #### ⚠️ Common Mistakes
 
 - Setting gallery limits too high “to speed things up”
@@ -790,8 +697,6 @@ When you activate **Extract Gallery Images**:
 - Running multiple extraction modes simultaneously
 
 > If the browser slows down, stop the process and reduce limits further.
-
----
 
 #### ⚡ Performance & Stability Notes
 
@@ -804,8 +709,6 @@ When you activate **Extract Gallery Images**:
   - Long unattended runs
 
 > Once stability is confirmed, you may cautiously increase limits.
-
----
 
 ➡️ End of **Extract Gallery Images (With Direct Links)** configurations.
 
@@ -823,8 +726,6 @@ In these scenarios, images are typically:
 
 > These guides focus on **visual detection, strict filtering, and noise reduction**.
 
----
-
 ### 🔍 4.1 Visual Gallery Detection with Size Filtering
 
 #### 🎯 Goal
@@ -835,8 +736,6 @@ This configuration prioritizes:
 - Precision over quantity
 - Strong noise filtering
 - Clean, usable results
-
----
 
 #### 🧭 When to Use This
 
@@ -849,8 +748,6 @@ Use this configuration when:
 
 > This is the **recommended baseline** for visual-only galleries.
 
----
-
 #### 📋 Prerequisites
 
 Before applying this configuration:
@@ -858,8 +755,6 @@ Before applying this configuration:
 - Images are visible directly on the page
 - Images are not loaded as CSS backgrounds
 - The page does not require scrolling to reveal hidden images
-
----
 
 #### ⚙️ Step-by-Step Configuration
 
@@ -872,26 +767,26 @@ Open the **Options** page and apply the following values:
   - JPEG ✅  
   - PNG ✅  
   - WEBP ❌ *(optional, disable if page contains many icons)*
+  - AVIF ❌ (enable only if your target sites serve AVIF images)
+  - BMP ❌ (enable only if your target sites serve BMP images)
 - Minimum width: `600`
 - Minimum height: `400`
 
 **Extract Gallery Images Settings**
 
-- Extract mode: `Immediate`
-- Gallery max images: `10`
+- Gallery Image Handling: `Download immediately`
+- Max images per second: `10`
 
-**Gallery Finder Settings**
+**Galleries**
 
-- Path similarity level: `75%`
+- Gallery Similarity Level (%): `75`
 
 **Filename Settings**
 
-- Filename mode: `Original`
+- Filename mode: `None` (keep original naming)
 - Prefix / Suffix: *(optional)*
 
 > Avoid lowering minimum dimensions unless necessary.
-
----
 
 #### ✅ Expected Result
 
@@ -903,8 +798,6 @@ When you activate **Extract Gallery Images**:
 - Downloads occur immediately without opening tabs
 - The result set is focused and relevant
 
----
-
 #### ⚠️ Common Mistakes
 
 - Setting minimum dimensions too low
@@ -913,8 +806,6 @@ When you activate **Extract Gallery Images**:
 - Assuming all visible images are part of a gallery
 
 > If too many images are detected, increase minimum dimensions.
-
----
 
 #### ⚡ Performance & Stability Notes
 
@@ -926,11 +817,7 @@ When you activate **Extract Gallery Images**:
 
 > For pages with mixed content, use the next configuration.
 
----
-
 ➡️ Next: **Improving Results on Mixed-Content Pages**
-
----
 
 ### 🧪 4.2 Improving Results on Mixed-Content Pages
 
@@ -943,8 +830,6 @@ This configuration prioritizes:
 - Strict relevance filtering
 - Predictable results on cluttered pages
 
----
-
 #### 🧭 When to Use This
 
 Use this configuration when:
@@ -956,8 +841,6 @@ Use this configuration when:
 
 > This setup is designed for **messy, real-world pages**.
 
----
-
 #### 📋 Prerequisites
 
 Before applying this configuration:
@@ -965,8 +848,6 @@ Before applying this configuration:
 - Images are rendered inline (not CSS backgrounds)
 - The main gallery images are significantly larger than UI elements
 - You accept that some borderline images may be skipped
-
----
 
 #### ⚙️ Step-by-Step Configuration
 
@@ -979,26 +860,26 @@ Open the **Options** page and apply the following values:
   - JPEG ✅  
   - PNG ❌ *(disable to reduce icons and UI noise)*  
   - WEBP ❌
+  - AVIF ❌ (enable only if your target sites serve AVIF images)
+  - BMP ❌ (enable only if your target sites serve BMP images)
 - Minimum width: `900`
 - Minimum height: `600`
 
 **Extract Gallery Images Settings**
 
-- Extract mode: `Immediate`
-- Gallery max images: `8`
+- Gallery Image Handling: `Download immediately`
+- Max images per second: `8`
 
-**Gallery Finder Settings**
+**Galleries**
 
-- Path similarity level: `80%`
+- Gallery Similarity Level (%): `80`
 
 **Filename Settings**
 
-- Filename mode: `Original`
+- Filename mode: `None` (keep original naming)
 - Prefix / Suffix: *(recommended to identify source)*
 
 > Avoid enabling additional formats unless required.
-
----
 
 #### ✅ Expected Result
 
@@ -1010,8 +891,6 @@ When you activate **Extract Gallery Images**:
 - The resulting image set is smaller but higher quality
 - Manual cleanup after download is minimized
 
----
-
 #### ⚠️ Common Mistakes
 
 - Lowering minimum dimensions “to catch everything”
@@ -1019,8 +898,6 @@ When you activate **Extract Gallery Images**:
 - Expecting perfect results on highly dynamic layouts
 
 > If important images are missing, slightly reduce minimum dimensions.
-
----
 
 #### ⚡ Performance & Stability Notes
 
@@ -1035,8 +912,6 @@ When you activate **Extract Gallery Images**:
   - Thumbnail-only layouts
 
 > For cleaner pages, revert to the baseline visual gallery configuration.
-
----
 
 ➡️ End of **Extract Gallery Images (Without Links)** configurations.
 
@@ -1054,8 +929,6 @@ In these scenarios:
 
 > These guides focus on **controlled navigation, correctness, and stability**.
 
----
-
 ### 🔗 5.1 Extracting Images from HTML Detail Pages
 
 #### 🎯 Goal
@@ -1066,8 +939,6 @@ This configuration prioritizes:
 - Correct image resolution
 - Controlled tab creation
 - Predictable navigation behavior
-
----
 
 #### 🧭 When to Use This
 
@@ -1080,8 +951,6 @@ Use this configuration when:
 
 > This is the **baseline configuration** for web-linked galleries.
 
----
-
 #### 📋 Prerequisites
 
 Before applying this configuration:
@@ -1090,8 +959,6 @@ Before applying this configuration:
 - The site allows background tab loading
 - You are not blocked by login walls or captchas
 - JavaScript execution is not required to trigger image loading
-
----
 
 #### ⚙️ Step-by-Step Configuration
 
@@ -1104,6 +971,8 @@ Open the **Options** page and apply the following values:
   - JPEG ✅  
   - PNG ✅  
   - WEBP ❌ *(optional, disable to reduce noise)*
+  - AVIF ❌ (enable only if your target sites serve AVIF images)
+  - BMP ❌ (enable only if your target sites serve BMP images)
 - Minimum width: `1000`
 - Minimum height: `800`
 
@@ -1111,18 +980,16 @@ Open the **Options** page and apply the following values:
 
 - Max open tabs per gallery: `3`
 
-**Gallery Finder Settings**
+**Galleries**
 
-- Path similarity level: `80%`
+- Gallery Similarity Level (%): `80`
 
 **Filename Settings**
 
-- Filename mode: `Original`
+- Filename mode: `None` (keep original naming)
 - Prefix / Suffix: *(recommended for dataset grouping)*
 
 > Do not increase concurrency before validating results.
-
----
 
 #### ✅ Expected Result
 
@@ -1135,8 +1002,6 @@ When you activate **Extract Web-Linked Galleries**:
 - Background tabs close automatically after completion
 - The badge counter reflects cumulative progress
 
----
-
 #### ⚠️ Common Mistakes
 
 - Using high concurrency on slow or script-heavy sites
@@ -1144,8 +1009,6 @@ When you activate **Extract Web-Linked Galleries**:
 - Expecting extraction when images load only after user interaction
 
 > If pages remain open or no images are found, reduce concurrency first.
-
----
 
 #### ⚡ Performance & Stability Notes
 
@@ -1157,11 +1020,7 @@ When you activate **Extract Web-Linked Galleries**:
   - Portfolio sites
 - Not recommended for very large galleries without prior testing
 
----
-
 ➡️ Next: **Controlling Fan-Out and Concurrency**
-
----
 
 ### 🧵 5.2 Controlling Fan-Out and Concurrency
 
@@ -1175,8 +1034,6 @@ This configuration prioritizes:
 - Controlled resource usage
 - Predictable long-running behavior
 
----
-
 #### 🧭 When to Use This
 
 Use this configuration when:
@@ -1188,8 +1045,6 @@ Use this configuration when:
 
 > This setup is designed for **scale under constraints**.
 
----
-
 #### 📋 Prerequisites
 
 Before applying this configuration:
@@ -1197,8 +1052,6 @@ Before applying this configuration:
 - The baseline web-linked gallery extraction works correctly
 - Detail pages load images reliably without manual interaction
 - You are prepared for longer execution times
-
----
 
 #### ⚙️ Step-by-Step Configuration
 
@@ -1211,25 +1064,25 @@ Open the **Options** page and apply the following values:
   - JPEG ✅  
   - PNG ❌ *(disable to reduce non-content images)*  
   - WEBP ❌
+  - AVIF ❌ (enable only if your target sites serve AVIF images)
+  - BMP ❌ (enable only if your target sites serve BMP images)
 - Minimum width: `1200`
 - Minimum height: `900`
 
 **Web-Linked Gallery Settings**
 
-- Max concurrent pages: `1`
+- Max open tabs per gallery: `1`
 
-**Gallery Finder Settings**
+**Galleries**
 
-- Path similarity level: `85%`
+- Gallery Similarity Level (%): `85`
 
 **Filename Settings**
 
-- Filename mode: `Original`
+- Filename mode: `None` (keep original naming)
 - Prefix / Suffix: *(recommended for dataset or batch identification)*
 
 > Do not raise concurrency during the first run.
-
----
 
 #### ✅ Expected Result
 
@@ -1241,8 +1094,6 @@ When you activate **Extract Web-Linked Galleries**:
 - Tabs open and close predictably
 - The badge counter increments steadily until completion
 
----
-
 #### ⚠️ Common Mistakes
 
 - Increasing concurrency to “speed things up”
@@ -1250,8 +1101,6 @@ When you activate **Extract Web-Linked Galleries**:
 - Using this setup on small galleries where it adds unnecessary overhead
 
 > If progress appears slow, remember that this configuration is optimized for **reliability**, not speed.
-
----
 
 #### ⚡ Performance & Stability Notes
 
@@ -1264,8 +1113,6 @@ When you activate **Extract Web-Linked Galleries**:
 - Not suitable for time-critical extraction
 
 > For smaller galleries, revert to the baseline web-linked configuration.
-
----
 
 ➡️ End of **Web-Linked Galleries** configurations.
 
@@ -1282,8 +1129,6 @@ This section covers **filename configuration strategies** to ensure downloaded i
 
 > These guides focus on **clarity, traceability, and scale**, not aesthetics.
 
----
-
 ### 🏷️ 6.1 Clean Filenames with Prefixes and Suffixes
 
 #### 🎯 Goal
@@ -1296,8 +1141,6 @@ This configuration prioritizes:
 - Collision avoidance
 - Human-readable filenames
 
----
-
 #### 🧭 When to Use This
 
 Use this configuration when:
@@ -1309,8 +1152,6 @@ Use this configuration when:
 
 > This setup is suitable for **most structured workflows**.
 
----
-
 #### 📋 Prerequisites
 
 Before applying this configuration:
@@ -1318,8 +1159,6 @@ Before applying this configuration:
 - You understand how filenames are generated by the source site
 - You want consistent naming across downloads
 - You do not require timestamps for uniqueness
-
----
 
 #### ⚙️ Step-by-Step Configuration
 
@@ -1342,8 +1181,6 @@ Open the **Options** page and apply the following values:
 
 > Avoid using special characters in prefixes or suffixes.
 
----
-
 #### ✅ Expected Result
 
 When images are downloaded:
@@ -1355,8 +1192,6 @@ When images are downloaded:
 - Filenames remain readable and filesystem-safe
 - Accidental overwrites are avoided by incremental naming
 
----
-
 #### ⚠️ Common Mistakes
 
 - Using long or verbose prefixes
@@ -1365,8 +1200,6 @@ When images are downloaded:
 - Expecting prefixes to replace original filenames
 
 > If filenames become cluttered, simplify the prefix or suffix.
-
----
 
 #### ⚡ Performance & Stability Notes
 
@@ -1377,11 +1210,7 @@ When images are downloaded:
   - Multi-source collections
 - Safe to combine with all extraction modes
 
----
-
 ➡️ Next: **Timestamp-Based Naming for Large Collections**
-
----
 
 ### ⏱️ 6.2 Timestamp-Based Naming for Large Collections
 
@@ -1395,8 +1224,6 @@ This configuration prioritizes:
 - Chronological traceability
 - Safe operation across massive batches
 
----
-
 #### 🧭 When to Use This
 
 Use this configuration when:
@@ -1408,8 +1235,6 @@ Use this configuration when:
 
 > This setup is ideal for **large-scale or long-running extractions**.
 
----
-
 #### 📋 Prerequisites
 
 Before applying this configuration:
@@ -1417,8 +1242,6 @@ Before applying this configuration:
 - You do not rely on original filenames alone
 - You are comfortable with longer filenames
 - Sorting by download time is useful for your workflow
-
----
 
 #### ⚙️ Step-by-Step Configuration
 
@@ -1432,8 +1255,6 @@ Open the **Options** page and apply the following values:
 
 > Do not combine timestamp mode with prefix/suffix modes.
 
----
-
 #### ✅ Expected Result
 
 When images are downloaded:
@@ -1444,8 +1265,6 @@ When images are downloaded:
 - Filename collisions are effectively impossible
 - Files sort naturally by download time
 
----
-
 #### ⚠️ Common Mistakes
 
 - Expecting short or human-friendly filenames
@@ -1453,8 +1272,6 @@ When images are downloaded:
 - Using timestamp mode for small, curated sets
 
 > If filenames feel excessive, revert to prefix/suffix strategies.
-
----
 
 #### ⚡ Performance & Stability Notes
 
@@ -1464,8 +1281,6 @@ When images are downloaded:
   - Web scraping workflows
   - Automated or unattended runs
 - Fully compatible with all extraction modes
-
----
 
 ➡️ End of **Filename Strategies** section.
 
@@ -1483,8 +1298,6 @@ These guides help you:
 
 > Always validate changes incrementally.
 
----
-
 ### ⚖️ 7.1 Speed vs Stability: Choosing the Right Limits
 
 #### 🎯 Goal
@@ -1497,8 +1310,6 @@ This configuration guidance helps you avoid:
 - Incomplete downloads
 - Inconsistent badge behavior
 
----
-
 #### 🧭 When to Use This
 
 Use this guide when:
@@ -1510,8 +1321,6 @@ Use this guide when:
 
 > This guide applies across **all extraction modes**.
 
----
-
 #### 📋 Prerequisites
 
 Before applying tuning changes:
@@ -1521,8 +1330,6 @@ Before applying tuning changes:
 - You can observe browser behavior during execution
 
 > Avoid changing multiple limits at once.
-
----
 
 #### ⚙️ Step-by-Step Configuration
 
@@ -1551,8 +1358,6 @@ Use the following **incremental tuning approach**:
 - Prefer smaller increments over large jumps
 - Stop increasing once gains flatten
 
----
-
 #### ✅ Expected Result
 
 With proper tuning:
@@ -1563,8 +1368,6 @@ With proper tuning:
 - Badge state remains consistent throughout execution
 - System resource usage stays within acceptable bounds
 
----
-
 #### ⚠️ Common Mistakes
 
 - Increasing all limits simultaneously
@@ -1574,8 +1377,6 @@ With proper tuning:
 
 > If issues occur, reduce concurrency first.
 
----
-
 #### ⚡ Performance & Stability Notes
 
 - Concurrency impacts CPU, memory, and network simultaneously
@@ -1584,11 +1385,7 @@ With proper tuning:
 
 > The safest optimization strategy is **incremental change with observation**.
 
----
-
 ➡️ Next: **Recommended Configurations by System Profile**
-
----
 
 ### 💻 7.2 Recommended Configurations by System Profile
 
@@ -1602,8 +1399,6 @@ These profiles are designed to:
 - Match typical hardware constraints
 - Deliver predictable results
 
----
-
 #### 🧭 When to Use This
 
 Use these profiles when:
@@ -1615,8 +1410,6 @@ Use these profiles when:
 
 > Each profile is conservative within its category.
 
----
-
 #### 📋 Prerequisites
 
 Before applying a profile:
@@ -1626,8 +1419,6 @@ Before applying a profile:
 - Ensure baseline configurations work correctly
 
 > If in doubt, choose a **lower** profile.
-
----
 
 #### ⚙️ Step-by-Step Configuration
 
@@ -1663,8 +1454,6 @@ Apply the profile that best matches your system:
 
 > Do not exceed these values without testing.
 
----
-
 #### ✅ Expected Result
 
 When using the appropriate profile:
@@ -1675,8 +1464,6 @@ When using the appropriate profile:
 - Badge behavior remains consistent
 - Resource usage stays within safe bounds
 
----
-
 #### ⚠️ Common Mistakes
 
 - Choosing a higher profile “just in case”
@@ -1686,8 +1473,6 @@ When using the appropriate profile:
 
 > If issues occur, downgrade one profile level.
 
----
-
 #### ⚡ Performance & Stability Notes
 
 - These profiles are intentionally conservative
@@ -1695,8 +1480,6 @@ When using the appropriate profile:
 - Profiles are a starting point, not a guarantee
 
 > For advanced tuning, refer back to **Speed vs Stability** guidance.
-
----
 
 ➡️ End of **Performance & Stability** section.
 
@@ -1715,8 +1498,6 @@ These guides are intended to help you:
 
 This section does **not** cover internal code-level debugging.
 
----
-
 ### 🧪 8.1 Using Debug Logs to Diagnose Configuration Issues
 
 #### 🎯 Goal
@@ -1728,8 +1509,6 @@ This configuration prioritizes:
 - Faster troubleshooting
 - Reduced guesswork
 
----
-
 #### 🧭 When to Use This
 
 Use this guide when:
@@ -1740,8 +1519,6 @@ Use this guide when:
 - The badge behaves differently than anticipated
 - You are unsure which rule filtered out images
 
----
-
 #### 📋 Prerequisites
 
 Before using debug logs:
@@ -1749,8 +1526,6 @@ Before using debug logs:
 - You have access to the browser’s developer console
 - You are comfortable reading high-level log messages
 - You want to diagnose **configuration**, not bugs
-
----
 
 #### ⚙️ Step-by-Step Configuration
 
@@ -1763,8 +1538,6 @@ Open the **Options** page and apply the following values:
 
 > Leave all other settings unchanged.
 
----
-
 #### ✅ Expected Result
 
 When you run an extraction or download:
@@ -1776,8 +1549,6 @@ When you run an extraction or download:
 - Logs follow a consistent, structured format
 - You can correlate actions with outcomes
 
----
-
 #### ⚠️ Common Mistakes
 
 - Leaving debug logging enabled permanently
@@ -1786,19 +1557,13 @@ When you run an extraction or download:
 
 > Debug logs describe decisions, not failures.
 
----
-
 #### ⚡ Performance & Stability Notes
 
 - Debug logging has minimal impact at level 2
 - Level 3 may produce large volumes of output
 - Disable debug logging once diagnosis is complete
 
----
-
 ➡️ Next: **Understanding “No Images Found” Scenarios**
-
----
 
 ### 🚫 8.2 Understanding “No Images Found” Scenarios
 
@@ -1812,8 +1577,6 @@ This guide helps distinguish:
 - Unsupported page structures
 - Correct but empty results
 
----
-
 #### 🧭 When to Use This
 
 Use this guide when:
@@ -1822,8 +1585,6 @@ Use this guide when:
 - No errors are shown, but nothing is downloaded
 - You are unsure whether the extension is malfunctioning
 - Results differ from expectations based on the page content
-
----
 
 #### 📋 Common Causes
 
@@ -1848,8 +1609,6 @@ Use this guide when:
 
 - **Content requires user interaction**  
   Images load only after clicks, scrolls, or gestures.
-
----
 
 #### ⚙️ Step-by-Step Diagnosis
 
@@ -1879,8 +1638,6 @@ Follow this checklist in order:
 - Set debug log level to `2`
 - Observe rejection reasons in the console
 
----
-
 #### ✅ Expected Result
 
 After diagnosis:
@@ -1889,8 +1646,6 @@ After diagnosis:
 - You can adjust configuration appropriately
 - You can determine whether the page is unsupported
 - False assumptions about bugs are avoided
-
----
 
 #### ⚠️ Common Mistakes
 
@@ -1901,15 +1656,11 @@ After diagnosis:
 
 “No images found” is often a **correct and expected outcome**.
 
----
-
 #### ⚡ Performance & Stability Notes
 
 - Diagnostic retries are safe when done incrementally
 - Avoid repeated aggressive retries on unsupported pages
 - Once resolved, revert temporary relaxed settings
-
----
 
 ➡️ End of **Debugging & Diagnostics** section.
 
@@ -1934,8 +1685,6 @@ It does **not** replace:
 
 > Each document serves a distinct and non-overlapping purpose.
 
----
-
 ### 📌 How to Use This Document
 
 Consult this document when you need to:
@@ -1946,8 +1695,6 @@ Consult this document when you need to:
 - Diagnose configuration-related issues without inspecting internals
 
 > This document is intended for practical usage, not design analysis.
-
----
 
 ### 🧠 Version Awareness
 
@@ -1962,8 +1709,6 @@ For exact version verification, use:
 If option names, defaults, or documented outcomes change in a future stable release, the affected guides must be reviewed and updated.
 
 > If your results differ from what is described here, verify the current release version and active settings before assuming the guide is outdated.
-
----
 
 ### 🧭 Closing Guidance
 
