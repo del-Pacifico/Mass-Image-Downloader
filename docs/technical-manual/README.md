@@ -16,8 +16,6 @@ This document is aligned with the latest stable release from the `main` branch.
 
 Previous implementations, deprecated behavior, and unreleased changes are intentionally excluded unless explicitly stated.
 
----
-
 ## 🎯 1.1 Purpose of This Manual
 
 The purpose of this manual is to:
@@ -27,8 +25,6 @@ The purpose of this manual is to:
 - Clarify state handling and execution boundaries
 - Enable effective troubleshooting without code changes
 - Serve as a reliable reference for power users, QA, and integrators
-
----
 
 ## 👥 1.2 Intended Audience
 
@@ -40,8 +36,6 @@ This manual is intended for:
 - Integrators and reviewers familiar with browser-based tools
 
 > It is not intended for basic users or contributors modifying the codebase.
-
----
 
 ## 🧾 1.3 Version Scope and Source of Truth
 
@@ -299,7 +293,7 @@ Persistent settings are:
 
 - Read at the start of each operation
 - Never modified implicitly by runtime behavior
-- Only changed through the Options page
+- Only changed through explicit user actions (the Options page, or the clipboard hotkeys for prefix/suffix)
 
 > No historical execution data is stored alongside settings.
 
@@ -355,8 +349,6 @@ Each feature is explained independently, but all of them follow the same core pr
 - Temporary, execution-scoped state
 - Consistent application of global rules and filters
 
----
-
 ### 📸 4.1 Bulk Image Download
 
 Bulk Image Download is designed to process **multiple open tabs that already display images directly**.
@@ -401,7 +393,7 @@ Key behaviors:
 
 - Downloads are grouped according to the configured batch size
 - Concurrency limits are enforced to prevent browser overload
-- Optional automatic tab closing is applied after successful download
+- Tabs are closed automatically after each successful download
 
 If a download fails:
 
@@ -628,6 +620,7 @@ During execution, the user-feedback toast sequence for Web-Linked Galleries prov
 - The temporary tab is closed automatically
 - Injected UI elements are removed
 - Temporary state for that page is cleared
+- If the save icon injection required retries due to transient frame readiness, the retry backoff schedule (150 ms, 300 ms, 600 ms) was already applied during injection
 
 ##### ✅️ On completion:
 
@@ -696,8 +689,6 @@ In the **Web-Linked Galleries** feature:
 
 > This ensures consistency between manual one-click usage and automated gallery extraction.
 
----
-
 ### 🔎 4.5 View Settings (Peek)
 
 View Settings (Peek) provides a **read-only, lightweight view of the current effective configuration**.
@@ -763,7 +754,7 @@ The UI is organized into grouped sections and includes:
 
 Additionally, Peek includes:
 
-- A **“📋 Copy as JSON”** button to copy the full settings snapshot to the clipboard
+- A **"📋 Open Settings JSON"** action that exports the full settings snapshot as JSON (avoids page-level Clipboard API permission-policy blocks)
 - The **extension version** shown in the footer
 
 Peek also supports live refresh behavior:
@@ -807,8 +798,6 @@ Peek is especially useful when:
 - Preparing accurate bug reports or support questions
 
 > Peek acts as a **technical confirmation tool**, bridging the gap between UI configuration and runtime behavior.
-
----
 
 ### 🕵️ 4.6 Image Inspector
 
@@ -883,24 +872,24 @@ If an image does not qualify:
 #### 🧠 4.6.5 Hover Target Resolution and Spatial Fallback
 
 When the user hovers over a complex wrapper element (e.g., `styled-components grids`, `carousel containers`, or `nested layout wrappers` like those on `500px` or `Wikimedia Commons`), the content script applies a bounded spatial fallback.
+
 This logic:
 
 - Matches the pointer position against candidate images strictly within the hovered subtree
 - Preserves the existing direct-target and wrapper-resolution paths
 - Ensures the scan remains bounded and free of site-specific selectors
-This restores the hover overlay on galleries that previously never triggered the inspector due to non-standard DOM structures.
+Limits the spatial scan to a maximum of 32 candidate images to keep the operation efficient
+
 
 #### 🧹 4.6.6 Overlay Teardown and Lifecycle Safety
 
-To prevent `orphaned overlays` from remaining on screen, the teardown logic now **explicitly clears any active overlay** in three specific scenarios:
+To prevent `orphaned overlays` from remaining on screen, the teardown logic now explicitly clears any active overlay in three specific scenarios:
 
 - The window loses focus (blur event)
 - Mouse events are throttled by the browser
 - The user manually toggles the Inspector off via hotkey (`Ctrl+Shift+M`)
 
 > This ensures a clean DOM state and prevents ghost panels or stale listeners across all teardown paths.
-
----
 
 ### 🖱️ 4.7 One-click Download Icon
 
@@ -936,15 +925,15 @@ The selection logic evaluates and scores candidates based on:
 - **Container context:** Main content containers vs. ad/affiliate containers
 - **Aspect ratio and DOM position:** Favoring structural prominence in the page layout
 
-**Affiliate and Ad Penalties:**
+**Affiliate and Ad Penalties**:
 
 To prevent the icon from anchoring to advertisements, affiliate links and ad containers are penalized with a graduated score reduction:
 
-- **−80%** if all three conditions (affiliate link, ad container, suspicious aspect/position) are met.
-- **−50%** if two conditions are met.
-- **−30%** if one condition is met.
+- **−80%** if all three conditions (affiliate link, ad container, suspicious aspect/position) are met
+- **−50%** if two conditions are met
+- **−30%** if one condition is met
 
-*Note: This heuristic exists because, in addition to the main image to be downloaded, websites often contain high-resolution thumbnails linked to external pages, sponsors, or advertisements.*
+> Note: This heuristic exists because, in addition to the main image to be downloaded, websites often contain high-resolution thumbnails linked to external pages, sponsors, or advertisements.
 
 **Base Global Validation Rules:**
 
@@ -1103,8 +1092,8 @@ Options:
 Behavior:
 
 - Folder selection is applied by the background layer
+- Custom folder paths are sanitized (illegal characters removed) and used as a subfolder under the system download directory, which the browser auto-creates when needed
 - Invalid or unavailable paths fall back to system defaults
-- No folder discovery or auto-creation logic is performed
 
 > Folder changes apply immediately to new operations.
 
@@ -1296,9 +1285,24 @@ Higher levels:
 
 ## ⌨️ 6. Hotkeys and Commands Reference
 
-This section documents **all keyboard shortcuts and commands available** from version `2.08.149 onwards`, including their `scope`, `prerequisites`, and `limitations`.
+This section documents **all keyboard shortcuts and commands supported** by the extension, including their `scope`, `prerequisites`, and `limitations`.
 
 Hotkeys are **opt-in** features: they work `only` when the corresponding option is `enabled in Settings`.
+
+Quick reference (all supported shortcuts):
+
+| Shortcut | Action | Implementation |
+|---|---|---|
+| `Alt + Shift + D` | Bulk Image Download | `chrome.commands` (background) |
+| `Alt + Shift + G` | Extract galleries (direct links) | `chrome.commands` (background) |
+| `Alt + Shift + V` | Extract galleries (visual / no direct links) | `chrome.commands` (background) |
+| `Alt + Shift + I` | One-click Download Icon | `chrome.commands` (background) |
+| `Ctrl + Shift + M` | Image Inspector (toggle) | content-script `keydown` |
+| `Alt + Shift + W` | Extract Web-Linked Galleries | content-script `keydown` |
+| `Alt + Shift + S` | View Settings (Peek) | content-script `keydown` |
+| `Ctrl + Alt + P` / `Ctrl + Alt + S` | Set filename prefix / suffix from clipboard | content-script `keydown` |
+
+For the authoritative shortcut policy (reserved shortcuts, browser-specific behavior, and manual reassignment), see the Hotkeys & Keyboard Shortcuts Policy document.
 
 ### 🖱️ 6.1 Alt+Shift+I — One-click Download Icon
 
@@ -1436,7 +1440,7 @@ Actions:
 
 When errors occur, collect the following before reporting:
 
-- Extension version (`v2.08.149`)
+- Extension version (check it on the browser extensions page or in the root `VERSION` file)
 - Feature used
 - Target website URL
 - Console log output (log level ≥ 2 recommended)
