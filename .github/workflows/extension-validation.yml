@@ -9,6 +9,9 @@ on:
       - dev
       - main
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     name: Validate extension package
