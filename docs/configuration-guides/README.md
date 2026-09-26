@@ -719,6 +719,7 @@ When you activate **Extract Gallery Images**:
 This section covers configurations for **visual galleries where thumbnails do NOT link directly to image files**.
 
 In these scenarios, images are typically:
+
 - Rendered inline
 - Loaded lazily
 - Embedded without `<a>` tags
@@ -733,6 +734,7 @@ In these scenarios, images are typically:
 Detect and download **only meaningful, high-quality images** from visual galleries **without direct links**, while ignoring UI icons, ads, and decorative elements.
 
 This configuration prioritizes:
+
 - Precision over quantity
 - Strong noise filtering
 - Clean, usable results
@@ -826,6 +828,7 @@ When you activate **Extract Gallery Images**:
 Improve image extraction results on **pages that mix gallery images with UI elements, ads, icons, and unrelated media**, ensuring that only **relevant, high-quality images** are downloaded.
 
 This configuration prioritizes:
+
 - Aggressive noise reduction
 - Strict relevance filtering
 - Predictable results on cluttered pages
@@ -936,6 +939,7 @@ In these scenarios:
 Extract high-resolution images from galleries where each thumbnail opens a **separate HTML page** that contains the final image.
 
 This configuration prioritizes:
+
 - Correct image resolution
 - Controlled tab creation
 - Predictable navigation behavior
@@ -1136,6 +1140,7 @@ This section covers **filename configuration strategies** to ensure downloaded i
 Generate **clean, descriptive filenames** by adding controlled prefixes and/or suffixes to downloaded images.
 
 This configuration prioritizes:
+
 - Dataset organization
 - Source identification
 - Collision avoidance
@@ -1248,9 +1253,11 @@ Before applying this configuration:
 Open the **Options** page and apply the following values:
 
 **Filename Settings**
+
 - Filename mode: `Timestamp`
 
 **Global Settings**
+
 - Filename sanitization: *(enabled by default)*
 
 > Do not combine timestamp mode with prefix/suffix modes.
@@ -1291,6 +1298,7 @@ When images are downloaded:
 This section focuses on **tuning the extension for optimal behavior** based on your system’s capabilities and your operational goals.
 
 These guides help you:
+
 - Balance speed and reliability
 - Avoid browser instability
 - Choose safe limits for long-running tasks
@@ -1305,6 +1313,7 @@ These guides help you:
 Select **appropriate limits for concurrency and batching** to achieve the best balance between **download speed** and **system stability**.
 
 This configuration guidance helps you avoid:
+
 - Browser freezes
 - Memory spikes
 - Incomplete downloads
@@ -1394,6 +1403,7 @@ With proper tuning:
 Provide **ready-to-use configuration profiles** based on common system capabilities, allowing users to select safe and effective settings without manual tuning.
 
 These profiles are designed to:
+
 - Reduce trial-and-error
 - Prevent instability
 - Match typical hardware constraints
@@ -1615,6 +1625,7 @@ Use this guide when:
 Follow this checklist in order:
 
 **Step 1 – Verify the Page Type**
+
 - Confirm whether images are:
   - Direct image URLs
   - Linked galleries

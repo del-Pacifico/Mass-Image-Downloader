@@ -649,6 +649,7 @@ When this option is enabled:
 - If a valid image is detected, the download icon is injected over it (💾)
 
 If this option is disabled:
+
 - The hotkey has no effect
 - No icon is injected
 - The page remains untouched
@@ -879,7 +880,6 @@ This logic:
 - Preserves the existing direct-target and wrapper-resolution paths
 - Ensures the scan remains bounded and free of site-specific selectors
 Limits the spatial scan to a maximum of 32 candidate images to keep the operation efficient
-
 
 #### 🧹 4.6.6 Overlay Teardown and Lifecycle Safety
 

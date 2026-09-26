@@ -45,10 +45,12 @@
    ```
 
 2. Open a Chromium-based browser and go to the extensions page:
+
    - Brave: `brave://extensions`
    - Edge: `edge://extensions`
    - Opera: `opera://extensions`
    - Vivaldi: `vivaldi://extensions`
+
 3. Enable Developer Mode.
 4. Select **Load unpacked**.
 5. Choose the cloned repository root folder, the one containing `manifest.json`.
@@ -127,7 +129,7 @@ For a deeper dive, see the full **[Project Philosophy](docs/philosophy.md)** doc
 
 ## 🤝 Contributing
 
-Contributions should follow the project flow: 
+Contributions should follow the project flow:
 
 - feature or chore branch
 - PR to `dev`

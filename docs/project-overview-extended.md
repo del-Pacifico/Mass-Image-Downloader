@@ -400,7 +400,6 @@ Mass Image Downloader adapts to different page structures. You can either **down
 - **Structure:** thumbnails wrapped by anchors pointing **directly** to media files  
   `(<a href="*.jpg|png|webp|avif|bmp"><img ...></a>)`.
 - **Behavior:** picks the best valid target per item (usually the full-size link), applies filters, and downloads.
-
 - **Immediate vs Tab mode:**
   - **Immediate download:** fastest path; saves directly.
   - **Open in tabs first:** opens each target in a background tab, so you can confirm it’s truly the high-res image before saving.
@@ -1124,7 +1123,7 @@ To view inspector-specific activity:
   ```text
   [Mass image downloader]
   ```
-
+  
 4) Look for messages related to inspector lifecycle:
 
 - Overlay activation/deactivation  

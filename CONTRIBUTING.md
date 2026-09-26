@@ -198,7 +198,7 @@ Recommended flow:
 
 > Use GitHub Discussions first for early ideas, broad design questions, or proposals that still need scope definition. A discussion can later be promoted to an issue once the expected behavior and scope are clear.
 
---- 
+---
 
 ### 🐛 Report a Bug
 
@@ -803,9 +803,11 @@ When implementing or refactoring extension workflows:
 - Keep background refreshes scoped to the settings required by that flow.
 - Preserve existing business logic unless the issue explicitly requires changing it. Do not alter URL validation, gallery heuristics, download naming rules, or hotkey names as a side effect of lifecycle fixes.
 - Any visible toast/user feedback must also be logged with the final rendered text, using the project format:
+
   ```js
   logDebug(2, `📢 Showing user message: "${finalText}" (${type})`);
   ```
+
 - If the change introduces or documents browser-specific behavior, shortcut conflicts, MV3 recovery behavior, or long-lived tab limitations, update the relevant documentation.
 
 ---
@@ -814,7 +816,7 @@ When implementing or refactoring extension workflows:
 
 This project encourages the responsible use of AI tools to assist development, but **all contributions remain subject to manual review** and project standards.
 
-AI tools may assist in **code generation**, **documentation**, **formatting**, or **security best practices**. However, they are a support tool, not a substitute for developer expertise.
+AI tools may assist in **code generation**, **documentation**, **formatting**, or **security best practices**. However, they are a *support tool*, **not a substitute for developer expertise**.
 
 **Developer responsibilities when using AI tools:**
 

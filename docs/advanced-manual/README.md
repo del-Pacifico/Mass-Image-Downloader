@@ -15,7 +15,7 @@
     - [👥 1.2 Intended Audience](#-12-intended-audience)
     - [🧾 1.3 Version Scope and Assumptions](#-13-version-scope-and-assumptions)
   - [🧠 2. Core Design Principles](#-2-core-design-principles)
-    - [� 2.1 Explicit User-Triggered Execution](#-21-explicit-user-triggered-execution)
+    - [👆 2.1 Explicit User-Triggered Execution](#-21-explicit-user-triggered-execution)
     - [🧩 2.2 Atomic, Isolated Feature Design](#-22-atomic-isolated-feature-design)
     - [🚫 2.3 No Background Polling or Persistent Jobs](#-23-no-background-polling-or-persistent-jobs)
     - [🔐 2.4 Privacy-by-Design and Minimal Persistence](#-24-privacy-by-design-and-minimal-persistence)
@@ -25,7 +25,7 @@
     - [🧠 3.3 Automation vs Manual Control](#-33-automation-vs-manual-control)
     - [📊 3.4 Global Rules vs Feature-Specific Rules](#-34-global-rules-vs-feature-specific-rules)
     - [🧠 3.5 Heuristics vs. Strict DOM Selectors (Multi-Factor Scoring)](#-35-heuristics-vs-strict-dom-selectors-multi-factor-scoring)
-      - [⚖️ Design choice:](#️-design-choice)
+      - [⚖️ Design choice](#️-design-choice)
   - [🔗 4. Cross-Feature Interactions](#-4-cross-feature-interactions)
     - [🏷️ 4.1 Badge State as a Shared Signal](#️-41-badge-state-as-a-shared-signal)
     - [🔎 4.2 Peek as the Runtime Source of Truth](#-42-peek-as-the-runtime-source-of-truth)
@@ -33,7 +33,7 @@
     - [🧠 4.4 Temporary State Reuse and Isolation](#-44-temporary-state-reuse-and-isolation)
     - [🔔 4.5 Toast Sequencing and Content Script Handoff](#-45-toast-sequencing-and-content-script-handoff)
       - [🤔 Challenge](#-challenge)
-      - [👉 Design response:](#-design-response)
+      - [👉 Design response](#-design-response)
   - [🧪 5. Edge Cases and Failure Modes](#-5-edge-cases-and-failure-modes)
     - [🖼️ 5.1 Inconsistent Gallery Structures](#️-51-inconsistent-gallery-structures)
     - [⏳ 5.2 Lazy Loading and Deferred Images](#-52-lazy-loading-and-deferred-images)
@@ -322,7 +322,7 @@ The selection logic evaluates:
 - `Main content` containers vs. `ad/affiliate` containers
 - `Aspect ratio` and `DOM position`
 
-#### ⚖️ Design choice:
+#### ⚖️ Design choice
 
 *Instead of blocking* specific `ad networks` (which is fragile and out of scope), the system applies a `graduated penalty` to affiliate and `ad links`:
 
@@ -432,7 +432,7 @@ User feedback during `long-running workflows` (like *Web-linked Galleries*) must
 
 If the `background service worker` handles the initial toast, **MV3 lifecycle** delays or `page scan durations` can cause the user to think the *extension failed to trigger*.
 
-#### 👉 Design response:
+#### 👉 Design response
 
 The `initial toast` notification for Web-linked Galleries was moved to the `content script` to guarantee immediate feedback. Furthermore, the flow now enforces a strict phase-based sequence (`start` → `candidates found` → `opening pages` → `completion`).
 
@@ -863,7 +863,6 @@ With the Advanced Manual completed, the documentation set now includes:
 ---
 
 Thank you for using **Mass Image Downloader**.
-
 This Advanced Manual is part of an ongoing documentation effort and may evolve as the extension grows.
 
 Made with ❤️ by **Del-Pacifico**

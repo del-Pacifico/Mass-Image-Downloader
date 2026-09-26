@@ -181,7 +181,9 @@ Chromium 93 or newer
 > 🚨 If you are using an older browser version, some features may not work correctly or may not be available.
 
 ### 🌎 1.4 Browser-Specific Notes
+
 Although the extension works on all Chromium-based browsers, some behaviors depend on how each browser handles keyboard shortcuts and policies:
+
 - `Brave`: primary QA-tested browser. All features and hotkeys work as documented.
 - `Microsoft Edge`: all features work, but some hotkeys (such as Image Inspector `Ctrl+Shift+M`) may need to be manually assigned in `edge://extensions/shortcuts`.
 - `Opera One`: all features work, but the Image Inspector hotkey (`Ctrl+Shift+M`) may be intercepted or blocked by the browser before the extension receives it. Use the popup button as a fallback.
@@ -293,7 +295,8 @@ Inside the popup, you will typically find:
 - `Short labels` describing each feature
 - Access to `settings` and `auxiliary tools`
 
-> Each button represents a *specific feature* of the extension. 
+> Each button represents a *specific feature* of the extension.
+
 You do not need to configure anything before clicking a button if default settings are in place.
 
 ### 🎯 3.3 How to Use the Popup Safely
@@ -978,6 +981,7 @@ For basic users:
 - Keep it at `1` (default) or `0` if you want the console completely clean
 
 For troubleshooting:
+
 - Increase to `2` (Verbose) and retry your action
 - Use `3` (Detailed) only if you are comfortable reading technical logs
 
@@ -985,7 +989,7 @@ For troubleshooting:
 
 ## 🏷️ 10. Badge and Visual Feedback
 
-Mass Image Downloader uses the extension badge to provide `quick visual feedback` about what the extension is doing.
+**Mass Image Downloader** uses the extension badge to provide `quick visual feedback` about what the extension is doing.
 
 The badge helps you understand the current state of a process without opening logs or settings.
 This feedback is designed to be simple, non-intrusive, and easy to recognize at a glance.
@@ -1078,7 +1082,6 @@ If something does not look right:
   → Check on-screen messages for details
 
 The badge is a guide. Settings and page content determine the final result.
-
 
 - No badge activity at all  
   → Ensure you selected the correct feature and that the extension is enabled
