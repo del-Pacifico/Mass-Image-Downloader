@@ -32,7 +32,7 @@
   - [🔔 User Notifications](#-user-notifications)
     - [Standard Message Pattern](#standard-message-pattern)
     - [Toast Minimum Visible Time](#toast-minimum-visible-time)
-      - [**Notification Behavior**](#notification-behavior)
+      - [Notification Behavior](#notification-behavior)
   - [🧩 Installation (Developer Mode / Unpacked)](#-installation-developer-mode--unpacked)
     - [Steps (Chromium-based browsers)](#steps-chromium-based-browsers)
     - [Notes](#notes)
@@ -186,90 +186,126 @@ From there, you can access:
 
 ## 🔥 Release Highlights
 
-- Unified **extended image URL validation** across the main download flows so valid image URLs with query parameters, CDN suffixes, and wrapped variants can be accepted when the corresponding support options are enabled.
+This release is focused on **reliability, precision, and stability** across both manual and automated extraction workflows. It makes the Image Inspector work correctly on complex responsive layouts, improves how Web-Linked Galleries are grouped and communicated to the user, hardens the One-click Download Icon against false positives and duplicate injections, and delivers a broad internal-hardening and documentation-alignment pass — all while preserving the extension's explicit, user-triggered execution model.
 
-- Aligned validation behavior for:
-  - Bulk Image Download
-  - One-click Download Icon
-  - Image Inspector
-  - Manual download
-  - Shared URL parsing and image-format helpers
+**🕵️ Image Inspector: spatial fallback for complex layouts**
+Improved Image Inspector reliability on complex responsive layouts by adding a bounded spatial fallback that correctly detects images inside non-standard DOM wrappers (e.g., `<figure>` blocks, styled-component grids, carousels, and nested layout containers). This restores hover detection on galleries that previously never triggered the inspector overlay.
 
-- Improved support for real-world image URL patterns, including:
-  - X/Twitter image URLs that expose the format through query parameters such as `?format=jpg`
-  - CDN and WordPress-style image URLs such as `?resize=...`
-  - suffix-based variants such as `:large` and `:orig`
-  - wrapped image URLs that still resolve to valid image resources
+**🕵️ Image Inspector: overlay lifecycle safety**
+Strengthened Image Inspector lifecycle safety with automatic overlay teardown in three scenarios: window focus loss, browser-throttled mouse events, and manual hotkey toggle-off. This prevents orphaned overlays and stale listeners across all teardown paths.
 
-- Added a dedicated **Extended Image URL Support** section in Options and reflected the same status in Settings Peek, so users can clearly manage query-parameter, suffix-based, CDN-style, and wrapped image URL handling.
+**🔗 Web-Linked Galleries: numeric-slug sequence recognition**
+Enhanced Web-Linked Gallery grouping accuracy so galleries whose detail pages are named strictly with numbers (e.g., `00.html`, `01.html` … `14.html`) are now correctly recognized as a single structural sequence instead of being split or rejected.
 
-- Restored expected **One-click Download Icon** behavior after save and kept the flow focused on an explicit manual download action.
+**🖱️ One-click Download Icon: injection race-condition hardening**
+Hardened the One-click Download Icon against double-injection race conditions on heavy or highly dynamic pages by wrapping the injection logic in an IIFE with an early-exit guard.
 
-- Fixed a QA-reported false Web-linked Gallery error toast in Brave and Edge by acknowledging the MV3 background handoff immediately after grouped URL validation.
+**🖱️ One-click Download Icon: refined multi-factor scoring**
+Refined the One-click Download Icon multi-factor scoring heuristic with graduated penalties for affiliate links and advertisement containers:
+−80% when all three risk signals are present (affiliate link, ad container, suspicious aspect/position)
+−50% when two signals are present
+−30% when one signal is present
+This significantly reduces the chance of the icon anchoring to sponsor thumbnails or ad banners instead of the main content image.
 
-- Expanded browser QA documentation:
-  - Brave remains the primary QA-tested browser.
-  - Microsoft Edge, Opera One, and Vivaldi now have documented additional QA coverage.
-  - Google Chrome is explicitly marked as not validated by the project QA process.
-  - Browser-level shortcut conflicts or restrictions are documented as potentially requiring manual configuration.
+**🔗 Web-Linked Galleries: phase-aware feedback sequence**
+Improved the Web-Linked Gallery user-feedback toast sequence with distinct, phase-aware messages (start → candidates found → opening pages → completion), ensuring fast initial feedback even when page scanning takes several seconds.
+
+**⚙️ Internal: shared utility layer hardening (MV3)**
+Audited and hardened the shared utility layer (`utils.js`) for MV3 service worker stability:
+
+- Unified export styles and removed dead code
+- Bounded memory usage (e.g., capping the `closedTabs` tracking Set)
+- Added range validation (1–10000) for minimum image dimensions in the config cache
+- Sanitized custom folder paths to prevent invalid filesystem characters
+- Synchronized image format toggles with live `chrome.storage.onChanged` events to eliminate stale-cache windows
+- Documented the intentionally divergent `calculatePathSimilarity` implementations used by direct-link vs. web-linked gallery flows
+
+**📑 Documentation: full set alignment and QA coverage**
+Expanded and aligned the full documentation set:
+
+- `User Manual`, `Technical User Manual`, `Configuration Guides`, `Advanced Manual`, `Hotkey Policy`, and `Extended Project Overview` are now cross-consistent and reflect current behavior
+- Browser QA coverage explicitly documented for `Brave` (primary), `Microsoft Edge`, `Opera One`, and `Vivaldi`
+- *Google Chrome* explicitly marked as **not validated** by the project QA process
+- Browser-level shortcut conflicts or restrictions documented as potentially requiring manual configuration
+
+**Applies to**: latest stable release from the `main` branch
+**Version source**: root `VERSION` file and `manifest.json`
 
 ---
 
 ## ✨ Features
 
 - 🔢 **Multiple extraction modes**
+  
   - **Bulk Image Download** — scan open tabs and collect valid image URLs with global filters and batching.
   - **Galleries (with direct links)** — thumbnails anchor directly to media files (fastest path).
   - **Galleries (without links)** — large images are displayed inline; the extractor filters by size/format.
   - **Web-linked galleries** — thumbnails lead to HTML detail pages; the extractor opens them with bounded fan-out and picks the best image.
 
 - 🎯 **Gallery Image Handling (immediate/tab)**
+  
   - **Download immediately** — saves the resolved image without intermediate UI.
   - **Open in new tab before downloading** — opens each target in a background tab for manual verification, then you can save.
+  
   > Choose “tab” when sites render the final image only after JS or when you want to visually confirm the target.
 
 - 🖐️ **Manual download overlay (hotkey)**
+  
   - **Alt+Shift+I** — toggles a small **download icon** over the focused image; click to save instantly (no popup).
+  
   > Ideal for curation: review the page visually and cherry-pick just a handful of items.
 
 - 📋 **Clipboard labeling (hotkeys)**
+  
   - **Ctrl+Alt+P** — set **filename prefix** from clipboard.  
   - **Ctrl+Alt+S** — set **filename suffix** from clipboard.
+  
   > Great for dataset runs: copy a label/tag once and apply it to all subsequent files.
 
 - 🕵️ **Image Inspector Mode (hover + side panel)**
+  
   - **Ctrl+Shift+M** — toggles Inspector Mode. Hover displays a small 🕵️ overlay; clicking opens a right-docked panel with:
     - Safe preview with zoom (✚ / – / ⛶) and drag-to-pan
     - Visible metadata (dimensions, title, alt, URLs)
     - Optional Developer Mode with technical details
     - Save workflow with close-on-save (optional)
     - Navigation arrows (⬅️ / ➡️) to browse all images on the current page
+  
   > Perfect for single-image review, debugging, and high-precision workflows.
 
 - 📶 **Throughput & pacing for galleries**
+ 
   - **Max images per second** — smooths extraction on heavy pages to avoid site throttling and CPU spikes.
+ 
   > Start with 2–3 and increase gradually. If a site is strict, lower it.
 
 - 🔄️ **Concurrency (open-tab fan-out)**
+  
   - **Max open tabs per gallery** (download concurrency limit) — caps how many background tabs are opened simultaneously in “tab” mode.
+  
   > Keeps memory predictable and avoids a “tab storm” while still parallelizing work.
 
 - 🎰 **Similarity & per-gallery bounding**
-  - **Path-similarity threshold** — clusters related variants and cuts duplicates/resized copies.
-  - **Max images per gallery** — limits how many items each gallery contributes.
-  > Clean grouping first; downloading then deleting is slower and noisier.
-
+  
+  - Path-similarity threshold — clusters “near-duplicate” URLs so resized/cached variants don’t flood your dataset.
+  - Max images per second — throttles the gallery extractor pace to avoid rate limits and CPU spikes.
+  - Clean grouping first; downloading then deleting is slower and noisier.
+  
 - 📑 **Resume bulk sessions**
+  
   - **Continue from where it left off** — resumes the next bulk batch from the last processed tab/page.
+  
   > Useful for long multi-tab sessions or when you paused mid-way.
 
 - 📝 **Deterministic file-naming**
+  
   - Modes: **none / prefix / suffix / both / timestamp**.
   - Enforced via `downloads.onDeterminingFilename` to keep names stable and reproducible.
 
 - 📌 **Dimension & format filters**
   - **Minimum width & height** — both must be met to qualify.
   - **Allowed formats** — enable only what you want processed.
+  
   > If expected images are skipped, check real pixel sizes in DevTools (CSS can scale visuals).
 
 - 💬 **User feedback & diagnostics**
@@ -309,13 +345,11 @@ A new option is available in:
 
 > Toast Minimum Visible Time (ms)
 
-**Default value**:
+**Default value**: b2000
 
-> 2000
+> This setting defines the minimum amount of time a toast remains visible before another toast can replace it.
 
-This setting defines the minimum amount of time a toast remains visible before another toast can replace it.
-
-#### **Notification Behavior**
+#### Notification Behavior
 
 The toast engine follows these rules:
 
@@ -481,10 +515,15 @@ Controls where files are saved, which formats are accepted, whether extended URL
   Applies to: All modes.  
   **Notes:** AVIF/BMP depend on browser support; if items are skipped, verify decoding capability and toggles.
 
-- **Allow extended image URLs** (accept Twitter/X `:large`, `:orig`, etc. as valid images)  
-  Accept platform-specific suffix variants as valid image URLs so you can capture higher-resolution versions when available.  
-  Applies to: All modes.  
-  **Notes:** This does not upscale images; it only accepts variant links when the site provides them.
+- **Extended Image URL Support** (granular toggles)
+  Accept real-world image URL variants when the corresponding support option is enabled:
+  
+  - `Twitter`/`X` image URLs with query parameters (e.g. `?format=jpg`)
+  - `Reddit` CDN image URLs with query parameters
+  - Parameterized `CDN-style` image URLs (e.g. `?resize=...`)
+  - `Wrapped image` URLs that still resolve to a valid image
+
+> Applies to: All modes.Notes: This does not upscale images; it only accepts variant links > when the site provides them. Suffix-based variants such as `:large` / `:orig` are also handled.
 
 - **Filename Customization** (Mode: none / prefix / suffix / both / timestamp; with Prefix/Suffix inputs)  
   Build deterministic, reproducible filenames. Use prefix/suffix for labeled batches or timestamp to avoid collisions.  
@@ -660,7 +699,7 @@ Unless changed in the Options page, these defaults apply globally:
 - **Minimum Image Dimensions:** width = 800, height = 600  
 - **Allowed Formats:** JPG, JPEG, PNG (WEBP, AVIF, BMP disabled by default)  
 - **Download Limit (simultaneous):** 1  
-- **Max Images Per Batch (Bulk Download):** 0 (unlimited)  
+- **Max Images Per Batch** (Bulk Download): 20
 - **Extract Gallery Mode:** `tab`  
 - **Gallery Max Images (per second):** 3  
 - **Gallery Similarity Level:** 70%  
@@ -808,8 +847,10 @@ This section outlines the architecture, core flows, and the responsibilities of 
 | `background.js` | Orchestrator (Service Worker) | Load settings; version guard; receive messages; enforce deterministic filenames; kick off downloads; audit via `downloads.search`; update badge | `chrome.runtime.*`, `chrome.action.*`, `chrome.downloads.*`, `chrome.tabs.*`, `chrome.storage.*` |
 | `utils.js` | Utilities | Validate URL/format/dimensions; normalize paths; build filenames (prefix/suffix/timestamp); badge updates; toasts; defensive helpers | `chrome.action.*`, `chrome.storage.*` |
 | `extractLinkedGallery.js` | Gallery extractor (with direct links) | Find anchors to media files; apply rules; group by similarity; send candidates to SW | `chrome.runtime.sendMessage` |
-| `extractVisualGallery.js` | Gallery extractor (without direct links) | Collect visible `<img>` that meet thresholds; optional grouping; send candidates to SW | `chrome.runtime.sendMessage` |
-| `imageInspector.js` | Image Inspector content script | Manage Inspector Mode lifecycle: toggle overlay via hotkey, handle hover detection, render the right-docked panel (Shadow DOM), provide zoom/pan/navigation, extract metadata, and dispatch save requests to the Service Worker | `chrome.runtime.sendMessage`, `chrome.storage.sync`, DOM events |
+| extractVisualGallery.js|Gallery extractor (without direct links)|Collect visible  <img>  that meet thresholds; optional grouping; send candidates to SW|chrome.runtime.sendMessage|
+| extractWebLinkedGallery.js|Gallery extractor (web-linked)|Detect thumbnail→page galleries, group by slug/structural similarity, hand off candidate pages to SW|chrome.runtime.sendMessage|
+| injectSaveIcon.js|One-click / Web-linked save icon|Score image candidates (multi-factor), inject 💾 save-icon overlay, dispatch manual download|chrome.runtime.sendMessage ,  chrome.storage.sync|
+| imageInspector.js|Image Inspector content script|Manage Inspector Mode lifecycle...|
 | `popup.html` | Popup UI | Entry points to Bulk / Galleries / Web-linked / Settings / Peek | — |
 | `popup.js` | Popup logic | Wire UI actions to background flows; open Options/Peek | `chrome.runtime.*`, `chrome.tabs.*` |
 | `options.html` | Options UI | Structured settings (Global, Galleries, Size, FS/URL/Naming, Notifications, Debug) | — |
@@ -817,7 +858,7 @@ This section outlines the architecture, core flows, and the responsibilities of 
 | `clipboardHotkeys.js` | Clipboard hotkeys | Set prefix/suffix from clipboard (P/S) | `clipboardRead`, `chrome.runtime.*` |
 | `peekOptions.html` | Peek UI | Read-only settings overlay (transparency configurable) | — |
 | `peekOptions.js` | Peek UI logic | Fetch and render current settings; refresh; open/close | `chrome.storage.sync`, `chrome.runtime.*` |
-| `settingsPeek.js` | Peek helpers | Format values for display (thresholds, toggles, formats) | `chrome.runtime.*` |
+| `settingsPeek.js`|Peek overlay injector|Inject the read-only Peek panel on `Alt+Shift+S`, manage overlay lifecycle, keep a local config cache|`chrome.runtime.*` ,  `chrome.storage.sync` , `DOM events`|
 | `README.md` | Documentation | User/developer docs | — |
 | `CHANGELOG.md` | Release notes | Added / Changed / Fixed / Maintenance | — |
 
@@ -841,7 +882,7 @@ This section outlines the architecture, core flows, and the responsibilities of 
 
 - **Path similarity threshold** clusters variants and reduces duplicates.  
 - **Minimum group size** avoids noise from tiny clusters.  
-- **Max images per gallery** prevents a single source from dominating.
+- **Max images per second** throttles gallery throughput to avoid rate limits.
 
 ### Performance & resilience
 
@@ -866,7 +907,7 @@ Practical techniques used by the extension to stay fast, predictable, and resili
 
 ### Workload bounding
 
-- **Max images per gallery** prevents a single page from dominating a run.
+- **Max images per second** throttles gallery throughput to keep CPU/network predictable.
 - **Minimum group size** discards tiny, noisy clusters.
 
 > Bounding memory and network upfront is cheaper than downloading then deleting.
@@ -962,9 +1003,11 @@ Adapt behavior to the site, your machine, and your workflow—without touching c
   Applies to: All modes.  
   **Notes:** Disabling unused formats speeds validation. AVIF/BMP require browser support.
 
-- **Allow extended image URLs:** accept suffix variants like `:large`, `:orig` (Twitter/X, Pixiv).  
+- **Extended Image URL Support**: granular toggles for Twitter/X query params, Reddit CDN query params, parameterized CDN URLs, and wrapped image URLs (also handles `:large` / `:orig` suffixes).
+
   Applies to: All modes.  
-  **Notes:** Doesn’t upscale; only recognizes valid high-res variants when platforms provide them.
+  
+> Notes: Doesn’t upscale; only recognizes valid high-res variants when platforms provide them.
 
 ### Size filters
 
@@ -1080,7 +1123,7 @@ To view inspector-specific activity:
   ```text
   [Mass image downloader]
   ```
-
+  
 4) Look for messages related to inspector lifecycle:
 
 - Overlay activation/deactivation  
@@ -1171,7 +1214,7 @@ Confirm exactly which thresholds, formats, and pacing rules are in effect withou
 **What you’ll see**  
 
 - **Allowed formats**: PNG, JPG, JPEG, WEBP, AVIF, BMP  
-- **Allow extended image URLs**: on/off (e.g., `:large`, `:orig`)  
+- **Extended Image URL Support**: four granular toggles (Twitter/X query params, Reddit CDN query params, parameterized CDN URLs, wrapped image URLs)
 - **Image size**: Minimum width & height (both must be met)  
 - **Galleries**: Similarity level (%), Minimum group size, Smart/Fallback grouping  
 - **Handling**: Gallery Image Handling (Immediate / Open in new tab)  
@@ -1305,9 +1348,6 @@ Situations and caveats that can affect extraction/downloading. Review this list 
 
 - **Browser-specific hotkey behavior**
   `Ctrl + Shift + M` for Image Inspector works in Brave and Edge, but Opera may intercept or block the combination in some browser/profile configurations before the content script receives it. When that happens, the keydown handler never sees the final `M`, so the inspector does not toggle even though the page is otherwise compatible.
-
-- **Inspector metadata redaction**  
-  For security and privacy reasons, the inspector hides local/blob/data URLs in its metadata view. The underlying validation and download pipeline can still operate on them when permitted, but raw values are not exposed in the panel.  
 
 - **Prefix/Suffix persistence (clipboard hotkeys)**  
   Clipboard-based naming (Ctrl+Alt+P / Ctrl+Alt+S) persists across flows, but in some MV3 lifecycle conditions the extension may revert to the last stored values in `chrome.storage.sync`.  

@@ -4,29 +4,58 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased]
+## [2.8.187] - 2026-09-26
 
 ### Fixed
 
+- Improved Image Inspector hover target resolution for sites whose hover target is a wrapper element or anchor instead of the image itself, such as styled-components grids (500px), carousel containers, nested layout wrappers, and gallery aggregators (e.g., Wikimedia Commons results). A bounded spatial fallback now matches the pointer position against candidate images within the hovered subtree only, preserving the existing direct-target and wrapper-resolution paths, respecting the configured minimum-size rules, and keeping the scan free of site-specific selectors. This restores the hover overlay on galleries that previously never triggered the inspector, in line with the project's global-scope fix rules. ([#77](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/77))
+- Prevented orphaned Image Inspector overlays: the inspector icon no longer remains floating after opening an image in a new tab or closing the panel. The `mouseover` handler is registered only while the Inspector is active, and the teardown logic now explicitly clears any active overlay when the window loses focus, when mouse events are throttled, when the panel closes, or when the user toggles the Inspector off via hotkey (`Ctrl+Shift+M`), ensuring a clean DOM state and preventing ghost panels and stale listeners. ([#77](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/77))
 - Fixed the user‑feedback toast sequence for Web‑linked Gallery. The flow now shows distinct messages for each phase: start, candidates found, opening pages, and completion. This resolves duplicate and missing toast notifications. ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
-
 - Moved the initial toast notification for Web‑linked Gallery to the content script to ensure immediate user feedback, even when the page scan takes several seconds. This aligns the flow with the behavior of other gallery extraction flows. ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
-
 - Prevented `Uncaught SyntaxError: Identifier 'debugLogLevelCache' has already been declared` and similar errors on direct image pages by wrapping the entire `injectSaveIcon.js` script in an IIFE with a guard flag. The script now runs only once per tab, eliminating all global declarations and avoiding re‑declaration issues when the script is injected multiple times (e.g., due to retries or repeated hotkey presses). ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
-
-- Prevented `Uncaught SyntaxError: Identifier 'SUPPORTED_IMAGE_EXTENSIONS' has already been declared` on direct image pages by adding a guard... ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
-
+- Prevented `Uncaught SyntaxError: Identifier 'SUPPORTED_IMAGE_EXTENSIONS' has already been declared` on direct image pages by adding a guard flag to the shared constants declaration. ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
 - Web‑linked gallery now correctly groups pages with purely numeric slugs (e.g., `00.html` … `14.html`). The `normalizeGallerySlug()` helper returns a fixed token (`"numeric"`) when the normalized base is empty and the original slug consists only of digits, allowing `isSameGalleryStructure` to recognise all numeric‑only pages as part of the same sequence. This resolves the "No dominant image group found" error and restores the expected tab‑opening flow. ([#73](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/73))
-
 - One‑click save icon now uses a multi‑factor scoring heuristic to prioritise the main gallery image over advertisement thumbnails. The selection logic considers displayed size (`offsetWidth × offsetHeight`), main content containers, ad containers, affiliate link patterns, aspect ratio, and DOM position. Affiliate links are penalised with a graduated penalty (−80% for all three conditions, −50% for two, −30% for one). This resolves the issue where the icon was incorrectly placed on high‑resolution advertisement thumbnails displayed at small sizes. ([#74](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/74))
 
 ### Added
 
-- **Project Philosophy** – Added a dedicated `docs/philosophy.md` document and a corresponding section in the root `README.md` to articulate the core principles guiding the project: reliability, user control, performance, security, transparency, quality, and open collaboration.
+- Question issue template – Added `.github/ISSUE_TEMPLATE/question.yml` (GitHub Issue Form) providing a structured `[Question]` channel for support requests and open questions, completing the issue template set (Bug, Hotfix, Investigation, Edge Case, Feature Request, Documentation, Question).
+- Project Philosophy – Added a dedicated `docs/philosophy.md` document and a corresponding section in the root `README.md` to articulate the core principles guiding the project: reliability, user control, performance, security, transparency, quality, and open collaboration.
 
 ### Documentation
 
-- Enhanced `CONTRIBUTING.md` with clear guidance on the Discussion → Issue flow, a dedicated Edge Cases section, stronger Pull Request requirements (must reference an Issue or Discussion), a Pull Request Review Process section, and developer responsibilities for AI‑assisted contributions. The incremental commit discipline and local validation reporting are now also clarified. 
+- Updated `CONTRIBUTING.md`: comprehensive update adding `TOC`, `pre-requisites`, `project philosophy`, `repository structure`, `team roles`, `branch/commit conventions`, `security reporting`, `release process`, and `license header standards`.
+- Refreshed the documentation set for this release:
+  - Technical User Manual (`Image Inspector` spatial fallback and teardown safety; `One-click` multi-factor scoring; `Web-linked Gallery` toast sequence)
+  - Advanced Manual (selection-heuristic rationale and Inspector edge cases)
+  - User Manual (feature guidance and docs-first question routing)
+  - Documentation Hub (`Project Philosophy` entry, relative links, and routing typo fix)
+  - Extended Project Overview (Release Highlights updated for 2.8.187: Image Inspector reliability, Web-Linked Gallery accuracy, One-click scoring, internal hardening, documentation alignment)
+  - Hotkeys & Keyboard Shortcuts Policy (clarified hotkey-only features, fallback behavior, and browser-specific notes)
+- Renamed `docs/configuration-guides/configuration-guides.md` to `docs/configuration-guides/README.md`, normalized its TOC anchors to renderer-agnostic links, and updated the hub and documentation issue-template references to the new path.
+- Updated `CONTRIBUTING.md`: Added the 🎯 Minimal Technical Footprint (Zero Over-Engineering) and 🌍 Global Scope Fixes (80/20 Rule) sections to enforce performance-first, scoped, and maintainable solutions in future PRs.
+- Enhanced `CONTRIBUTING.md` with clear guidance on the `Discussion` → `Issue flow`, a dedicated `Edge Cases` section, stronger `Pull Request` requirements (must reference an Issue or Discussion), a `Pull Request Review Process` section, and `developer responsibilities` for AI‑assisted contributions. The `incremental commit discipline` and `local validation` reporting are now also clarified.
+
+### QA
+
+- QA completed on Brave (`Windows 11` and `WSL2/Ubuntu`) across seven site categories:
+  - stock
+  - social
+  - portfolios
+  - wallpapers
+  - reference/Commons
+  - e-commerce
+  - NSFW gallery aggregator
+- Validating the Image Inspector fixes (#77): `hover overlay`, `panel lifecycle`, `open-in-new-tab blur`, and `all teardown paths`, with no regressions in `Bulk`, `gallery`, or `Web-linked` flows.
+
+### Validation
+
+- Confirmed extension compliance with `npm run check`.
+- Confirmed automated tests with `npm test`.
+
+### Maintenance
+
+- Added `.vscode/` to repository hygiene exclusions.
 
 ---
 
