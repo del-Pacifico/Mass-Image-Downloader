@@ -1,6 +1,7 @@
 # 🏔️ Mass Image Downloader – Changelog
 
 This project follows [Semantic Versioning](https://semver.org/).
+For **planned** releases and release-train sequencing, see [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ---
 
@@ -24,6 +25,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Documentation
 
+- Added `docs/ROADMAP.md`: Release Roadmap as the single source of truth for planned releases, ordering all open work (issues and discussions) into versioned release trains (v2.8.187–v2.8.190) with explicit scope, dependencies, QA gates, and guiding principles. Cross-referenced from the Documentation Hub (`docs/README.md`), `CONTRIBUTING.md` (Release Process), `CHANGELOG.md` header, and `docs/project-overview-extended.md` (Contributions section).
 - Updated `CONTRIBUTING.md`: comprehensive update adding `TOC`, `pre-requisites`, `project philosophy`, `repository structure`, `team roles`, `branch/commit conventions`, `security reporting`, `release process`, and `license header standards`.
 - Refreshed the documentation set for this release:
   - Technical User Manual (`Image Inspector` spatial fallback and teardown safety; `One-click` multi-factor scoring; `Web-linked Gallery` toast sequence)

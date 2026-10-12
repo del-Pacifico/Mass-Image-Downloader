@@ -117,6 +117,7 @@
   - [🙌 Contributions](#-contributions)
     - [How to contribute](#how-to-contribute)
     - [Quick path to a solid PR](#quick-path-to-a-solid-pr)
+    - [Release planning](#release-planning)
   - [📝 Changelog](#-changelog)
   - [🔒 Privacy](#-privacy)
     - [Notes](#notes-2)
@@ -1426,6 +1427,25 @@ This project targets **Chromium 93+** and **Manifest V3**, with code written in 
 > 4) **Verify** locally (unpacked) with Debug log **level 1–2**; attach before/after Console snippets.  
 > 5) **Update** docs if behavior/options change, and add a concise entry in **CHANGELOG.md**.  
 > 6) **Open the PR**, link issues, and note any edge cases considered.
+
+### Release planning
+
+Before starting a contribution, check [`docs/ROADMAP.md`](ROADMAP.md) — the single
+source of truth for planned releases. The Roadmap orders open issues and discussions
+into versioned release trains with explicit scope, dependencies, and QA gates.
+
+- If your issue is already scheduled, align your branch name and scope with the
+  planned PR.
+- If not scheduled, open a Discussion first (per the `Discussion → Issue` flow
+  documented in `CONTRIBUTING.md`).
+
+The Roadmap complements, and does not replace:
+
+- [`CHANGELOG.md`](../CHANGELOG.md) — what **shipped**
+- [GitHub Issues](https://github.com/del-Pacifico/Mass-Image-Downloader/issues) —
+  what is **tracked**
+- [GitHub Discussions](https://github.com/del-Pacifico/Mass-Image-Downloader/discussions) —
+  what is **explored**
 
 ---
 

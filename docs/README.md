@@ -162,6 +162,22 @@ Read this if:
 📄 Open document:
 ➡️ [Project Philosophy](philosophy.md)
 
+🗺️ **Release Roadmap**
+
+Purpose:
+
+Single source of truth for planned releases, ordering open work into versioned
+release trains with explicit scope, dependencies, and QA gates.
+
+Read this if:
+
+- You want to know what is planned for the next releases
+- You need to understand issue/PR sequencing and dependencies
+- You are planning a contribution and want to align with the release calendar
+
+📄 Open document:
+➡️ [Release Roadmap](ROADMAP.md)
+
 ---
 
 ## 🧭 Which Document Should I Read First?

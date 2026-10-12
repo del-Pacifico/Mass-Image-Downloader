@@ -24,6 +24,7 @@ This guide provides everything you need to know to start contributing effectivel
     - [👀 Pull Request Review Process](#-pull-request-review-process)
     - [📝 Markdown Format for All Posts](#-markdown-format-for-all-posts)
   - [🏗️ Development Flow](#️-development-flow)
+  - [🗓️ Release planning](#️-release-planning)
   - [🌿 Branch and Commit Conventions](#-branch-and-commit-conventions)
     - [Branch Naming](#branch-naming)
     - [Commit Messages](#commit-messages)
@@ -32,12 +33,12 @@ This guide provides everything you need to know to start contributing effectivel
   - [🏷️ Labeling Rules](#️-labeling-rules)
   - [📐 Code Standards](#-code-standards)
   - [🎨 UI Feedback and Visual Standards](#-ui-feedback-and-visual-standards)
-    - [Core Palette](#core-palette)
-    - [Toasts](#toasts)
-    - [Buttons and Controls](#buttons-and-controls)
-    - [Panels and Tables](#panels-and-tables)
-    - [Tooltips](#tooltips)
-    - [Scope](#scope)
+    - [🫀 Core Palette](#-core-palette)
+    - [💬 Toasts](#-toasts)
+    - [🎛️ Buttons and Controls](#️-buttons-and-controls)
+    - [📅 Panels and Tables](#-panels-and-tables)
+    - [ℹ️️ Tooltips](#ℹ️️-tooltips)
+    - [🎯 Scope](#-scope)
   - [📚 Documentation Standards](#-documentation-standards)
   - [🧪 Local Validation](#-local-validation)
   - [🧑‍💻 Development Rules](#-development-rules)
@@ -90,7 +91,7 @@ Familiarize yourself with the codebase layout:
 Mass-Image-Downloader/
 ├── .github/           # GitHub templates (CODEOWNERS, Issues, PR templates, etc.)
 ├── assets/            # Static assets (images, icons)
-├── docs/              # Project documentation (philosophy, hotkeys, guides)
+├── docs/              # Project documentation (philosophy, hotkeys, guides, roadmap)
 ├── html/              # HTML files (popup, options, content scripts)
 ├── ico/               # Icon files for the extension
 ├── scripts/           # Core extension logic (content scripts, background, helpers)
@@ -363,6 +364,26 @@ feature/chore branch -> dev -> main -> tag/release
 
 ---
 
+## 🗓️ Release planning
+
+Planned work is tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md), the single source
+of truth for release trains. The Roadmap orders open issues and discussions into
+versioned releases with explicit scope, dependencies, and QA gates.
+
+Before starting a new feature or bugfix:
+
+1. Check the Roadmap to see whether the issue is already scheduled.
+2. If scheduled, align your branch name and scope with the planned PR.
+3. If not scheduled, open a Discussion first (per the `Discussion → Issue` flow).
+
+The Roadmap complements, and does not replace:
+
+- [`CHANGELOG.md`](CHANGELOG.md) — what **shipped**
+- [GitHub Issues](https://github.com/del-Pacifico/Mass-Image-Downloader/issues) — what is **tracked**
+- [GitHub Discussions](https://github.com/del-Pacifico/Mass-Image-Downloader/discussions) — what is **explored**
+
+---
+
 ## 🌿 Branch and Commit Conventions
 
 ### Branch Naming
@@ -555,7 +576,7 @@ Code changes must follow these standards:
 
 The extension must keep a consistent visual language across popup UI, Options, Settings Peek, Image Inspector, One-click overlays, tooltips, injected panels, and content-script toasts.
 
-### Core Palette
+### 🫀 Core Palette
 
 Use the established project palette:
 
@@ -576,7 +597,7 @@ Do not introduce new status colors, such as green success tones, unless the proj
 
 ---
 
-### Toasts
+### 💬 Toasts
 
 Toast colors must be consistent across all scripts.
 
@@ -598,7 +619,7 @@ Avoid false-positive success messages. Only show success when the action actuall
 
 ---
 
-### Buttons and Controls
+### 🎛️ Buttons and Controls
 
 Buttons should reuse the existing control palette:
 
@@ -611,7 +632,7 @@ Icon-only controls should keep the same visual treatment used by the existing On
 
 ---
 
-### Panels and Tables
+### 📅 Panels and Tables
 
 Settings, Options, Peek, and Inspector panels should remain readable and utilitarian:
 
@@ -622,7 +643,7 @@ Settings, Options, Peek, and Inspector panels should remain readable and utilita
 
 ---
 
-### Tooltips
+### ℹ️️ Tooltips
 
 Tooltips should use the existing dark surface style already present in the extension:
 
@@ -633,7 +654,7 @@ Tooltips should use the existing dark surface style already present in the exten
 
 ---
 
-### Scope
+### 🎯 Scope
 
 This standard applies to:
 
