@@ -47,7 +47,7 @@ npm test
 |---|---|---|---|
 | **v2.8.187** | PR #110 (existing) | Pending release batch | #73, #74, #77, #78 |
 | **v2.8.188** | PR A, PR B | Config & settings hotfixes | #99, #100, #101 |
-| **v2.8.189** | PR C, PR D, PR E, PR F | Web-linked Gallery epic | #102–#109, #112–#114, discussions #76, #83, #90 |
+| **v2.8.189** | PR C, PR D, PR E, PR F | Web-linked Gallery epic | #102–#109, #112–#114, #116, discussions #76, #83, #90 |
 | **v2.8.190** | PR G, PR H, PR I, PR J | Inspector targeting, UX features, tooling | #30–#32, #37, #91, #94, #96, #111, #115, discussion #92 |
 
 Housekeeping (label pass, stale discussion closures, announcements) is scheduled in
@@ -59,8 +59,8 @@ Housekeeping (label pass, stale discussion closures, announcements) is scheduled
 ```mermaid
 graph TD
     PR110["PR #110 - v2.8.187<br/>closes #73 #74 #77 #78"] --> PRA["PR A - #101<br/>min/max range validation"]
-    PR110 --> PRB["PR B - #99 #100<br/>settings sync defects"]
-    PRA --> PRC["PR C - #112-114<br/>web-linked hardening"]
+    PR110 --> PRB["PR B - #99 #100<br/>settings sync defects"]]
+    PRC["PR C - #112-114, #116<br/>web-linked hardening"]
     PRB --> PRC
     PRC --> PRD["PR D - #102-109<br/>utils.js cleanup"]
     PRD --> PRE["PR E - discussion #76<br/>linear grouping O(n)"]
@@ -166,12 +166,9 @@ The largest gravity well in the backlog: five issues and three discussions all t
 `extractWebLinkedGallery.js` / gallery grouping. Sequenced so each PR leaves the code
 cleaner for the next: **behavior hardening → rename → algorithm → feature**.
 
-### PR C — `fix/112-114-web-linked-hardening`
+### PR C — `fix/112-116-web-linked-hardening`
 
-**Closes:** [#112](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/112),
-[#113](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/113),
-[#114](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/114),
-[discussion #90](https://github.com/del-Pacifico/Mass-Image-Downloader/discussions/90) (recorded decision)
+**Closes:** [#112](...), [#113](...), [#114](...), [#116](...), [discussion #90](...)
 
 **Why third:** the most severe remaining functional defects, all detected in the QA
 of PR #110, all in the same flow:
@@ -185,8 +182,9 @@ of PR #110, all in the same flow:
   unhandled grouper edge with mixed candidates.
 - **#112 (Shutterstock):** 15 `/search/...` URLs group at 81.7% similarity and open
   15 irrelevant tabs.
+- **#116 (Reddit):** candidate detection accepts default avatars (`redditstatic.com/avatars/defaults/v2/avatar_default_*.png`) as valid `<a><img>` candidates; the 45% fallback grouping then clusters the `/user/` profile URLs into a dominant group of 8, opening user profile pages instead of gallery images. Same treatment as #112–#114: path-type classification, defensive terminal toast, and URL-pattern filtering for avatar/icon CDN paths.
 
-All three demand the same treatment (already sketched in the issues and in discussion
+All four demand the same treatment (already sketched in the issues and in discussion
 #90):
 
 1. Path-type classification for candidate admission (allow `/photo/`-type segments;
@@ -365,3 +363,4 @@ No code release required. Scheduled after v2.8.188 lands.
 | 2026-10-12 | Initial proposal: release trains v2.8.187–v2.8.190 derived from the 26 open issues and 17 open discussions audit. |
 | 2026-10-12 | Revised to full Contributing Guide compliance: project-name-first H1, emoji headers only, language-tagged code blocks, corrected `dev → main → tag` release flow, CHANGELOG exit criteria, label rules, collapsible dependency graph. |
 | 2026-10-13 | Added Issue #115 (One-click icon fails on X/Twitter due to CSS `background-image` rendering) to v2.8.190 as PR J. Discovered during QA of PR #110, Social site category. |
+| 2026-10-14 | Added Issue #116 (Reddit Web-linked Gallery accepts default avatars as candidates and opens user profile pages) to v2.8.189 PR C. Discovered during QA of PR #110, Social site category. Branch renamed `fix/112-114-web-linked-hardening` → `fix/112-116-web-linked-hardening`. |
