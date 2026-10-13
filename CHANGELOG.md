@@ -25,6 +25,7 @@ For **planned** releases and release-train sequencing, see [`docs/ROADMAP.md`](d
 
 ### Documentation
 
+- Updated `docs/ROADMAP.md`: scheduled Issue #116 (`[Bug] Web-linked Gallery accepts Reddit default avatars as candidates and opens user profile pages instead of gallery images`) as part of PR C in release v2.8.189 (Web-linked Gallery hardening epic). PR C branch renamed `fix/112-114-web-linked-hardening` → `fix/112-116-web-linked-hardening` to reflect the expanded scope. Discovered during QA of PR #110, Social site category (Reddit).
 - Added `Release Roadmap` entry to root `README.md` Documentation section, describing the planned-releases document alongside the existing manual references.
 - Updated `docs/ROADMAP.md`: scheduled Issue #114 (`[Bug] One-click scoring algorithm prioritizes promotional banners over main content images`) as part of PR C in release v2.8.189 (Web-linked Gallery hardening epic), incorporating Adobe Stock QA evidence that broadens the candidate-detection scope on stock aggregator sites.
 - Added `docs/ROADMAP.md`: Release Roadmap as the single source of truth for planned releases, ordering all open work (issues and discussions) into versioned release trains (v2.8.187–v2.8.190) with explicit scope, dependencies, QA gates, and guiding principles. Cross-referenced from the Documentation Hub (`docs/README.md`), `CONTRIBUTING.md` (Release Process), `CHANGELOG.md` header, and `docs/project-overview-extended.md` (Contributions section).
