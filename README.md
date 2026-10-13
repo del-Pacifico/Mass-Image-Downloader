@@ -92,6 +92,7 @@ These commands validate the extension manifest, declared paths, version alignmen
   - `Advanced Manual` - design rationale, trade-offs, and edge cases.
   - `Extended Project Overview` - the *previous long-form README* preserved as a reference, including Release Highlights.
   - `Hotkeys Policy` - official shortcut policy.
+  - `Release Roadmap` - planned releases, release-train sequencing, and contribution alignment.
 
 ---
 
