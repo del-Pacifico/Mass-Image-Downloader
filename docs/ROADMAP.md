@@ -48,7 +48,7 @@ npm test
 | **v2.8.187** | PR #110 (existing) | Pending release batch | #73, #74, #77, #78 |
 | **v2.8.188** | PR A, PR B | Config & settings hotfixes | #99, #100, #101 |
 | **v2.8.189** | PR C, PR D, PR E, PR F | Web-linked Gallery epic | #102–#109, #112–#114, #116, discussions #76, #83, #90 |
-| **v2.8.190** | PR G, PR H, PR I, PR J | Inspector targeting, UX features, tooling | #30–#32, #37, #91, #94, #96, #111, #115, discussion #92 |
+| **v2.8.190** | PR G, PR H, PR I, PR J, PR K | Inspector targeting, UX features, tooling | #30–#32, #37, #91, #94, #96, #111, #115, #117, discussion #92 |
 
 Housekeeping (label pass, stale discussion closures, announcements) is scheduled in
 [Section 7](#🏷️-7-meta--housekeeping) and does not require a code release.
@@ -69,6 +69,7 @@ graph TD
     PRF --> PRH["PR H - discussion #92<br/>cancel hotkey"]
     PRG --> PRI["PR I - #94 #111 #30-32 #37<br/>UX features + tooling"]
     PRG --> PRJ["PR J - #115<br/>background-image detection"]
+    PRI --> PRK["PR K - #117<br/>bulk.js module extraction"]
 ```
 
 </details>
@@ -312,6 +313,44 @@ Four small items, one release:
 
 **QA:** X (Twitter) tweet pages opened via Web-linked Galleries on Brave + Edge + Opera One. Confirm icon appears, downloads correct image, and no regression on standard `<img>` pages.
 
+### PR K — `chore/bulk-module-extraction`
+
+**Closes:** [#117](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/117)
+
+**Why:** The Bulk Image Download flow is the only core feature implemented inline within `background.js` (via `handleBulkDownloadHotkey()` and `handleBulkDownload()`), while every other feature has its own dedicated module file (`injectSaveIcon.js`, `imageInspector.js`, `extractWebLinkedGallery.js`, `extractGallery.js`, `settingsPeek.js`, `clipboardHotkeys.js`). This refactor extracts the Bulk logic into a new `scripts/bulk.js` module to align the project with its own Single Responsibility architecture.
+
+**Scope:**
+
+1. Create `scripts/bulk.js` containing:
+2. 
+   - `handleBulkDownloadHotkey()`
+   - `handleBulkDownload()` and its tab iteration/filtering logic
+   - Per-tab URL validation and candidate acceptance helpers
+   - Batch orchestration helpers (`ensureDownloadStateFresh`, batch loop control)
+   - Bulk-specific logs and user feedback toasts
+3. Update `manifest.json` service worker imports to include `bulk.js`.
+4. Update `background.js` to:
+   - Remove the inlined Bulk logic.
+   - Delegate the `hotkey-bulk-download` command to an imported `bulk.js` handler.
+5. Update `README.md` "Key files and responsibilities" table to add an entry for `bulk.js`.
+
+**Exit criteria:**
+
+- `grep -i "bulk" scripts/background.js` returns only the command-dispatch line.
+- `scripts/bulk.js` exists and owns all Bulk logic.
+- `npm run check` and `npm test` pass.
+- Manual QA on Brave + Edge + Opera One: Bulk hotkey (`Alt+Shift+D`) behaves identically to pre-refactor on direct image tabs, wrapped-URL tabs, mixed tabs, and resume-from-last-batch flow.
+
+**Why here (v2.8.190):** Thematically aligned with PR I (tooling) and PR G (inspector targeting). Near-zero behavioral risk — pure code movement. Does not block any of the bug-fix PRs (G, J) that precede it.
+
+**Out of scope:**
+
+- Behavioral changes to Bulk (URL validation, unwrapping, format checks). Those belong in separate bug-fix PRs.
+- Changes to other modules.
+- API surface changes to the Bulk user flow (hotkey, toasts, badge behavior must remain identical).
+
+**Risk assessment:** Low. Code-movement refactor with no behavioral changes. Main risk: missing a helper that Bulk depends on — mitigated by full Bulk QA matrix post-refactor.
+
 ### Exit criteria for v2.8.190
 
 - PR G–I merged into `dev`, promoted `dev → main`, tagged `v2.8.190`.
@@ -364,3 +403,4 @@ No code release required. Scheduled after v2.8.188 lands.
 | 2026-10-12 | Revised to full Contributing Guide compliance: project-name-first H1, emoji headers only, language-tagged code blocks, corrected `dev → main → tag` release flow, CHANGELOG exit criteria, label rules, collapsible dependency graph. |
 | 2026-10-13 | Added Issue #115 (One-click icon fails on X/Twitter due to CSS `background-image` rendering) to v2.8.190 as PR J. Discovered during QA of PR #110, Social site category. |
 | 2026-10-14 | Added Issue #116 (Reddit Web-linked Gallery accepts default avatars as candidates and opens user profile pages) to v2.8.189 PR C. Discovered during QA of PR #110, Social site category. Branch renamed `fix/112-114-web-linked-hardening` → `fix/112-116-web-linked-hardening`. |
+| 2026-10-14 | Added Issue #117 (Chore: extract Bulk Image Download logic from `background.js` into dedicated `bulk.js` module) to v2.8.190 as PR K. Architectural alignment with the project's Single Responsibility principle — Bulk is currently the only core feature without a dedicated module file. |
