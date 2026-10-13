@@ -1,11 +1,11 @@
 # 🏔️ Mass Image Downloader – Release Roadmap
 
-**Project:** Mass Image Downloader (Chrome MV3, open source, MPL 2.0)
-**Repository:** github.com/del-Pacifico/Mass-Image-Downloader
-**Maintainer:** Sergio Palma Hidalgo ([@sergiopalmah](https://github.com/sergiopalmah))
-**Contributors:** [@agentsmid](https://github.com/agentsmid)
-**Status:** Proposed — pending maintainer approval
-**Standards:** This document follows the [Contributing Guide](CONTRIBUTING.md), including the Documentation Standards, Markdown Format, Development Flow, and Labeling Rules sections.
+**Project:** Mass Image Downloader (Chrome MV3, open source, MPL 2.0)</br>
+**Repository:** github.com/del-Pacifico/Mass-Image-Downloader</br>
+**Maintainer:** Sergio Palma Hidalgo ([@sergiopalmah](https://github.com/sergiopalmah))</br>
+**Contributors:** Mr. [@agentsmid](https://github.com/agentsmid)</br>
+**Status:** Proposed — pending maintainer approval</br>
+**Standards:** This document follows the [Contributing Guide](CONTRIBUTING.md), including the Documentation Standards, Markdown Format, Development Flow, and Labeling Rules sections.</br>
 **Last updated:** 2026-10-12
 
 ---
@@ -48,7 +48,7 @@ npm test
 | **v2.8.187** | PR #110 (existing) | Pending release batch | #73, #74, #77, #78 |
 | **v2.8.188** | PR A, PR B | Config & settings hotfixes | #99, #100, #101 |
 | **v2.8.189** | PR C, PR D, PR E, PR F | Web-linked Gallery epic | #102–#109, #112–#114, discussions #76, #83, #90 |
-| **v2.8.190** | PR G, PR H, PR I | Inspector targeting, UX features, tooling | #30–#32, #37, #91, #94, #96, #111, discussion #92 |
+| **v2.8.190** | PR G, PR H, PR I, PR J | Inspector targeting, UX features, tooling | #30–#32, #37, #91, #94, #96, #111, #115, discussion #92 |
 
 Housekeeping (label pass, stale discussion closures, announcements) is scheduled in
 [Section 7](#🏷️-7-meta--housekeeping) and does not require a code release.
@@ -68,6 +68,7 @@ graph TD
     PRC --> PRG["PR G - #96 #91<br/>inspector targeting"]
     PRF --> PRH["PR H - discussion #92<br/>cancel hotkey"]
     PRG --> PRI["PR I - #94 #111 #30-32 #37<br/>UX features + tooling"]
+    PRG --> PRJ["PR J - #115<br/>background-image detection"]
 ```
 
 </details>
@@ -299,6 +300,20 @@ Four small items, one release:
   consolidate the three duplicate entry-point discussions (#36, #70, #81) into #36
   before coding; #37 carries `needs: design`.
 
+### PR J — `fix/115-background-image-detection`
+
+**Closes:** [#115](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/115)
+
+**Why:** X (Twitter) renders tweet images using CSS `background-image` on `<div>` elements instead of standard `<img>` tags. The current `injectSaveIcon.js` candidate detection loop only searches for `<img>`, `<picture>`, and `<source>` DOM elements. As a result, the One-click icon fails to inject on tweet pages opened by Web-linked Galleries, showing the error toast "MID: No valid images found on this page."
+
+**Scope:** Expand the candidate detection loop in `injectSaveIcon.js` to parse `element.style.backgroundImage` and `getComputedStyle(element).backgroundImage` for elements with `background-image` CSS. Extract URLs via regex, validate against allowed formats and minimum dimensions, and admit them as valid candidates.
+
+**Why not in PR G:** PR G addresses targeting/visibility defects (#96 occlusion, #91 carousel active-slide). Issue #115 is a candidate *detection* defect — the icon never finds a candidate to target. Different defect class, per the one-confirmed-defect-class-per-PR rule.
+
+**Performance consideration:** Parsing computed styles on all DOM nodes is expensive. The scan should be restricted to large visible nodes or specific structural wrappers to maintain the Minimal Technical Footprint.
+
+**QA:** X (Twitter) tweet pages opened via Web-linked Galleries on Brave + Edge + Opera One. Confirm icon appears, downloads correct image, and no regression on standard `<img>` pages.
+
 ### Exit criteria for v2.8.190
 
 - PR G–I merged into `dev`, promoted `dev → main`, tagged `v2.8.190`.
@@ -349,3 +364,4 @@ No code release required. Scheduled after v2.8.188 lands.
 |---|---|
 | 2026-10-12 | Initial proposal: release trains v2.8.187–v2.8.190 derived from the 26 open issues and 17 open discussions audit. |
 | 2026-10-12 | Revised to full Contributing Guide compliance: project-name-first H1, emoji headers only, language-tagged code blocks, corrected `dev → main → tag` release flow, CHANGELOG exit criteria, label rules, collapsible dependency graph. |
+| 2026-10-13 | Added Issue #115 (One-click icon fails on X/Twitter due to CSS `background-image` rendering) to v2.8.190 as PR J. Discovered during QA of PR #110, Social site category. |
