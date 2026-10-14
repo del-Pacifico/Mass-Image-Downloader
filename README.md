@@ -12,7 +12,7 @@
 ![GitHub community standards](https://img.shields.io/badge/community%20standards-100%25-brightgreen?style=flat-square&logo=github)
 
 <p align="center">
-  <img src="assets/Mass-Image-Downloader-preview08.png" alt="Mass Image Downloader preview" width="900">
+  <img src="assets/Mass-Image-Downloader-preview10.webp" alt="Mass Image Downloader preview" width="900">
 </p>
 
 **Mass Image Downloader** is a Chromium Manifest V3 extension for collecting and downloading images at scale from open tabs, single pages, and multi-page galleries while keeping results filtered, named, and reproducible.
