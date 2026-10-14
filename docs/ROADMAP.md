@@ -467,6 +467,7 @@ No code release required. Scheduled after v2.8.188 lands.
    superseded by each new release).
 4. **Cold backlog review:** #38 (i18n) and #75 (Ethical Hacking Framework) — keep as
    backlog or close if no traction within one to two release cycles.
+5. **Service worker triage:** [#119](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/119) — intermittent `Unchecked runtime.lastError: Download must be in progress` warning in the service worker console. No confirmed reproduction flow; no functional impact. If a reliable reproduction sequence is identified, promote to `type: bug` with `priority: normal` and assign to the next appropriate bugfix PR (likely PR H in v2.8.190, which already touches the service worker lifecycle).
 
 ---
 
@@ -495,4 +496,5 @@ No code release required. Scheduled after v2.8.188 lands.
 | 2026-10-13 | Added Issue #115 (One-click icon fails on X/Twitter due to CSS `background-image` rendering) to v2.8.190 as PR K. Discovered during QA of PR #110, Social site category. |
 | 2026-10-14 | Added Issue #116 (Reddit Web-linked Gallery accepts default avatars as candidates and opens user profile pages) to v2.8.189 PR D. Discovered during QA of PR #110, Social site category. Branch renamed `fix/112-114-web-linked-hardening` → `fix/112-116-web-linked-hardening`. |
 | 2026-10-14 | Added Issue #117 (Chore: extract Bulk Image Download logic from `background.js` into dedicated `bulk.js` module) to v2.8.190 as PR L. Architectural alignment with the project's Single Responsibility principle — Bulk is currently the only core feature without a dedicated module file. |
+| 2026-10-14 | Added Issue #118 (`[Bug] Bulk Image Download rejects Reddit wrapped media URLs despite allowWrappedImageUrls being enabled`) to v2.8.188 as PR C. Regression of CHANGELOG v2.8.185 promise that Bulk normalizes wrapped URLs. Root cause confirmed: `isDirectImageUrl()` does not implement unwrapping logic. |
 | 2026-10-14 | Added Issue #118 (`[Bug] Bulk Image Download rejects Reddit wrapped media URLs despite allowWrappedImageUrls being enabled`) to v2.8.188 as PR C. Regression of CHANGELOG v2.8.185 promise that Bulk normalizes wrapped URLs. Root cause confirmed: `isDirectImageUrl()` does not implement unwrapping logic. |
