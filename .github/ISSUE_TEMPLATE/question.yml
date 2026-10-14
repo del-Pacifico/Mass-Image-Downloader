@@ -1,0 +1,150 @@
+name: 🏔️ Mass Image Downloader – Question
+description: Ask a question about usage, configuration, expected behavior, or the contribution workflow. Not for bugs or feature requests.
+title: "[Question] "
+labels:
+  - "type: question"
+  - "needs: triage"
+  - "priority: normal"
+  - "status: backlog"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        💬 Question
+        Use this template when:
+        - You have a **question** about usage, configuration, expected behavior, or the contribution workflow.
+        - You are unsure whether an observed behavior is a bug, an edge case, or expected behavior.
+        - You need guidance before opening a Bug Report, Edge Case, or Feature Request.
+
+        ❌ Do NOT use this for:
+        - Reproducible defects → use **Bug Report**
+        - Narrow, layout- or site-specific quirks → use **Edge Case Report**
+        - New capabilities or improvements → use **Feature Request**
+        - Critical production issues → use **Hotfix**
+
+        Tips:
+        - Keep one question per issue.
+        - Describe the exact scenario (page, steps, settings) so the answer can be concrete.
+        - Include logs filtered by: `[Mass image downloader]` when relevant.
+
+  - type: dropdown
+    id: feature
+    attributes:
+      label: Related Feature / Module
+      description: Select the area your question is about.
+      options:
+        - Image Inspector Mode
+        - Bulk Image Download
+        - Gallery Finder
+        - Extract Gallery Images
+        - Extract images from web-linked galleries
+        - Popup UI
+        - Options / Settings UI
+        - Background / Service Worker
+        - Storage / Settings Persistence
+        - Contribution workflow
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: summary
+    attributes:
+      label: Short Summary
+      description: >
+        One concise sentence with your question.
+        Example: "How does the minimum image size filter interact with srcset thumbnails?"
+      placeholder: "State your question in one sentence."
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: >
+        Describe the question in detail. Include what you expected, what you
+        observed, and what you already checked (docs, Options, Settings Peek).
+      placeholder: |
+        - What are you trying to achieve?
+        - What did you observe?
+        - What did you already check (docs, Options, Settings Peek)?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context / Scenario (recommended)
+      description: >
+        Describe the page, steps, and settings involved so the answer can be concrete.
+      placeholder: |
+        - Page URL or URL pattern:
+        - Steps you followed:
+        - Relevant settings (min width/height, formats, naming, concurrency):
+    validations:
+      required: false
+
+  - type: textarea
+    id: settings_snapshot
+    attributes:
+      label: Settings Snapshot (recommended)
+      description: >
+        Paste the output of "View settings (Peek)" if the question is about behavior.
+        You can find it under 📋 Open Settings JSON at the bottom of Settings Peek.
+      placeholder: |
+        Option A: Paste "Peek" output here.
+        Option B: List key settings:
+        - Min width / min height:
+        - Allowed formats:
+        - Naming mode / prefix / suffix:
+        - Concurrency / batch size:
+    validations:
+      required: false
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser (if the question is about behavior)
+      options:
+        - Edge
+        - Chrome
+        - Brave
+        - Other Chromium-based
+        - Not browser-specific
+    validations:
+      required: true
+
+  - type: input
+    id: extension
+    attributes:
+      label: Extension Version (if applicable)
+      placeholder: "e.g. 2.8.186"
+    validations:
+      required: false
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs / Evidence (optional)
+      description: >
+        Paste relevant logs filtered by `[Mass image downloader]`, or screenshots
+        that help illustrate the question.
+      placeholder: |
+        [Mass image downloader]: ...
+        [Mass image downloader]: ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: technical_notes
+    attributes:
+      label: Additional Context (optional)
+      description: >
+        Anything else that helps answer the question (MV3 lifecycle notes,
+        browser shortcut configuration, environment constraints, etc.).
+      placeholder: |
+        - Browser shortcut configuration (if relevant):
+        - Environment notes (OS, profile, other extensions):
+    validations:
+      required: false
