@@ -25,6 +25,7 @@ For **planned** releases and release-train sequencing, see [`docs/ROADMAP.md`](d
 
 ### Documentation
 
+- Replaced the repository preview image with an optimized WebP asset (`assets/Mass-Image-Downloader-preview10.webp`), replacing `assets/Mass-Image-Downloader-preview08.png`. Updated the root `README.md` reference accordingly. Reduces the preview payload while preserving the rendered width and visual composition.
 - Updated `docs/ROADMAP.md`: scheduled Issue #117 (`[Chore] Extract Bulk Image Download logic from background.js into dedicated bulk.js module`) as PR K in release v2.8.190 (Inspector targeting, UX features, tooling). Architectural refactor to align Bulk Image Download with the project's Single Responsibility principle — currently the only core feature without a dedicated module file.
 - Updated `docs/ROADMAP.md`: scheduled Issue #116 (`[Bug] Web-linked Gallery accepts Reddit default avatars as candidates and opens user profile pages instead of gallery images`) as part of PR C in release v2.8.189 (Web-linked Gallery hardening epic). PR C branch renamed `fix/112-114-web-linked-hardening` → `fix/112-116-web-linked-hardening` to reflect the expanded scope. Discovered during QA of PR #110, Social site category (Reddit).
 - Added `Release Roadmap` entry to root `README.md` Documentation section, describing the planned-releases document alongside the existing manual references.
