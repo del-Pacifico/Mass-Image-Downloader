@@ -6,7 +6,7 @@
 **Contributors:** Mr. [@agentsmid](https://github.com/agentsmid)</br>
 **Status:** Proposed — pending maintainer approval</br>
 **Standards:** This document follows the [Contributing Guide](CONTRIBUTING.md), including the Documentation Standards, Markdown Format, Development Flow, and Labeling Rules sections.</br>
-**Last updated:** 2026-10-12
+**Last updated:** 2026-10-14
 
 ---
 
@@ -46,9 +46,9 @@ npm test
 | Release | PR(s) | Theme | Closes |
 |---|---|---|---|
 | **v2.8.187** | PR #110 (existing) | Pending release batch | #73, #74, #77, #78 |
-| **v2.8.188** | PR A, PR B | Config & settings hotfixes | #99, #100, #101 |
-| **v2.8.189** | PR C, PR D, PR E, PR F | Web-linked Gallery epic | #102–#109, #112–#114, #116, discussions #76, #83, #90 |
-| **v2.8.190** | PR G, PR H, PR I, PR J, PR K | Inspector targeting, UX features, tooling | #30–#32, #37, #91, #94, #96, #111, #115, #117, discussion #92 |
+| **v2.8.188** | PR A, PR B, PR C | Config & settings hotfixes | #99, #100, #101, #118 |
+| **v2.8.189** | PR D, PR E, PR F, PR G | Web-linked Gallery epic | #102–#109, #112–#114, #116, discussions #76, #83, #90 |
+| **v2.8.190** | PR H, PR I, PR J, PR K, PR L | Inspector targeting, UX features, tooling | #30–#32, #37, #91, #94, #96, #111, #115, #117, discussion #92 |
 
 Housekeeping (label pass, stale discussion closures, announcements) is scheduled in
 [Section 7](#🏷️-7-meta--housekeeping) and does not require a code release.
@@ -59,17 +59,18 @@ Housekeeping (label pass, stale discussion closures, announcements) is scheduled
 ```mermaid
 graph TD
     PR110["PR #110 - v2.8.187<br/>closes #73 #74 #77 #78"] --> PRA["PR A - #101<br/>min/max range validation"]
-    PR110 --> PRB["PR B - #99 #100<br/>settings sync defects"]]
-    PRC["PR C - #112-114, #116<br/>web-linked hardening"]
+    PR110 --> PRB["PR B - #99 #100<br/>settings sync defects"]
+    PRA --> PRC["PR C - #118<br/>bulk wrapped URL validation"]
     PRB --> PRC
-    PRC --> PRD["PR D - #102-109<br/>utils.js cleanup"]
-    PRD --> PRE["PR E - discussion #76<br/>linear grouping O(n)"]
-    PRE --> PRF["PR F - discussion #83<br/>hybrid mode"]
-    PRC --> PRG["PR G - #96 #91<br/>inspector targeting"]
-    PRF --> PRH["PR H - discussion #92<br/>cancel hotkey"]
-    PRG --> PRI["PR I - #94 #111 #30-32 #37<br/>UX features + tooling"]
-    PRG --> PRJ["PR J - #115<br/>background-image detection"]
-    PRI --> PRK["PR K - #117<br/>bulk.js module extraction"]
+    PRC --> PRD["PR D - #112-114, #116<br/>web-linked hardening"]
+    PRD --> PRE["PR E - #102-109<br/>utils.js cleanup"]
+    PRE --> PRF["PR F - discussion #76<br/>linear grouping O(n)"]
+    PRF --> PRG["PR G - discussion #83<br/>hybrid mode"]
+    PRD --> PRH["PR H - #96 #91<br/>inspector targeting"]
+    PRG --> PRI["PR I - discussion #92<br/>cancel hotkey"]
+    PRH --> PRJ["PR J - #94 #111 #30-32 #37<br/>UX features + tooling"]
+    PRH --> PRK["PR K - #115<br/>background-image detection"]
+    PRJ --> PRL["PR L - #117<br/>bulk.js module extraction"]
 ```
 
 </details>
@@ -110,9 +111,8 @@ since September; the branch is stable, and merging unblocks:
 
 ## 🚑 4. v2.8.188 — Config & settings hotfixes
 
-Two small PRs, same subsystem (`configCache` / `options`). Shipped together as one
-hotfix release because both defect classes are *"the user changes a setting and the
-runtime does not reflect it."*
+Three PRs addressing configuration and validation defects. Shipped together as one
+hotfix release because all affect how user settings are validated and applied at runtime.
 
 ### PR A — `fix/101-minmax-range-validation`
 
@@ -150,12 +150,68 @@ Web-Linked, Inspector). The correct pattern already exists in `imageInspector.js
 **QA:** change formats and download limit in Options; confirm immediate effect in a
 live extraction without reload; confirm presets actually parallelize.
 
+### PR C — `fix/118-bulk-wrapped-url-validation`
+
+**Closes:** [#118](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/118)
+
+**Why:** Bulk Image Download rejects all tabs with Reddit wrapped-media URLs
+(`reddit.com/media?url=<encoded_image_url>`) even when `allowWrappedImageUrls` is
+enabled. The validation function `isDirectImageUrl()` in `utils.js` does not implement
+URL unwrapping logic, despite CHANGELOG v2.8.185 explicitly promising that "Bulk Image
+Download, One-click Download Icon, and manual download now normalize supported image
+URLs consistently, including wrapped variants." This is a regression of a promised
+behavior that blocks core functionality (0 downloads from valid tabs).
+
+**Root cause confirmed via code inspection:**
+
+1. `handleBulkDownload()` in `background.js` calls `isDirectImageUrl(urlForValidation)`
+   where `urlForValidation` is the raw `tab.url` (the wrapped URL).
+2. `isDirectImageUrl()` in `utils.js` only checks if the URL pathname or query string
+   contains a valid image extension. It does NOT detect wrapped-URL patterns, extract
+   the inner URL, or consult `configCache.allowWrappedImageUrls`.
+3. For wrapped URLs like `reddit.com/media?url=https%3A%2F%2Fi.redd.it%2F[image_id].jpg`,
+   the pathname is `/media` (no extension) and `lastSegment` is `media` (not `.jpg`),
+   so validation fails.
+4. The option `allowWrappedImageUrls` exists in `configCache` and is correctly read
+   from storage, but `isDirectImageUrl()` never queries it.
+
+**Scope:**
+
+1. Modify `isDirectImageUrl()` in `utils.js` to:
+   - Check if `configCache.allowWrappedImageUrls` is true.
+   - If true, detect wrapped-URL patterns (query parameter `url=` containing a valid
+     image URL).
+   - Extract the inner URL and validate it instead of the outer URL.
+2. Alternative approach: add a wrapper function `unwrapImageUrl()` that detects and
+   extracts wrapped URLs, then modify `handleBulkDownload()` to call it before
+   `isDirectImageUrl()`.
+3. All fixes should follow the Global Scope Fixes (80/20 Rule) — a generic unwrapping
+   helper that works for any `?url=<image>` pattern, not Reddit-specific logic.
+
+**Exit criteria:**
+
+- Bulk Image Download on Reddit wrapped-media tabs (with `allowWrappedImageUrls`
+  enabled) successfully downloads images.
+- `npm run check` and `npm test` pass.
+- Manual QA on Brave + Edge + Opera One: Bulk hotkey (`Alt+Shift+D`) accepts wrapped
+  URLs when the option is enabled, rejects them when disabled.
+- No regression on direct image URLs, parameterized CDN URLs, or other extended URL
+  patterns.
+
+**Why here (v2.8.188):** This is a high-priority regression of a promised behavior
+(CHANGELOG v2.8.185) that blocks core functionality. It belongs with the other
+hotfixes in v2.8.188 rather than waiting for v2.8.189 or later.
+
+**Risk assessment:** Medium. The fix touches URL validation logic that is shared
+across multiple flows. Mitigated by comprehensive testing of all extended URL patterns
+and the existing `npm test` suite.
+
 ### Exit criteria for v2.8.188
 
-- PR A and PR B merged into `dev` through the standard review flow, then promoted
-  `dev → main` and tagged `v2.8.188` per the release flow.
-- `CHANGELOG.md` updated for both user-visible fixes (per the Bugfix Scope Discipline
-  requirement).
+- PR A, PR B, and PR C merged into `dev` through the standard review flow, then
+  promoted `dev → main` and tagged `v2.8.188` per the release flow.
+- `CHANGELOG.md` updated for all three user-visible fixes (per the Bugfix Scope
+  Discipline requirement).
 - Release announcement published (replaces/updates the stale v2.8.186 announcement,
   discussion #80).
 
@@ -167,9 +223,14 @@ The largest gravity well in the backlog: five issues and three discussions all t
 `extractWebLinkedGallery.js` / gallery grouping. Sequenced so each PR leaves the code
 cleaner for the next: **behavior hardening → rename → algorithm → feature**.
 
-### PR C — `fix/112-116-web-linked-hardening`
+### PR D — `fix/112-116-web-linked-hardening`
 
-**Closes:** [#112](...), [#113](...), [#114](...), [#116](...), [discussion #90](...)
+**Closes:** [#112](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/112),
+[#113](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/113),
+[#114](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/114),
+[#116](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/116),
+[discussion #90](https://github.com/del-Pacifico/Mass-Image-Downloader/discussions/90)
+(recorded decision)
 
 **Why third:** the most severe remaining functional defects, all detected in the QA
 of PR #110, all in the same flow:
@@ -183,7 +244,12 @@ of PR #110, all in the same flow:
   unhandled grouper edge with mixed candidates.
 - **#112 (Shutterstock):** 15 `/search/...` URLs group at 81.7% similarity and open
   15 irrelevant tabs.
-- **#116 (Reddit):** candidate detection accepts default avatars (`redditstatic.com/avatars/defaults/v2/avatar_default_*.png`) as valid `<a><img>` candidates; the 45% fallback grouping then clusters the `/user/` profile URLs into a dominant group of 8, opening user profile pages instead of gallery images. Same treatment as #112–#114: path-type classification, defensive terminal toast, and URL-pattern filtering for avatar/icon CDN paths.
+- **#116 (Reddit):** candidate detection accepts default avatars
+  (`redditstatic.com/avatars/defaults/v2/avatar_default_*.png`) as valid `<a><img>`
+  candidates; the 45% fallback grouping then clusters the `/user/` profile URLs into
+  a dominant group of 8, opening user profile pages instead of gallery images. Same
+  treatment as #112–#114: path-type classification, defensive terminal toast, and
+  URL-pattern filtering for avatar/icon CDN paths.
 
 All four demand the same treatment (already sketched in the issues and in discussion
 #90):
@@ -198,13 +264,13 @@ options (candidate preview, DOM proximity, site hints) are recorded in the PR bo
 
 **Why not rename first (#102):** this PR touches candidate admission and terminal
 states, not the internals of `calculatePathSimilarity`. Renaming after behavior is
-stabilized (PR D) keeps the refactor blame clean.
+stabilized (PR E) keeps the refactor blame clean.
 
-**QA:** Pexels/Unsplash/Shutterstock gallery, search, and category pages on all four
-QA-baseline browsers; confirm correct grouping, correct tab set, and terminal toasts
-on failure.
+**QA:** Pexels/Unsplash/Shutterstock/Reddit gallery, search, and category pages on
+all four QA-baseline browsers; confirm correct grouping, correct tab set, and terminal
+toasts on failure.
 
-### PR D — `chore/102-109-utils-cleanup`
+### PR E — `chore/102-109-utils-cleanup`
 
 **Closes:** [#102](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/102)–[#109](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/109)
 
@@ -212,7 +278,7 @@ Single cleanup PR for all low-priority `utils.js` debt, formally deferred by PR 
 to "a future PR" and already suggested for grouping by the issues themselves:
 
 - **#102** — rename the two divergent `calculatePathSimilarity` implementations
-  (Option A: minimal disambiguation). **Prerequisite for PR E.**
+  (Option A: minimal disambiguation). **Prerequisite for PR F.**
 - **#103** — remove unnecessary `async` from pure predicates.
 - **#104** — initialize `downloadFolder` / `customFolderPath` in the configCache literal.
 - **#105** — sanitize illegal filesystem characters in `buildDownloadPath` (latent bug).
@@ -221,9 +287,9 @@ to "a future PR" and already suggested for grouping by the issues themselves:
 - **#109** — unify `sanitizeFilenameComponent` export style.
 
 **Why fourth:** debt concentrated in one file, near-zero risk, fully covered by
-`npm test`; unblocks PR E with a clean base.
+`npm test`; unblocks PR F with a clean base.
 
-### PR E — `perf/76-linear-grouping`
+### PR F — `perf/76-linear-grouping`
 
 **Implements:** [discussion #76](https://github.com/del-Pacifico/Mass-Image-Downloader/discussions/76)
 **Labels:** `type: performance` + `scope: galleries` + `priority: medium` (per Labeling Rules)
@@ -234,20 +300,20 @@ a 1,500-image gallery. The discussion ships a validated design: configurable
 informative toast. Requires #102 (rename) done first to keep the algorithm change
 blame clean.
 
-### PR F — `feat/83-hybrid-mode`
+### PR G — `feat/83-hybrid-mode`
 
 **Implements:** [discussion #83](https://github.com/del-Pacifico/Mass-Image-Downloader/discussions/83)
 
 Opt-in hybrid mode that detects image-wrapper pages (ImageTwist, imgbox-class hosts)
 and injects the correct One-click icon. The design is consensus-ready (detection
 counters + three injection priorities) and was blocked on #74 — unblocked by v2.8.187.
-Ships last in the epic because it touches the same two files hardened in PR C and
-renamed in PR D.
+Ships last in the epic because it touches the same two files hardened in PR D and
+renamed in PR E.
 
 ### Exit criteria for v2.8.189
 
-- PR C–F merged into `dev`, promoted `dev → main`, tagged `v2.8.189`.
-- `CHANGELOG.md` updated for the user-visible fixes (#112–#114) and new features.
+- PR D–G merged into `dev`, promoted `dev → main`, tagged `v2.8.189`.
+- `CHANGELOG.md` updated for the user-visible fixes (#112–#114, #116) and new features.
 - Discussion #90 closed with the architectural decision recorded.
 - Epic summary posted to the discussion #83 and #76 comment threads.
 
@@ -255,7 +321,7 @@ renamed in PR D.
 
 ## 🔍 6. v2.8.190 — Inspector targeting, UX features, tooling
 
-### PR G — `fix/96-91-inspector-targeting`
+### PR H — `fix/96-91-inspector-targeting`
 
 **Closes:** [#96](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/96),
 [#91](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/91)
@@ -267,25 +333,25 @@ mounts overlays over thumbnails occluded by a site lightbox (ArtStation). Regres
 always jump the queue. The proposed fix (occlusion check via `elementFromPoint`) is
 small and scoped. #91 shares the targeting phase: the One-click scoring must verify
 visibility (`getBoundingClientRect`, carousel active-slide class) before anchoring.
-Same file family (`injectSaveIcon.js`), same fix family — different flow from PR C.
+Same file family (`injectSaveIcon.js`), same fix family — different flow from PR D.
 
 #95 (lazy-loaded + CDN-parameterized thumbnails) and #97 (Behance) receive only
 documented triage (hypotheses H1–H4 for #97) in this PR, respecting one-confirmed-
 defect-per-PR discipline.
 
-### PR H — `feat/92-cancel-hotkey`
+### PR I — `feat/92-cancel-hotkey`
 
 **Implements:** [discussion #92](https://github.com/del-Pacifico/Mass-Image-Downloader/discussions/92)
 
 Mature feature proposal: `Shift+Alt+C` cancels in-progress flows. The hard analysis
 is already done (MV3's 4-command limit forces a page-side `keydown` handler; message
 contract and the 8-file documentation matrix are specified). Ships here — not earlier —
-because the `activeFlow` flag lands best on the orchestration cleaned up by PR C–F,
+because the `activeFlow` flag lands best on the orchestration cleaned up by PR D–G,
 and it is the cross-cutting mitigation for flows that open dozens of tabs
 (discussions #90, #91). Hotkey documentation updates land in `docs/hotkeys/hotkeys.md`,
 per the project's documentation rules.
 
-### PR I — `feat/94-toast-position`, `chore/111-conflict-markers`, `fix/30-32-overlay-geometry`, `feat/37-context-menu`
+### PR J — `feat/94-toast-position`, `chore/111-conflict-markers`, `fix/30-32-overlay-geometry`, `feat/37-context-menu`
 
 Four small items, one release:
 
@@ -299,61 +365,86 @@ Four small items, one release:
   consolidate the three duplicate entry-point discussions (#36, #70, #81) into #36
   before coding; #37 carries `needs: design`.
 
-### PR J — `fix/115-background-image-detection`
+### PR K — `fix/115-background-image-detection`
 
 **Closes:** [#115](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/115)
 
-**Why:** X (Twitter) renders tweet images using CSS `background-image` on `<div>` elements instead of standard `<img>` tags. The current `injectSaveIcon.js` candidate detection loop only searches for `<img>`, `<picture>`, and `<source>` DOM elements. As a result, the One-click icon fails to inject on tweet pages opened by Web-linked Galleries, showing the error toast "MID: No valid images found on this page."
+**Why:** X (Twitter) renders tweet images using CSS `background-image` on `<div>`
+elements instead of standard `<img>` tags. The current `injectSaveIcon.js` candidate
+detection loop only searches for `<img>`, `<picture>`, and `<source>` DOM elements.
+As a result, the One-click icon fails to inject on tweet pages opened by Web-linked
+Galleries, showing the error toast "MID: No valid images found on this page."
 
-**Scope:** Expand the candidate detection loop in `injectSaveIcon.js` to parse `element.style.backgroundImage` and `getComputedStyle(element).backgroundImage` for elements with `background-image` CSS. Extract URLs via regex, validate against allowed formats and minimum dimensions, and admit them as valid candidates.
+**Scope:** Expand the candidate detection loop in `injectSaveIcon.js` to parse
+`element.style.backgroundImage` and `getComputedStyle(element).backgroundImage` for
+elements with `background-image` CSS. Extract URLs via regex, validate against allowed
+formats and minimum dimensions, and admit them as valid candidates.
 
-**Why not in PR G:** PR G addresses targeting/visibility defects (#96 occlusion, #91 carousel active-slide). Issue #115 is a candidate *detection* defect — the icon never finds a candidate to target. Different defect class, per the one-confirmed-defect-class-per-PR rule.
+**Why not in PR H:** PR H addresses targeting/visibility defects (#96 occlusion, #91
+carousel active-slide). Issue #115 is a candidate *detection* defect — the icon never
+finds a candidate to target. Different defect class, per the one-confirmed-defect-class-per-PR
+rule.
 
-**Performance consideration:** Parsing computed styles on all DOM nodes is expensive. The scan should be restricted to large visible nodes or specific structural wrappers to maintain the Minimal Technical Footprint.
+**Performance consideration:** Parsing computed styles on all DOM nodes is expensive.
+The scan should be restricted to large visible nodes or specific structural wrappers
+to maintain the Minimal Technical Footprint.
 
-**QA:** X (Twitter) tweet pages opened via Web-linked Galleries on Brave + Edge + Opera One. Confirm icon appears, downloads correct image, and no regression on standard `<img>` pages.
+**QA:** X (Twitter) tweet pages opened via Web-linked Galleries on Brave + Edge +
+Opera One. Confirm icon appears, downloads correct image, and no regression on
+standard `<img>` pages.
 
-### PR K — `chore/bulk-module-extraction`
+### PR L — `chore/bulk-module-extraction`
 
 **Closes:** [#117](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/117)
 
-**Why:** The Bulk Image Download flow is the only core feature implemented inline within `background.js` (via `handleBulkDownloadHotkey()` and `handleBulkDownload()`), while every other feature has its own dedicated module file (`injectSaveIcon.js`, `imageInspector.js`, `extractWebLinkedGallery.js`, `extractGallery.js`, `settingsPeek.js`, `clipboardHotkeys.js`). This refactor extracts the Bulk logic into a new `scripts/bulk.js` module to align the project with its own Single Responsibility architecture.
+**Why:** The Bulk Image Download flow is the only core feature implemented inline
+within `background.js` (via `handleBulkDownloadHotkey()` and `handleBulkDownload()`),
+while every other feature has its own dedicated module file (`injectSaveIcon.js`,
+`imageInspector.js`, `extractWebLinkedGallery.js`, `extractGallery.js`, `settingsPeek.js`,
+`clipboardHotkeys.js`). This refactor extracts the Bulk logic into a new `scripts/bulk.js`
+module to align the project with its own Single Responsibility architecture.
 
 **Scope:**
 
 1. Create `scripts/bulk.js` containing:
-2. 
    - `handleBulkDownloadHotkey()`
    - `handleBulkDownload()` and its tab iteration/filtering logic
    - Per-tab URL validation and candidate acceptance helpers
    - Batch orchestration helpers (`ensureDownloadStateFresh`, batch loop control)
    - Bulk-specific logs and user feedback toasts
-3. Update `manifest.json` service worker imports to include `bulk.js`.
-4. Update `background.js` to:
+2. Update `manifest.json` service worker imports to include `bulk.js`.
+3. Update `background.js` to:
    - Remove the inlined Bulk logic.
    - Delegate the `hotkey-bulk-download` command to an imported `bulk.js` handler.
-5. Update `README.md` "Key files and responsibilities" table to add an entry for `bulk.js`.
+4. Update `README.md` "Key files and responsibilities" table to add an entry for `bulk.js`.
 
 **Exit criteria:**
 
 - `grep -i "bulk" scripts/background.js` returns only the command-dispatch line.
 - `scripts/bulk.js` exists and owns all Bulk logic.
 - `npm run check` and `npm test` pass.
-- Manual QA on Brave + Edge + Opera One: Bulk hotkey (`Alt+Shift+D`) behaves identically to pre-refactor on direct image tabs, wrapped-URL tabs, mixed tabs, and resume-from-last-batch flow.
+- Manual QA on Brave + Edge + Opera One: Bulk hotkey (`Alt+Shift+D`) behaves identically
+  to pre-refactor on direct image tabs, wrapped-URL tabs, mixed tabs, and
+  resume-from-last-batch flow.
 
-**Why here (v2.8.190):** Thematically aligned with PR I (tooling) and PR G (inspector targeting). Near-zero behavioral risk — pure code movement. Does not block any of the bug-fix PRs (G, J) that precede it.
+**Why here (v2.8.190):** Thematically aligned with PR J (tooling) and PR H (inspector
+targeting). Near-zero behavioral risk — pure code movement. Does not block any of the
+bug-fix PRs (H, K) that precede it.
 
 **Out of scope:**
 
-- Behavioral changes to Bulk (URL validation, unwrapping, format checks). Those belong in separate bug-fix PRs.
+- Behavioral changes to Bulk (URL validation, unwrapping, format checks). Those belong
+  in separate bug-fix PRs.
 - Changes to other modules.
-- API surface changes to the Bulk user flow (hotkey, toasts, badge behavior must remain identical).
+- API surface changes to the Bulk user flow (hotkey, toasts, badge behavior must remain
+  identical).
 
-**Risk assessment:** Low. Code-movement refactor with no behavioral changes. Main risk: missing a helper that Bulk depends on — mitigated by full Bulk QA matrix post-refactor.
+**Risk assessment:** Low. Code-movement refactor with no behavioral changes. Main risk:
+missing a helper that Bulk depends on — mitigated by full Bulk QA matrix post-refactor.
 
 ### Exit criteria for v2.8.190
 
-- PR G–I merged into `dev`, promoted `dev → main`, tagged `v2.8.190`.
+- PR H–L merged into `dev`, promoted `dev → main`, tagged `v2.8.190`.
 - `CHANGELOG.md` updated; `docs/hotkeys/hotkeys.md` updated for the cancel hotkey.
 - Discussion #92 closed as implemented.
 - Discussions #36/#70/#81 consolidated and closed.
@@ -401,6 +492,7 @@ No code release required. Scheduled after v2.8.188 lands.
 |---|---|
 | 2026-10-12 | Initial proposal: release trains v2.8.187–v2.8.190 derived from the 26 open issues and 17 open discussions audit. |
 | 2026-10-12 | Revised to full Contributing Guide compliance: project-name-first H1, emoji headers only, language-tagged code blocks, corrected `dev → main → tag` release flow, CHANGELOG exit criteria, label rules, collapsible dependency graph. |
-| 2026-10-13 | Added Issue #115 (One-click icon fails on X/Twitter due to CSS `background-image` rendering) to v2.8.190 as PR J. Discovered during QA of PR #110, Social site category. |
-| 2026-10-14 | Added Issue #116 (Reddit Web-linked Gallery accepts default avatars as candidates and opens user profile pages) to v2.8.189 PR C. Discovered during QA of PR #110, Social site category. Branch renamed `fix/112-114-web-linked-hardening` → `fix/112-116-web-linked-hardening`. |
-| 2026-10-14 | Added Issue #117 (Chore: extract Bulk Image Download logic from `background.js` into dedicated `bulk.js` module) to v2.8.190 as PR K. Architectural alignment with the project's Single Responsibility principle — Bulk is currently the only core feature without a dedicated module file. |
+| 2026-10-13 | Added Issue #115 (One-click icon fails on X/Twitter due to CSS `background-image` rendering) to v2.8.190 as PR K. Discovered during QA of PR #110, Social site category. |
+| 2026-10-14 | Added Issue #116 (Reddit Web-linked Gallery accepts default avatars as candidates and opens user profile pages) to v2.8.189 PR D. Discovered during QA of PR #110, Social site category. Branch renamed `fix/112-114-web-linked-hardening` → `fix/112-116-web-linked-hardening`. |
+| 2026-10-14 | Added Issue #117 (Chore: extract Bulk Image Download logic from `background.js` into dedicated `bulk.js` module) to v2.8.190 as PR L. Architectural alignment with the project's Single Responsibility principle — Bulk is currently the only core feature without a dedicated module file. |
+| 2026-10-14 | Added Issue #118 (`[Bug] Bulk Image Download rejects Reddit wrapped media URLs despite allowWrappedImageUrls being enabled`) to v2.8.188 as PR C. Regression of CHANGELOG v2.8.185 promise that Bulk normalizes wrapped URLs. Root cause confirmed: `isDirectImageUrl()` does not implement unwrapping logic. |
