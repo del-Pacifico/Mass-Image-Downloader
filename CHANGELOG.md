@@ -22,6 +22,12 @@ For **planned** releases and release-train sequencing, see [`docs/ROADMAP.md`](d
 
 - Question issue template – Added `.github/ISSUE_TEMPLATE/question.yml` (GitHub Issue Form) providing a structured `[Question]` channel for support requests and open questions, completing the issue template set (Bug, Hotfix, Investigation, Edge Case, Feature Request, Documentation, Question).
 - Project Philosophy – Added a dedicated `docs/philosophy.md` document and a corresponding section in the root `README.md` to articulate the core principles guiding the project: reliability, user control, performance, security, transparency, quality, and open collaboration.
+- Document `docs/quick-start.md`: Comprehensive step-by-step guide for non-technical users, covering installation, first download workflow, and common issues.
+
+- Updated `README.md`: Replaced technical preview image (`Mass-Image-Downloader-preview10.webp`) with user-friendly "The Friendly Hero" illustration (`MID-The-Friendly-Hero.webp`). Added prominent link to Quick Start Guide in the Quick Start section, and added plain-text reference in the Documentation section to drive traffic to the Hub.
+- Updated `docs/README.md`: Added Quick Start Guide entry to the Available Documents section (positioned before the User Manual) and updated the "Which Document Should I Read First?" routing guide to recommend the Quick Start for first-time users.
+- Updated `docs/project-overview-extended.md`: Added technical preview image (`Mass-Image-Downloader-preview10.webp`) to preserve the "Tech Sheet" visual reference for advanced users and researchers.
+- Updated GitHub Issue and Pull Request templates: Reclassified Google Chrome as "Unsupported / At your own risk" to align with the project's privacy-by-design philosophy, and expanded the "Related Feature / Module" dropdowns with a layered, emoji-prefixed architecture to include missing core modules.
 
 ### Documentation
 
