@@ -16,6 +16,10 @@
 
 ![Made with ❤️ by del-Pacifico](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F%20by%20del--Pacifico-orange?style=flat-square)
 
+<p align="center">
+  <img src="../assets/Mass-Image-Downloader-preview10.webp" alt="Mass Image Downloader technical overview" width="900">
+</p>
+
 ---
 
 ## 📚 Table of Contents
@@ -176,10 +180,14 @@ If you are looking for **step-by-step configuration**, **internal behavior expla
 
 From there, you can access:
 
-- **User Manual (Basic)** — feature overview and everyday usage
-- **Configuration Guides** — outcome-driven, step-by-step setups
-- **Technical User Manual** — execution flow, internals, and state handling
-- **Advanced Manual** — design rationale, trade-offs, and edge cases
+- `Quick Start Guide` - step-by-step guide for first-time, non-technical users.
+- `User Manual` - basic usage and workflows.
+- `Configuration Guides` - scenario-based setup.
+- `Technical Manual` - internal behavior and execution flow.
+- `Advanced Manual` - design rationale, trade-offs, and edge cases.
+- `Extended Project Overview` - the *previous long-form README* preserved as a reference, including Release Highlights.
+- `Hotkeys Policy` - official shortcut policy.
+- `Release Roadmap` - planned releases, release-train sequencing, and contribution alignment.
 
 > Each document is self-contained and avoids overlap, so you can go directly to what you need.
 
