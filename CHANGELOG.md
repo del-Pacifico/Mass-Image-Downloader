@@ -43,6 +43,11 @@ For **planned** releases and release-train sequencing, see [`docs/ROADMAP.md`](d
 - Renamed `docs/configuration-guides/configuration-guides.md` to `docs/configuration-guides/README.md`, normalized its TOC anchors to renderer-agnostic links, and updated the hub and documentation issue-template references to the new path.
 - Updated `CONTRIBUTING.md`: Added the 🎯 Minimal Technical Footprint (Zero Over-Engineering) and 🌍 Global Scope Fixes (80/20 Rule) sections to enforce performance-first, scoped, and maintainable solutions in future PRs.
 - Enhanced `CONTRIBUTING.md` with clear guidance on the `Discussion` → `Issue flow`, a dedicated `Edge Cases` section, stronger `Pull Request` requirements (must reference an Issue or Discussion), a `Pull Request Review Process` section, and `developer responsibilities` for AI‑assisted contributions. The `incremental commit discipline` and `local validation` reporting are now also clarified.
+- Added `docs/quick-start.md`: Comprehensive step-by-step guide for non-technical users, covering installation, first download workflow, and common issues. Linked from root `README.md` and Documentation Hub (`docs/README.md`) to improve discoverability for ordinary users.
+- Updated `README.md`: Replaced technical preview image (`Mass-Image-Downloader-preview10.webp`) with user-friendly "The Friendly Hero" illustration (`MID-The-Friendly-Hero.webp`) to better serve ordinary users. Added prominent link to Quick Start Guide in the Quick Start section.
+- Updated `docs/README.md`: Added Quick Start Guide entry to the Available Documents section, positioned before the User Manual as the recommended first read for new users.
+- Updated `docs/project-overview-extended.md`: Added technical preview image (`Mass-Image-Downloader-preview10.webp`) to preserve the "Tech Sheet" visual reference for advanced users and researchers.
+- Updated GitHub Issue and Pull Request templates: Reclassified Google Chrome as "Unsupported / At your own risk" to align with the project's privacy-by-design philosophy, and expanded the "Related Feature / Module" dropdowns to include missing core modules (One-click Download Icon, Settings Peek, Image Inspector Mode, Hotkeys, Toasts, etc.).
 
 ### QA
 
