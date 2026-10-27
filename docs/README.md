@@ -22,6 +22,15 @@ This file acts as the **entry point and launcher**, allowing direct navigation t
   - [📑 Table of Contents](#-table-of-contents)
   - [🧭 How the Documentation Is Organized](#-how-the-documentation-is-organized)
   - [📚 Available Documents](#-available-documents)
+    - [🚀 Quick Start Guide](#-quick-start-guide)
+    - [👤 **User Manual (Basic)**](#-user-manual-basic)
+    - [⚙️ Configuration Guides](#️-configuration-guides)
+    - [🧑‍🔧 Technical User Manual](#-technical-user-manual)
+    - [⌨️ Hotkeys \& Keyboard Shortcuts Policy](#️-hotkeys--keyboard-shortcuts-policy)
+    - [👨🏻‍💻 Advanced Manual](#-advanced-manual)
+    - [📄 Extended Project Overview (Tech Sheet)](#-extended-project-overview-tech-sheet)
+    - [🧭 Project Philosophy](#-project-philosophy)
+    - [🗺️ Release Roadmap](#️-release-roadmap)
   - [🧭 Which Document Should I Read First?](#-which-document-should-i-read-first)
   - [🧭 Backlog \& Development Flow](#-backlog--development-flow)
     - [💡 Ideas \& Early Proposals](#-ideas--early-proposals)
@@ -48,7 +57,21 @@ Each document is self-contained and avoids overlap.
 
 ## 📚 Available Documents
 
-👤 **User Manual (Basic)**
+### 🚀 Quick Start Guide
+
+Purpose:
+Get up and running in under 2 minutes with a guided, beginner-friendly walkthrough.
+Read this if:
+
+- You just installed the extension
+- You want your first successful download fast
+- You prefer learning by doing
+
+📄 Open document:
+
+️ [Quick Start Guide](quick-start.md)
+
+### 👤 **User Manual (Basic)**
 
 Purpose:
 
@@ -59,10 +82,12 @@ Read this if:
 - You are new to Mass Image Downloader
 - You want to understand available features
 - You need basic usage instructions
+
 📄 Open document:
+
 ➡️ [User Manual (Basic)](user-manual/README.md)
 
-⚙️ **Configuration Guides**
+### ⚙️ Configuration Guides
 
 Purpose:
 
@@ -76,9 +101,10 @@ Read this if:
 - You are troubleshooting configuration issues
 
 📄 Open document:
+
 ➡️ [Configuration Guides](configuration-guides/README.md)
 
-🧑‍🔧 **Technical User Manual**
+### 🧑‍🔧 Technical User Manual
 
 Purpose:
 
@@ -92,9 +118,10 @@ Read this if:
 - You plan to contribute or extend the project
 
 📄 Open document:
+
 ➡️ [Technical User Manual](technical-manual/README.md)
 
-⌨️ **Hotkeys & Keyboard Shortcuts Policy**
+### ⌨️ Hotkeys & Keyboard Shortcuts Policy
 
 Purpose:
 
@@ -116,7 +143,7 @@ It documents:
 📄 Open document:
 ➡️ [Hotkeys & Keyboard Shortcuts Policy](hotkeys/hotkeys.md)
 
-👨🏻‍💻 **Advanced Manual**
+### 👨🏻‍💻 Advanced Manual
 
 Purpose:
 
@@ -132,7 +159,7 @@ Read this if:
 📄 Open document:
 ➡️ [Advanced Manual](advanced-manual/README.md)
 
-📄 **Extended Project Overview**
+### 📄 Extended Project Overview (Tech Sheet)
 
 Purpose:
 
@@ -147,7 +174,7 @@ Read this if:
 📄 Open document:
 ➡️ [Extended Project Overview](project-overview-extended.md)
 
-🧭 **Project Philosophy**
+### 🧭 Project Philosophy
 
 Purpose:
 
@@ -162,7 +189,7 @@ Read this if:
 📄 Open document:
 ➡️ [Project Philosophy](philosophy.md)
 
-🗺️ **Release Roadmap**
+### 🗺️ Release Roadmap
 
 Purpose:
 
@@ -184,7 +211,8 @@ Read this if:
 
 Use this quick guide:
 
-- **First-time user** → [User Manual (Basic)](user-manual/README.md)
+- **First-time user** → [Quick Start Guide](quick-start.md)
+- Want to **learn all features** → [User Manual (Basic)](user-manual/README.md)
 - Want to **configure something** specific → [Configuration Guides](configuration-guides/README.md)
 - Want to **understand internals** → [Technical User Manual](technical-manual/README.md)
 - Want to **understand design** decisions and limits → [Advanced Manual](advanced-manual/README.md)
