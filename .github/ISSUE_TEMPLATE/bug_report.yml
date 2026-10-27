@@ -36,16 +36,37 @@ body:
       label: Related Feature / Module
       description: Select the feature or module where the bug occurs.
       options:
-        - Image Inspector Mode
-        - Bulk Image Download
-        - Gallery Finder
-        - Extract Gallery Images
-        - Extract images from web-linked galleries
-        - Popup UI
-        - Options / Settings UI
-        - Background / Service Worker
-        - Storage / Settings Persistence
-        - Other
+        # --- Layer 1: User Interfaces (UI) ---
+        - "️ 🗔 Popup UI"
+        - "️ 👷🏼‍♂️ Options / Settings UI"
+        - "️ 🔎 Settings Peek"
+
+        # --- Layer 2: Extraction Workflows (Core Features) ---
+        - "📸 Bulk Image Download"
+        - "🌄 Gallery Finder (Direct Links)"
+        - "🖼️ Extract Gallery Images (Visual)"
+        - "🔗 Extract images from web-linked galleries"
+
+        # --- Layer 3: Precision Tools (Manual / Curation) ---
+        - " 🖱️ One-click Download Icon"
+        - "️ 🕵️ Image Inspector Mode"
+
+        # --- Layer 4: System & Architecture (Internal) ---
+        - "🔀 Background / Service Worker"
+        - "💾 Storage / Settings Persistence"
+        - "🔄 MV3 Lifecycle / Service Worker Restart"
+        - "📈 Performance / Stability"
+
+        # --- Layer 5: UX & Cross-cutting Feedback ---
+        - "⌨️ Hotkeys / Shortcuts"
+        - "🔔 Toast / Notifications"
+        - "🐛 Logging / Debugging"
+
+        # --- Layer 6: Meta / Project ---
+        - "📚 Documentation"
+        - "🤝 Contribution workflow"
+        - "🌐 Multiple / Cross-feature"
+        - "❓ Other / Unknown"
     validations:
       required: true
 
@@ -166,10 +187,13 @@ body:
     attributes:
       label: Browser
       options:
-        - Edge
-        - Chrome
-        - Brave
-        - Other Chromium-based
+      - Brave
+      - Edge
+      - Opera
+      - Vivaldi
+      - Other Chromium-based
+      - Chrome (Unsupported / At your own risk)
+      - Not browser-specific
     validations:
       required: true
 
