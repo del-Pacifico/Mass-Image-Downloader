@@ -45,7 +45,7 @@ npm test
 
 | Release | PR(s) | Theme | Closes |
 |---|---|---|---|
-| **v2.8.187** | PR #110 (existing) | Pending release batch | #73, #74, #77, #78 |
+| **v2.8.187** | PR #110 (existing) | Pending release batch | #73, #74, #77, #78, #120 |
 | **v2.8.188** | PR A, PR B, PR C | Config & settings hotfixes | #99, #100, #101, #118 |
 | **v2.8.189** | PR D, PR E, PR F, PR G | Web-linked Gallery epic | #102–#109, #112–#114, #116, discussions #76, #83, #90 |
 | **v2.8.190** | PR H, PR I, PR J, PR K, PR L | Inspector targeting, UX features, tooling | #30–#32, #37, #91, #94, #96, #111, #115, #117, discussion #92 |
@@ -58,7 +58,7 @@ Housekeeping (label pass, stale discussion closures, announcements) is scheduled
 
 ```mermaid
 graph TD
-    PR110["PR #110 - v2.8.187<br/>closes #73 #74 #77 #78"] --> PRA["PR A - #101<br/>min/max range validation"]
+    PR110["PR #110 - v2.8.187<br/>closes #73 #74 #77 #78 #120"] --> PRA["PR A - #101<br/>min/max range validation"]
     PR110 --> PRB["PR B - #99 #100<br/>settings sync defects"]
     PRA --> PRC["PR C - #118<br/>bulk wrapped URL validation"]
     PRB --> PRC
@@ -90,6 +90,7 @@ graph TD
 | #74 | One-click scoring: multi-factor anti-ad penalties |
 | #77 | Inspector icon floating after open-in-new-tab |
 | #78 | One-click IIFE guard + toast sequence hardening |
+| #120|Added `docs/quick-start.md`: comprehensive step-by-step guide for non-technical users, covering installation, first download workflow, and common issues. Linked from root `README.md` and Documentation Hub (`docs/README.md`).|
 
 ### Rationale
 
@@ -498,3 +499,4 @@ No code release required. Scheduled after v2.8.188 lands.
 | 2026-10-14 | Added Issue #117 (Chore: extract Bulk Image Download logic from `background.js` into dedicated `bulk.js` module) to v2.8.190 as PR L. Architectural alignment with the project's Single Responsibility principle — Bulk is currently the only core feature without a dedicated module file. |
 | 2026-10-14 | Added Issue #118 (`[Bug] Bulk Image Download rejects Reddit wrapped media URLs despite allowWrappedImageUrls being enabled`) to v2.8.188 as PR C. Regression of CHANGELOG v2.8.185 promise that Bulk normalizes wrapped URLs. Root cause confirmed: `isDirectImageUrl()` does not implement unwrapping logic. |
 | 2026-10-14 | Added Issue #118 (`[Bug] Bulk Image Download rejects Reddit wrapped media URLs despite allowWrappedImageUrls being enabled`) to v2.8.188 as PR C. Regression of CHANGELOG v2.8.185 promise that Bulk normalizes wrapped URLs. Root cause confirmed: `isDirectImageUrl()` does not implement unwrapping logic. |
+| 2026-10-29|Added Issue #120 (`[Docs] Add Quick Start guide for non-technical users`) to v2.8.187 PR #110. Documentation alignment for first-time user onboarding, shipped with the pending release batch.|
