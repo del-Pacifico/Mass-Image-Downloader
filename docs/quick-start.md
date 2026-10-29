@@ -2,7 +2,7 @@
 
 Welcome to **Mass Image Downloader** (MID). This guide will help you install the extension and complete your first successful image download in under 2 minutes. 
 
-If you are a power user, researcher, or developer, you can skip to the [User Manual](/docs/user-manual.md) or [Configuration Guides](docs/configuration-guides/README.md).
+If you are a power user, researcher, or developer, you can skip to the [User Manual](user-manual/README.md) or [Configuration Guides](docs/configuration-guides/README.md).
 
 ---
 
@@ -13,6 +13,7 @@ MID is built on a strict privacy-by-design philosophy. Because Google Chrome emp
 *Practical reality:* The extension will most likely function on Chrome. However, any use on Chrome is strictly *at your own risk and falls entirely outside our QA coverage and support scope*. 
 
 We officially support, test, and recommend:
+
 - **Brave** (Primary QA baseline)
 - Microsoft Edge
 - Opera
@@ -41,6 +42,7 @@ You have two options to get the extension files:
 ```bash
 cd ~/Downloads
 ```
+
 4. Extract the ZIP file
 
 ```bash
@@ -87,6 +89,7 @@ cd Mass-Image-Downloader
 ## Step 4: Pin the Extension Icon
 
 To ensure the extension is always within reach:
+
 1. Click the **Extensions** icon (looks like a puzzle piece 🧩) in your browser's top-right toolbar.
 2. Find **Mass Image Downloader** in the list.
 3. Click the **Pin** icon (📌) next to it. The extension icon will now be permanently visible in your toolbar.
@@ -111,6 +114,7 @@ Let's download images from a webpage using the simplest method:
 ## Step 6: One Optional Tweak (Highly Recommended)
 
 To avoid downloading tiny icons or logos, set a minimum size limit:
+
 1. Click the extension icon and select **Options** (or click the gear icon ⚙️).
 2. Find the **Image Size** section.
 3. Set **Minimum Width** to `250` and **Minimum Height** to `250`.
@@ -133,9 +137,10 @@ To avoid downloading tiny icons or logos, set a minimum size limit:
 ## 📚 Next Steps
 
 Now that you have the basics, explore the full potential of the extension:
-- 📖 [User Manual](user-manual.md): Learn about all download modes (Bulk, Web-Linked, Inspector).
+
+- 📖 [User Manual](user-manual/README.md): Learn about all download modes (Bulk, Web-Linked, Inspector).
 - ⚙️ [Configuration Guides](configuration-guides/README.md): Scenario-based setups for specific needs.
-- ⌨️ [Hotkeys Policy](hotkeys.md): Master the extension without touching the mouse.
+- ⌨️ [Hotkeys Policy](hotkeys/hotkeys.md): Master the extension without touching the mouse.
 
 ---
 
