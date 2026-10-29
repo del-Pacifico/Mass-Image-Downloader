@@ -1,0 +1,191 @@
+name: 🔧 Refactor / Technical Debt
+description: Propose a code refactoring, cleanup, or technical debt reduction that does not change user-facing behavior.
+title: "[Refactor] "
+labels:
+  - type: refactor
+  - needs: triage
+  - priority: normal
+  - status: backlog
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🔧 Refactor / Technical Debt
+
+        Use this template to propose **code refactoring, cleanup, or technical debt reduction**
+        that improves code quality, consistency, or maintainability **without changing user-facing behavior**.
+
+        ✅ Use this for:
+        - Removing dead or unreachable code
+        - Unifying divergent or duplicated implementations
+        - Cleaning up exports, naming, or module structure
+        - Removing unnecessary async/await or simplifying control flow
+        - Reducing technical debt without altering functionality
+
+        ❌ Do NOT use this for:
+        - Broken or incorrect behavior → use **Bug Report**
+        - New features or enhancements → use **Feature Request**
+        - Documentation-only changes → use **Documentation Issue**
+        - Performance or stability issues → use **Performance / Stability Report**
+
+        Tips:
+        - Refactors should preserve existing behavior.
+        - Clearly state what is being changed and why.
+        - If behavior might change, use **Bug Report** or **Feature Request** instead.
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      description: Is this refactor browser-specific or general?
+      options:
+      - Not browser-specific
+      - Brave
+      - Edge
+      - Opera
+      - Vivaldi
+      - Other Chromium-based
+      - Chrome (Unsupported / At your own risk)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature
+    attributes:
+      label: Affected Feature / Module
+      description: Select the primary area affected by this refactor.
+      options:
+        # --- Layer 1: User Interfaces (UI) ---
+        - " Popup UI"
+        - "👷‍♂️ Options / Settings UI"
+        - "🔎 Settings Peek"
+
+        # --- Layer 2: Extraction Workflows (Core Features) ---
+        - " Bulk Image Download"
+        - "🌄 Gallery Finder (Direct Links)"
+        - "️ Extract Gallery Images (Visual)"
+        - "🔗 Extract images from web-linked galleries"
+
+        # --- Layer 3: Precision Tools (Manual / Curation) ---
+        - "️ One-click Download Icon"
+        - "🕵️ Image Inspector Mode"
+
+        # --- Layer 4: System & Architecture (Internal) ---
+        - "🔀 Background / Service Worker"
+        - "💾 Storage / Settings Persistence"
+        - "🔄 MV3 Lifecycle / Service Worker Restart"
+        - "📈 Performance / Stability"
+
+        # --- Layer 5: UX & Cross-cutting Feedback ---
+        - "⌨️ Hotkeys / Shortcuts"
+        - "🔔 Toast / Notifications"
+        - "🐛 Logging / Debugging"
+
+        # --- Layer 6: Meta / Project ---
+        - "📚 Documentation"
+        - "🤝 Contribution workflow"
+        - "🌐 Multiple / Cross-feature"
+        - "❓ Other / Unknown"
+    validations:
+      required: true
+
+  - type: input
+    id: summary
+    attributes:
+      label: Short Summary
+      description: >
+        One concise sentence describing the refactoring goal.
+        Example: "Unify divergent calculatePathSimilarity implementations in utils.js and extractWebLinkedGallery.js."
+      placeholder: "Describe the refactoring goal."
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current State / Problem
+      description: >
+        Describe the current code state that needs refactoring.
+        Explain the inconsistency, duplication, dead code, or technical debt.
+      placeholder: |
+        - What is the current state?
+        - What is inconsistent, duplicated, or unnecessary?
+        - Which files / functions are involved?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed Refactor
+      description: >
+        Describe the proposed refactoring at a conceptual level.
+        Focus on structure and intent, not full implementation.
+      placeholder: |
+        - What should change?
+        - How should the code be unified / cleaned / simplified?
+        - What should be removed or consolidated?
+    validations:
+      required: true
+
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Behavior Preservation
+      description: >
+        Confirm and explain how this refactor preserves existing behavior.
+        Refactors must not change user-facing behavior.
+      placeholder: |
+        - Why does this not change behavior?
+        - Are there any edge cases to watch?
+        - Any tests needed to confirm behavior is preserved?
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope / Impact
+      description: >
+        Describe the scope and risk of this refactor.
+      placeholder: |
+        - Files / modules affected:
+        - Risk level (Low / Medium / High):
+        - Blast radius:
+    validations:
+      required: true
+
+  - type: input
+    id: files
+    attributes:
+      label: Affected File(s) (optional)
+      description: List the primary file(s) involved.
+      placeholder: "e.g. scripts/utils.js, scripts/extractWebLinkedGallery.js"
+    validations:
+      required: false
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: References / Evidence (optional)
+      description: >
+        Link to the divergent code, related issues, or provide excerpts
+        that illustrate the inconsistency or technical debt.
+      placeholder: |
+        - Code excerpt or line references:
+        - Related issues / discussions:
+    validations:
+      required: false
+
+  - type: textarea
+    id: technical_notes
+    attributes:
+      label: Technical Notes (optional)
+      description: >
+        Optional. Add any technical context or constraints relevant to the refactor.
+      placeholder: |
+        - Constraints or dependencies:
+        - Related refactors:
+        - Notes for maintainers:
+    validations:
+      required: false
