@@ -34,32 +34,13 @@
 
 ## 🏗️ Installation
 
-1. Clone this repository using HTTPS or SSH:
+- For detailed, step-by-step unpacked installation instructions (including OS-specific guides and developer mode setup), please refer to our [Quick Start Guide](docs/quick-start.md).
 
-   ```bash
-   git clone https://github.com/del-Pacifico/Mass-Image-Downloader.git
-   ```
-
-   ```bash
-   git clone git@github.com:del-Pacifico/Mass-Image-Downloader.git
-   ```
-
-2. Open a Chromium-based browser and go to the extensions page:
-
-   - Brave: `brave://extensions`
-   - Edge: `edge://extensions`
-   - Opera: `opera://extensions`
-   - Vivaldi: `vivaldi://extensions`
-
-3. Enable Developer Mode.
-4. Select **Load unpacked**.
-5. Choose the cloned repository root folder, the one containing `manifest.json`.
-
-For the long-form unpacked installation notes, see the [Extended Project Overview](docs/project-overview-extended.md#-installation-developer-mode--unpacked).
+- For the long-form unpacked installation notes, see the [Extended Project Overview](docs/project-overview-extended.md#-installation-developer-mode--unpacked).
 
 ---
 
-##  Quick Start
+## Quick Start
 
 **New here?** Start with our [Quick Start Guide](docs/quick-start.md) for a step-by-step walkthrough designed for `first-time users`.
 
