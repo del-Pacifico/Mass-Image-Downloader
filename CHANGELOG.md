@@ -54,6 +54,10 @@ For **planned** releases and release-train sequencing, see [`docs/ROADMAP.md`](d
 - Updated `docs/README.md`: Added Quick Start Guide entry to the Available Documents section, positioned before the User Manual as the recommended first read for new users.
 - Updated `docs/project-overview-extended.md`: Added technical preview image (`Mass-Image-Downloader-preview10.webp`) to preserve the "Tech Sheet" visual reference for advanced users and researchers.
 - Updated GitHub Issue and Pull Request templates: Reclassified Google Chrome as "Unsupported / At your own risk" to align with the project's privacy-by-design philosophy, and expanded the "Related Feature / Module" dropdowns to include missing core modules (One-click Download Icon, Settings Peek, Image Inspector Mode, Hotkeys, Toasts, etc.).
+- Fixed broken relative links in `docs/quick-start.md` pointing to the User Manual and Hotkeys Policy, ensuring correct navigation to `user-manual/README.md` and `hotkeys/hotkeys.md`.
+- Added `ACCESSIBILITY.md`: Comprehensive accessibility statement tailored for browser extensions, covering keyboard navigation, Shadow DOM contrast (Image Inspector), and screen reader compatibility for overlays and toasts.
+- Simplified root `README.md`: Removed redundant step-by-step installation instructions, replacing them with a direct pointer to the `Quick Start Guide` to reduce maintenance debt and improve first-time user onboarding.
+- Added `.github/ISSUE_TEMPLATE/refactor.yml`: New structured issue form for proposing code refactoring and technical debt reduction without altering user-facing behavior.
 
 ### QA
 
