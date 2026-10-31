@@ -22,3 +22,5 @@ old versions/
 
 # Editor workspace settings
 .vscode/
+
+.continue/

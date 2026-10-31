@@ -62,6 +62,7 @@ Before you start contributing, make sure you have:
 ### 🎯 Project Philosophy
 
 Mass Image Downloader is guided by seven core principles that shape every decision:
+
 1. **Reliability Above All** — The extension keeps working under adverse conditions.
 2. **Granular User Control** — Users have dozens of configurable options.
 3. **Performance and Efficiency** — Minimal browser overhead.
@@ -79,7 +80,7 @@ Familiarize yourself with the codebase layout:
 ```text
 Mass-Image-Downloader/
  ├── .github/           # GitHub templates (CODEOWNERS, Issues, PR templates, etc.)
- ├── assets/            # Static assets (images, others)
+ ├── assets/            # Static assets (images, icons)
  ├── docs/              # Project documentation (philosophy, hotkeys, guides, roadmap)
  ├── html/              # HTML files (popup, options, content scripts)
  ├── ico/               # Icon files for the extension
@@ -159,8 +160,35 @@ Mass-Image-Downloader/
 2. `Reproduce the behavior` in a clean, focused scenario.
 3. Capture the environment: Browser/Chromium version, OS, extension version.
 4. Capture the `relevant settings snapshot` (via Settings Peek).
-5. Collect `evidence`: Exact steps, expected vs. actual behavior, URL pattern, console logs filtered by `[Mass image downloader]`, and screenshots.
+5. Collect `eada`: Exact steps, expected vs. actual behavior, URL pattern, console logs filtered by `[Mass image downloader]`, and screenshots.
 6. Open a `[Bug]` issue. *Use one issue per defect.*
+
+#### 📝 Example: Good vs. Bad Bug Report
+
+**✅ Good Issue:**
+
+```text
+[Bug] Web-linked Gallery opens user profile pages instead of gallery images on Reddit
+Browser: Brave 1.69, Chromium 129
+Extension: 2.8.187
+Steps: 
+1) Open Reddit gallery with default avatars
+2) Run Alt+Shift+W
+3) Observe 8 /user/ tabs open
+Expected: Only image detail pages should open
+Actual: Default avatar URLs (redditstatic.com/avatars/...) are admitted as candidates
+Logs: [Mass image downloader]: ⛔ grouped 8 candidates under /user/...
+```
+
+**❌ Bad Issue:**
+
+```text
+[Bug] Web-linked gallery is broken
+It doesn't work on Reddit. Please fix.
+```
+
+*Why it's bad: No version, no steps, no logs, no expected behavior. Cannot be triaged.*
+
 
 ### 🧩 Edge Cases
 
@@ -170,9 +198,36 @@ Edge cases are narrow, reproducible scenarios that affect a limited set of users
 - Provide the exact conditions needed to reproduce.
 - Mark with `priority: low` or `priority: medium`.
 
+#### 📝 Example: Good Edge Case Report
+
+**✅ Good:**
+
+```text
+[EdgeCase] Inspector overlay offset on full-viewport images at 110% zoom
+Browser: Edge 129
+Condition: Image inside <figure> with CSS transform: scale(1.1)
+Impact: Visual only — overlay appears 8px below the true top-right corner
+Expected: Overlay anchored to image bounding rect
+Actual: Overlay anchored to wrapper rect
+```
+
 ### 🔐 Security Vulnerability Reporting
 
 If you discover a security vulnerability, **do not open a public issue**. Report it privately via [GitHub Security Advisories](https://github.com/del-Pacifico/Mass-Image-Downloader/security/advisories/new) or contact the maintainer directly.
+
+---
+
+### 💬 How to Give Constructive Feedback
+
+To keep the project predictable and respectful of everyone's time, please follow these guidelines when interacting with Issues, PRs, and Discussions:
+
+- **For code (PR reviews):** Use the PR review comments. Be specific, point to the line, and explain *why* a change is needed based on the project's philosophy or standards.
+- **For behavior/bugs:** Always quote the exact steps and console logs filtered by `[Mass image downloader]`. Avoid vague reports like "it doesn't work" or "something is broken".
+- **For ideas:** Use GitHub Discussions first. Do not open an Issue to ask "Why don't you add feature X?" — that is an exploratory conversation, not an actionable defect.
+
+**Good feedback:** "The overlay in `imageInspector.js` line 142 doesn't clear on window blur, which leaves a ghost panel on ArtStation lightboxes. Logs show the `mouseover` listener stays attached."
+
+**Bad feedback:** "The inspector is buggy on some sites."
 
 ---
 
@@ -193,6 +248,34 @@ All development must follow this branch and release flow:
 - Format: `<type>(<scope>): <description> (#<issue-number>)`
 - Example: `fix(image-inspector): prevent orphaned overlays on blur (#77)`
 - Rules: Present tense, imperative mood, no capitalization at start, no period at end.
+
+#### 📝 Example: Good vs. Bad Commit & PR
+
+**✅ Good commit:**
+
+```text
+fix(image-inspector): prevent orphaned overlays on blur (#77)
+```
+
+**✅ Good PR title:**
+
+```text
+fix(overlay): remove orphaned host on blur (#77)
+```
+
+**❌ Bad commit:**
+
+```text
+updated stuff and fixed some things
+```
+
+**❌ Bad PR title:**
+
+```text
+Fix inspector bug
+```
+
+> *Why it matters: `Conventional Commits` enable automated changelogs, clean `git log`, and fast triage. Vague titles force the maintainer to read the diff to understand scope.*
 
 ### 🥷🏼 Incremental Commit and Push Discipline
 
@@ -223,6 +306,19 @@ During active development, **each validated atomic change** must be committed an
 ### 🗓️ Release Planning
 
 Planned work is tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md). Before starting, check the Roadmap to see if the issue is scheduled. If not, open a Discussion first.
+
+---
+
+### ✅ Definition of Done
+
+An Issue or PR is considered **ready for review** when:
+
+- [ ] The change is scoped to a single confirmed defect or approved feature (per Bugfix Scope Discipline).
+- [ ] `npm run check` and `npm test` pass locally.
+- [ ] The CHANGELOG.md entry is drafted (for user-facing changes).
+- [ ] Documentation is updated if behavior, options, or hotkeys changed.
+- [ ] The PR description includes: linked Issue, summary, affected modules, and QA evidence (logs or screenshots).
+- [ ] No unrelated refactors or "while I'm here" changes are mixed in.
 
 ---
 
@@ -267,11 +363,22 @@ AI tools may assist in code generation, documentation, or formatting, but all co
 
 - **Developer responsibilities:** Act as the architect, validate AI-generated code against project standards, test in supported browsers, and **clearly disclose AI assistance** in the PR description (e.g., "This PR includes code generated with the assistance of [Tool Name] for [specific functions]. The code was reviewed and validated by the author.").
 
+#### 📝 Example: AI Disclosure in PR Description
+
+```text
+This PR includes code generated with the assistance of GitHub Copilot for:
+- The `unwrapImageUrl()` helper in `scripts/utils.js`
+- JSDoc comments in `scripts/bulk.js`
+
+The code was reviewed, validated against project standards, and tested locally 
+on Brave 1.69 and Edge 129 by the author.
+```
+
 ---
 
-## 🎨 UI, Documentation & Formatting Standards
+## 📄 UI, Documentation & Formatting Standards
 
-### 🎨 UI Feedback and Visual Standards
+### 📐 UI Feedback and Visual Standards
 
 The extension must keep a consistent visual language across all surfaces.
 
@@ -285,13 +392,13 @@ The extension must keep a consistent visual language across all surfaces.
 - First line of regular Markdown docs: `# 🏔️ Mass Image Downloader – <Document Title>`
 - For YAML frontmatter, keep frontmatter first, place visible H1 immediately after `---`.
 
-### ⚠️ Markdown Formatting Rules (CRITICAL)
+### 📏 Markdown Formatting Rules (CRITICAL)
 
 All contributions to the repository (issues, comments, PRs, docs) must be written in Markdown. To ensure proper rendering across GitHub's interface:
 
 - **Always close code blocks:** Every opening code block tag (e.g., ` ```javascript`, ` ```bash`, ` ```json`, ` ```text`) **must be properly closed** with its corresponding closing triple backticks (` ``` `). 
 
-> Failing to close these tags *will break the Markdown layout for the entire post or issue*.
+> ⚠️ Failing to close these tags *will break the Markdown layout for the entire post or issue*.
 
 - Write in professional American English.
 - Use emojis sparingly (allowed in titles/headers/logs, avoid in technical explanations).
@@ -311,6 +418,19 @@ Mass Image Downloader is licensed under the Mozilla Public License 2.0. Every so
 // # All rights reserved.
 // [filename] - Mass Image Downloader
 ```
+
+---
+
+### 🚫 Common Mistakes to Avoid
+
+Based on past reviews, these are the most frequent issues that delay PR merges:
+
+1. **Mixing fixes with refactors.** A bugfix PR must not include "while I'm here" cleanups. Split them.
+2. **Skipping local validation.** PRs that fail `npm run check` or `npm test` are returned without review.
+3. **Vague PR descriptions.** "Fixed the bug" is not enough. Link the Issue, describe scope, attach logs.
+4. **Touching unrelated files.** If your PR touches `utils.js` but the Issue is about `popup.html`, explain why in the description.
+5. **Forgetting the CHANGELOG.** User-facing changes without a CHANGELOG entry are not considered shipped.
+6. **Opening Issues for questions.** Use GitHub Discussions first. Issues are for actionable work.
 
 ---
 
