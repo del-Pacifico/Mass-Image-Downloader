@@ -275,9 +275,16 @@ toasts on failure.
 
 **Closes:** 
 
-- [#102](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/102)
-- [#109](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/109)
-- [#121](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/121)
+Single cleanup PR for all low-priority `utils.js` debt, formally deferred by PR #110 to "a future PR" and already suggested for grouping by the issues themselves:
+
+- #102 — rename the two divergent `calculatePathSimilarity` implementations (Option A: minimal disambiguation). Prerequisite for PR F.
+- #103 — remove unnecessary `async` from pure predicates (`isDirectImageUrl`, `isAllowedImageFormat`).
+- #121 — upgrade `isDirectImageUrl` and `isAllowedImageFormat` to support `Content-Type` fallback for extensionless CDN URLs.
+- #104 — initialize `downloadFolder` / `customFolderPath` in the configCache literal.
+- #105 — sanitize illegal filesystem characters in `buildDownloadPath` (latent bug).
+- #106 / #107 — remove dead code (`moveToNextTab`, `isValidRelativeFolder`).
+- #108 — cap the `closedTabs` set (MV3 hygiene).
+- #109 — unify `sanitizeFilenameComponent` export style.
 
 Single cleanup PR for all low-priority `utils.js` debt, formally deferred by PR #110
 to "a future PR" and already suggested for grouping by the issues themselves:
