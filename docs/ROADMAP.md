@@ -47,7 +47,7 @@ npm test
 |---|---|---|---|
 | **v2.8.187** | PR #110 (existing) | Pending release batch | #73, #74, #77, #78, #120 |
 | **v2.8.188** | PR A, PR B, PR C | Config & settings hotfixes | #99, #100, #101, #118 |
-| **v2.8.189** | PR D, PR E, PR F, PR G | Web-linked Gallery epic | #102–#109, #112–#114, #116, discussions #76, #83, #90 |
+| **v2.8.189** | PR D, PR E, PR F, PR G | Web-linked Gallery epic | #102–#109, #112–#114, #116, #121, discussions #76, #83, #90|
 | **v2.8.190** | PR H, PR I, PR J, PR K, PR L | Inspector targeting, UX features, tooling | #30–#32, #37, #91, #94, #96, #111, #115, #117, discussion #92 |
 
 Housekeeping (label pass, stale discussion closures, announcements) is scheduled in
@@ -63,7 +63,7 @@ graph TD
     PRA --> PRC["PR C - #118<br/>bulk wrapped URL validation"]
     PRB --> PRC
     PRC --> PRD["PR D - #112-114, #116<br/>web-linked hardening"]
-    PRD --> PRE["PR E - #102-109<br/>utils.js cleanup"]
+    PRD --> PRE["PR E - #102-109, #121<br/>utils.js cleanup"]
     PRE --> PRF["PR F - discussion #76<br/>linear grouping O(n)"]
     PRF --> PRG["PR G - discussion #83<br/>hybrid mode"]
     PRD --> PRH["PR H - #96 #91<br/>inspector targeting"]
@@ -271,9 +271,13 @@ stabilized (PR E) keeps the refactor blame clean.
 all four QA-baseline browsers; confirm correct grouping, correct tab set, and terminal
 toasts on failure.
 
-### PR E — `chore/102-109-utils-cleanup`
+### PR E — `refactor/102-109-utils-cleanup`
 
-**Closes:** [#102](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/102)–[#109](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/109)
+**Closes:** 
+
+- [#102](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/102)
+- [#109](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/109)
+- [#121](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/121)
 
 Single cleanup PR for all low-priority `utils.js` debt, formally deferred by PR #110
 to "a future PR" and already suggested for grouping by the issues themselves:
@@ -281,6 +285,7 @@ to "a future PR" and already suggested for grouping by the issues themselves:
 - **#102** — rename the two divergent `calculatePathSimilarity` implementations
   (Option A: minimal disambiguation). **Prerequisite for PR F.**
 - **#103** — remove unnecessary `async` from pure predicates.
+- **#121** — upgrade `isDirectImageUrl` and `isAllowedImageFormat` to support `Content-Type` fallback for extensionless CDN URLs.
 - **#104** — initialize `downloadFolder` / `customFolderPath` in the configCache literal.
 - **#105** — sanitize illegal filesystem characters in `buildDownloadPath` (latent bug).
 - **#106 / #107** — remove dead code (`moveToNextTab`, `isValidRelativeFolder`).
@@ -500,3 +505,4 @@ No code release required. Scheduled after v2.8.188 lands.
 | 2026-10-14 | Added Issue #118 (`[Bug] Bulk Image Download rejects Reddit wrapped media URLs despite allowWrappedImageUrls being enabled`) to v2.8.188 as PR C. Regression of CHANGELOG v2.8.185 promise that Bulk normalizes wrapped URLs. Root cause confirmed: `isDirectImageUrl()` does not implement unwrapping logic. |
 | 2026-10-14 | Added Issue #118 (`[Bug] Bulk Image Download rejects Reddit wrapped media URLs despite allowWrappedImageUrls being enabled`) to v2.8.188 as PR C. Regression of CHANGELOG v2.8.185 promise that Bulk normalizes wrapped URLs. Root cause confirmed: `isDirectImageUrl()` does not implement unwrapping logic. |
 | 2026-10-29|Added Issue #120 (`[Docs] Add Quick Start guide for non-technical users`) to v2.8.187 PR #110. Documentation alignment for first-time user onboarding, shipped with the pending release batch.|
+| 2026-10-31 | Added Issue #121 ([Refactor] Upgrade URL validation in utils.js to support Content-Type fallback) to v2.8.189 PR E. Groups extensionless CDN validation refactor with existing `utils.js` cleanup (#103), respecting the "Refactors ship separately" rule and keeping PR C (v2.8.188) strictly focused on the wrapped-URL bugfix (#118). |
