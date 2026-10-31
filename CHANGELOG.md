@@ -64,6 +64,7 @@ For **planned** releases and release-train sequencing, see [`docs/ROADMAP.md`](d
 - Updated `docs/ROADMAP.md`: scheduled Issue #121 (`[Refactor] Upgrade URL validation in utils.js to support Content-Type fallback for extensionless CDN URLs`) as part of PR E in release v2.8.189. Groups the extensionless CDN validation refactor with the existing `utils.js` cleanup batch (#102–#109), respecting the "Refactors ship separately" rule. Discovered during QA of PR #110, Social site category (Bluesky).
 - Updated `docs/ROADMAP.md`: corrected the PR E (`refactor/102-121-utils-cleanup`) closes list to explicitly include all `utils.js` issues (#102 through #109, plus #121), ensuring GitHub auto-closes all associated technical debt items upon merge.
 - Updated `.gitignore`: Added `.continue/` directory to repository hygiene exclusions to prevent tracking of local AI-assistant tooling artifacts.
+- Updated `docs/ROADMAP.md`: removed a duplicated/cloned section in the PR E description, ensuring a clean, single source of truth for the `utils.js` cleanup scope and explicit GitHub auto-close links for issues #102–#109 and #121.
 
 ### QA
 
