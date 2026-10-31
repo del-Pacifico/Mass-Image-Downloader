@@ -59,6 +59,8 @@ For **planned** releases and release-train sequencing, see [`docs/ROADMAP.md`](d
 - Simplified root `README.md`: Removed redundant step-by-step installation instructions, replacing them with a direct pointer to the `Quick Start Guide` to reduce maintenance debt and improve first-time user onboarding.
 - Added `.github/ISSUE_TEMPLATE/refactor.yml`: New structured issue form for proposing code refactoring and technical debt reduction without altering user-facing behavior.
 - Updated `docs/ROADMAP.md`: registered Issue #120 (`[Docs] Add Quick Start guide for non-technical users`) in the v2.8.187 PR #110 release train (overview table, Mermaid dependency graph, closes table, and change log).
+- Refined `CONTRIBUTING.md`: Added concrete examples for good/bad bug reports, commits, PRs, edge cases, and AI disclosure. Added "Definition of Done" and "Common Mistakes to Avoid" sections to streamline PR reviews and reduce iteration cycles.
+- Updated `.gitignore`: Added `.continue/` directory to repository hygiene exclusions to prevent tracking of local AI-assistant tooling artifacts.
 
 ### QA
 
