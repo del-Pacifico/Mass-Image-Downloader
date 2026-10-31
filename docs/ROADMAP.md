@@ -273,7 +273,7 @@ toasts on failure.
 
 ### PR E — `refactor/102-109-utils-cleanup`
 
-**Closes:** 
+**Closes:** [#102](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/102), [#103](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/103), [#104](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/104), [#105](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/105), [#106](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/106), [#107](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/107), [#108](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/108), [#109](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/109), [#121](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/121) 
 
 Single cleanup PR for all low-priority `utils.js` debt, formally deferred by PR #110 to "a future PR" and already suggested for grouping by the issues themselves:
 
