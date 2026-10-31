@@ -1,12 +1,13 @@
 # 🏔️ Mass Image Downloader – Hotkey Policy
 
-Mass Image Downloader provides keyboard shortcuts as optional entry points for advanced workflows.
+**Mass Image Downloader** provides keyboard shortcuts as optional entry points for advanced workflows.
 The following hotkeys are currently implemented and supported as of the latest stable version:
 
 ## 🧭 Principles
 
-- Hotkeys are optional and never the only way to trigger a feature
-- Popup and context menu actions act as fallbacks when available
+- Hotkeys provide a fast path for triggering features and are optional where an alternative trigger exists
+- Popup and context menu actions act as fallbacks where available
+- Image Inspector (`Ctrl+Shift+M`) and One-click Download Icon (`Alt+Shift+I`) are currently hotkey-only (no UI fallback). Popup fallbacks for these are tracked in Discussion #81 (backlog)
 - Backward compatibility is mandatory
 
 ## 🔒 Existing Hotkeys (Stable)
@@ -36,22 +37,11 @@ The following hotkeys are currently implemented and supported:
 | **Alt + Shift + G** | Extract galleries (direct links) | Best for galleries where thumbnails point directly to image files |
 | **Alt + Shift + V** | Extract galleries (visual / no direct links) | Best for inline image galleries without dedicated anchors |
 | **Alt + Shift + W** | Extract galleries (web-linked) | Opens linked detail pages and processes them as gallery candidates |
-| **Alt + Shift + I** | Toggle the one-click download icon | Manual curation flow for quick image saving |
+| **Alt + Shift + I** | Toggle the one-click download icon | Manual curation flow for quick image saving. Requires One-click Download Icon enabled in Options. |
 | **Alt + Shift + S** | Toggle Settings Peek | Opens the read-only configuration overlay |
-| **Ctrl + Shift + M** | Toggle Image Inspector Mode | Opens the inspector workflow for image review, metadata, zoom, and save |
+| **Ctrl + Shift + M** | Toggle Image Inspector Mode | Opens the inspector workflow for image review, metadata, zoom, and save. Requires Image Inspector enabled in Options |
 | **Ctrl + Alt + P** | Set filename prefix from clipboard | Requires clipboard hotkeys enabled |
 | **Ctrl + Alt + S** | Set filename suffix from clipboard | Requires clipboard hotkeys enabled |
-
-### 📝 Note on Bulk Download Hotkey
-
-Although `Alt + Shift + B` follows the preferred mnemonic pattern, some Chromium-based browsers
-(notably Brave) may not auto-assign this shortcut from the manifest.
-
-For this reason, Bulk Image Download uses:
-
-- **Alt + Shift + D** (Download)
-
-> This improves default compatibility while remaining easy to remember.
 
 ## 📐 Rules for New Hotkeys
 
@@ -106,7 +96,7 @@ Known behavior from the current QA baseline:
 - **Brave**: documented shortcuts operate as expected.
 - **Vivaldi**: documented shortcuts operate as expected.
 - **Microsoft Edge**: `Alt + Shift + I` for One-click Download Icon may need manual assignment in the browser extension shortcut manager.
-- **Opera One**: `Ctrl + Shift + M` for Image Inspector may be intercepted or blocked by the browser/profile before the extension receives the key event.
+- **Opera One**: `Ctrl + Shift + M` for Image Inspector may be intercepted or blocked by the browser/profile before the extension receives the key event. Because Image Inspector is currently hotkey-only, this can leave the feature inaccessible on Opera until a popup fallback is added (Discussion #81).
 
 If a shortcut does not work:
 
@@ -118,7 +108,15 @@ If a shortcut does not work:
 
 ## 🧰 Fallback Behavior
 
-If a shortcut is unavailable or not triggered:
+If a shortcut is unavailable or not triggered, most features remain accessible through the extension popup.
 
-- The feature remains accessible via UI or context menu
-- A developer log may be emitted for debugging
+However, two features are currently hotkey-only and have no UI fallback:
+
+- Image Inspector (`Ctrl + Shift + M`)
+- One-click Download Icon (`Alt + Shift + I`)
+
+If one of these hotkeys is intercepted or blocked by the browser (for example, Opera One may intercept `Ctrl + Shift + M` before the extension receives the key event), the corresponding feature cannot be triggered until the shortcut is reassigned or unblocked at the browser level.
+
+Popup fallbacks and an alternative trigger for these features are tracked in Discussion #81 (backlog, pending).
+
+A developer log may be emitted for debugging when a shortcut fails to trigger.

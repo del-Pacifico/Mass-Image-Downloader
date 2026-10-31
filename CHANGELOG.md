@@ -1,32 +1,87 @@
 # 🏔️ Mass Image Downloader – Changelog
 
 This project follows [Semantic Versioning](https://semver.org/).
+For **planned** releases and release-train sequencing, see [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ---
 
-## [Unreleased]
+## [2.8.187] - 2026-09-26
 
 ### Fixed
 
+- Improved Image Inspector hover target resolution for sites whose hover target is a wrapper element or anchor instead of the image itself, such as styled-components grids (500px), carousel containers, nested layout wrappers, and gallery aggregators (e.g., Wikimedia Commons results). A bounded spatial fallback now matches the pointer position against candidate images within the hovered subtree only, preserving the existing direct-target and wrapper-resolution paths, respecting the configured minimum-size rules, and keeping the scan free of site-specific selectors. This restores the hover overlay on galleries that previously never triggered the inspector, in line with the project's global-scope fix rules. ([#77](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/77))
+- Prevented orphaned Image Inspector overlays: the inspector icon no longer remains floating after opening an image in a new tab or closing the panel. The `mouseover` handler is registered only while the Inspector is active, and the teardown logic now explicitly clears any active overlay when the window loses focus, when mouse events are throttled, when the panel closes, or when the user toggles the Inspector off via hotkey (`Ctrl+Shift+M`), ensuring a clean DOM state and preventing ghost panels and stale listeners. ([#77](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/77))
 - Fixed the user‑feedback toast sequence for Web‑linked Gallery. The flow now shows distinct messages for each phase: start, candidates found, opening pages, and completion. This resolves duplicate and missing toast notifications. ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
-
 - Moved the initial toast notification for Web‑linked Gallery to the content script to ensure immediate user feedback, even when the page scan takes several seconds. This aligns the flow with the behavior of other gallery extraction flows. ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
-
 - Prevented `Uncaught SyntaxError: Identifier 'debugLogLevelCache' has already been declared` and similar errors on direct image pages by wrapping the entire `injectSaveIcon.js` script in an IIFE with a guard flag. The script now runs only once per tab, eliminating all global declarations and avoiding re‑declaration issues when the script is injected multiple times (e.g., due to retries or repeated hotkey presses). ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
-
-- Prevented `Uncaught SyntaxError: Identifier 'SUPPORTED_IMAGE_EXTENSIONS' has already been declared` on direct image pages by adding a guard... ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
-
+- Prevented `Uncaught SyntaxError: Identifier 'SUPPORTED_IMAGE_EXTENSIONS' has already been declared` on direct image pages by adding a guard flag to the shared constants declaration. ([#78](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/78))
 - Web‑linked gallery now correctly groups pages with purely numeric slugs (e.g., `00.html` … `14.html`). The `normalizeGallerySlug()` helper returns a fixed token (`"numeric"`) when the normalized base is empty and the original slug consists only of digits, allowing `isSameGalleryStructure` to recognise all numeric‑only pages as part of the same sequence. This resolves the "No dominant image group found" error and restores the expected tab‑opening flow. ([#73](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/73))
-
 - One‑click save icon now uses a multi‑factor scoring heuristic to prioritise the main gallery image over advertisement thumbnails. The selection logic considers displayed size (`offsetWidth × offsetHeight`), main content containers, ad containers, affiliate link patterns, aspect ratio, and DOM position. Affiliate links are penalised with a graduated penalty (−80% for all three conditions, −50% for two, −30% for one). This resolves the issue where the icon was incorrectly placed on high‑resolution advertisement thumbnails displayed at small sizes. ([#74](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/74))
 
 ### Added
 
-- **Project Philosophy** – Added a dedicated `docs/philosophy.md` document and a corresponding section in the root `README.md` to articulate the core principles guiding the project: reliability, user control, performance, security, transparency, quality, and open collaboration.
+- Question issue template – Added `.github/ISSUE_TEMPLATE/question.yml` (GitHub Issue Form) providing a structured `[Question]` channel for support requests and open questions, completing the issue template set (Bug, Hotfix, Investigation, Edge Case, Feature Request, Documentation, Question).
+- Project Philosophy – Added a dedicated `docs/philosophy.md` document and a corresponding section in the root `README.md` to articulate the core principles guiding the project: reliability, user control, performance, security, transparency, quality, and open collaboration.
+- Document `docs/quick-start.md`: Comprehensive step-by-step guide for non-technical users, covering installation, first download workflow, and common issues.
+
+- Updated `README.md`: Replaced technical preview image (`Mass-Image-Downloader-preview10.webp`) with user-friendly "The Friendly Hero" illustration (`MID-The-Friendly-Hero.webp`). Added prominent link to Quick Start Guide in the Quick Start section, and added plain-text reference in the Documentation section to drive traffic to the Hub.
+- Updated `docs/README.md`: Added Quick Start Guide entry to the Available Documents section (positioned before the User Manual) and updated the "Which Document Should I Read First?" routing guide to recommend the Quick Start for first-time users.
+- Updated `docs/project-overview-extended.md`: Added technical preview image (`Mass-Image-Downloader-preview10.webp`) to preserve the "Tech Sheet" visual reference for advanced users and researchers.
+- Updated GitHub Issue and Pull Request templates: Reclassified Google Chrome as "Unsupported / At your own risk" to align with the project's privacy-by-design philosophy, and expanded the "Related Feature / Module" dropdowns with a layered, emoji-prefixed architecture to include missing core modules.
 
 ### Documentation
 
-- Enhanced `CONTRIBUTING.md` with clear guidance on the Discussion → Issue flow, a dedicated Edge Cases section, stronger Pull Request requirements (must reference an Issue or Discussion), a Pull Request Review Process section, and developer responsibilities for AI‑assisted contributions. The incremental commit discipline and local validation reporting are now also clarified. 
+- Updated `docs/ROADMAP.md`: added Issue #119 (`[EdgeCase] Unchecked runtime.lastError "Download must be in progress" appears intermittently in service worker console`) as a triage item in §7 Meta & housekeeping. No confirmed reproduction flow; no functional impact. Will be promoted to `type: bug` if a reliable reproduction sequence is identified.
+- Replaced the repository preview image with an optimized WebP asset (`assets/Mass-Image-Downloader-preview10.webp`), replacing `assets/Mass-Image-Downloader-preview08.png`. Updated the root `README.md` reference accordingly. Reduces the preview payload while preserving the rendered width and visual composition.
+- Updated `docs/ROADMAP.md`: scheduled Issue #117 (`[Chore] Extract Bulk Image Download logic from background.js into dedicated bulk.js module`) as PR K in release v2.8.190 (Inspector targeting, UX features, tooling). Architectural refactor to align Bulk Image Download with the project's Single Responsibility principle — currently the only core feature without a dedicated module file.
+- Updated `docs/ROADMAP.md`: scheduled Issue #116 (`[Bug] Web-linked Gallery accepts Reddit default avatars as candidates and opens user profile pages instead of gallery images`) as part of PR C in release v2.8.189 (Web-linked Gallery hardening epic). PR C branch renamed `fix/112-114-web-linked-hardening` → `fix/112-116-web-linked-hardening` to reflect the expanded scope. Discovered during QA of PR #110, Social site category (Reddit).
+- Added `Release Roadmap` entry to root `README.md` Documentation section, describing the planned-releases document alongside the existing manual references.
+- Updated `docs/ROADMAP.md`: scheduled Issue #114 (`[Bug] One-click scoring algorithm prioritizes promotional banners over main content images`) as part of PR C in release v2.8.189 (Web-linked Gallery hardening epic), incorporating Adobe Stock QA evidence that broadens the candidate-detection scope on stock aggregator sites.
+- Added `docs/ROADMAP.md`: Release Roadmap as the single source of truth for planned releases, ordering all open work (issues and discussions) into versioned release trains (v2.8.187–v2.8.190) with explicit scope, dependencies, QA gates, and guiding principles. Cross-referenced from the Documentation Hub (`docs/README.md`), `CONTRIBUTING.md` (Release Process), `CHANGELOG.md` header, and `docs/project-overview-extended.md` (Contributions section).
+- Updated `CONTRIBUTING.md`: comprehensive update adding `TOC`, `pre-requisites`, `project philosophy`, `repository structure`, `team roles`, `branch/commit conventions`, `security reporting`, `release process`, and `license header standards`.
+- Refreshed the documentation set for this release:
+  - Technical User Manual (`Image Inspector` spatial fallback and teardown safety; `One-click` multi-factor scoring; `Web-linked Gallery` toast sequence)
+  - Advanced Manual (selection-heuristic rationale and Inspector edge cases)
+  - User Manual (feature guidance and docs-first question routing)
+  - Documentation Hub (`Project Philosophy` entry, relative links, and routing typo fix)
+  - Extended Project Overview (Release Highlights updated for 2.8.187: Image Inspector reliability, Web-Linked Gallery accuracy, One-click scoring, internal hardening, documentation alignment)
+  - Hotkeys & Keyboard Shortcuts Policy (clarified hotkey-only features, fallback behavior, and browser-specific notes)
+- Renamed `docs/configuration-guides/configuration-guides.md` to `docs/configuration-guides/README.md`, normalized its TOC anchors to renderer-agnostic links, and updated the hub and documentation issue-template references to the new path.
+- Updated `CONTRIBUTING.md`: Added the 🎯 Minimal Technical Footprint (Zero Over-Engineering) and 🌍 Global Scope Fixes (80/20 Rule) sections to enforce performance-first, scoped, and maintainable solutions in future PRs.
+- Enhanced `CONTRIBUTING.md` with clear guidance on the `Discussion` → `Issue flow`, a dedicated `Edge Cases` section, stronger `Pull Request` requirements (must reference an Issue or Discussion), a `Pull Request Review Process` section, and `developer responsibilities` for AI‑assisted contributions. The `incremental commit discipline` and `local validation` reporting are now also clarified.
+- Added `docs/quick-start.md`: Comprehensive step-by-step guide for non-technical users, covering installation, first download workflow, and common issues. Linked from root `README.md` and Documentation Hub (`docs/README.md`) to improve discoverability for ordinary users.
+- Updated `README.md`: Replaced technical preview image (`Mass-Image-Downloader-preview10.webp`) with user-friendly "The Friendly Hero" illustration (`MID-The-Friendly-Hero.webp`) to better serve ordinary users. Added prominent link to Quick Start Guide in the Quick Start section.
+- Updated `docs/README.md`: Added Quick Start Guide entry to the Available Documents section, positioned before the User Manual as the recommended first read for new users.
+- Updated `docs/project-overview-extended.md`: Added technical preview image (`Mass-Image-Downloader-preview10.webp`) to preserve the "Tech Sheet" visual reference for advanced users and researchers.
+- Updated GitHub Issue and Pull Request templates: Reclassified Google Chrome as "Unsupported / At your own risk" to align with the project's privacy-by-design philosophy, and expanded the "Related Feature / Module" dropdowns to include missing core modules (One-click Download Icon, Settings Peek, Image Inspector Mode, Hotkeys, Toasts, etc.).
+- Fixed broken relative links in `docs/quick-start.md` pointing to the User Manual and Hotkeys Policy, ensuring correct navigation to `user-manual/README.md` and `hotkeys/hotkeys.md`.
+- Added `ACCESSIBILITY.md`: Comprehensive accessibility statement tailored for browser extensions, covering keyboard navigation, Shadow DOM contrast (Image Inspector), and screen reader compatibility for overlays and toasts.
+- Simplified root `README.md`: Removed redundant step-by-step installation instructions, replacing them with a direct pointer to the `Quick Start Guide` to reduce maintenance debt and improve first-time user onboarding.
+- Added `.github/ISSUE_TEMPLATE/refactor.yml`: New structured issue form for proposing code refactoring and technical debt reduction without altering user-facing behavior.
+- Updated `docs/ROADMAP.md`: registered Issue #120 (`[Docs] Add Quick Start guide for non-technical users`) in the v2.8.187 PR #110 release train (overview table, Mermaid dependency graph, closes table, and change log).
+- Refined `CONTRIBUTING.md`: Added concrete examples for good/bad bug reports, commits, PRs, edge cases, and AI disclosure. Added "Definition of Done" and "Common Mistakes to Avoid" sections to streamline PR reviews and reduce iteration cycles.
+- Updated `.gitignore`: Added `.continue/` directory to repository hygiene exclusions to prevent tracking of local AI-assistant tooling artifacts.
+
+### QA
+
+- QA completed on Brave (`Windows 11` and `WSL2/Ubuntu`) across seven site categories:
+  - stock
+  - social
+  - portfolios
+  - wallpapers
+  - reference/Commons
+  - e-commerce
+  - NSFW gallery aggregator
+- Validating the Image Inspector fixes (#77): `hover overlay`, `panel lifecycle`, `open-in-new-tab blur`, and `all teardown paths`, with no regressions in `Bulk`, `gallery`, or `Web-linked` flows.
+
+### Validation
+
+- Confirmed extension compliance with `npm run check`.
+- Confirmed automated tests with `npm test`.
+
+### Maintenance
+
+- Added `.vscode/` to repository hygiene exclusions.
 
 ---
 
