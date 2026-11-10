@@ -5,7 +5,7 @@ show-model-warnings: false
 
 # SAFETY & CONTROL (Critical)
 auto-commits: false       # Prevents automatic Git commits. You stay in the driver's seat.
-yes: false                # Always requires explicit (Y/n) confirmation before applying any code diffs.
+yes-always: false         # Always requires explicit (Y/n) confirmation before applying any code diffs.
 dry-run: false            # Set to 'true' if you only want to preview proposed changes without executing them.
 
 # CONTEXT MANAGEMENT (Prevents token limit crashes)
