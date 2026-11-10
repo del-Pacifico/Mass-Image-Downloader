@@ -85,6 +85,8 @@ For **planned** releases and release-train sequencing, see [`docs/ROADMAP.md`](d
 
 ### Maintenance
 
+- Added `.aider.conf.yml` to establish safe, deterministic defaults for AI-assisted coding (Aider), preventing context overload and enforcing manual review of code diffs.
+- Updated `.gitignore` to exclude ephemeral Aider artifacts (`.aider*`) while explicitly tracking the `.aider.conf.yml` configuration file.
 - Added `.vscode/` to repository hygiene exclusions.
 
 ---
