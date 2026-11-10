@@ -1,0 +1,17 @@
+model: ollama/qwen2.5-coder-7b-agente
+openai-api-base: http://localhost:11434/v1
+openai-api-key: ollama
+show-model-warnings: false
+
+# SAFETY & CONTROL (Critical)
+auto-commits: false       # Prevents automatic Git commits. You stay in the driver's seat.
+yes: false                # Always requires explicit (Y/n) confirmation before applying any code diffs.
+dry-run: false            # Set to 'true' if you only want to preview proposed changes without executing them.
+
+# CONTEXT MANAGEMENT (Prevents token limit crashes)
+map-tokens: 4096          # Caps the repository map at 4k tokens to keep the model focused and responsive.
+map-refresh: manual       # Disables automatic repo rescanning; updates the map only when explicitly requested.
+max-chat-history-tokens: 8192 # Automatically prunes the chat history if it grows too large, preventing context overload.
+
+# EDITING FORMAT
+edit-format: diff         # Enforces the standard diff format, making visual code reviews much easier and safer.

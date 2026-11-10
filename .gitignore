@@ -24,3 +24,5 @@ old versions/
 .vscode/
 
 .continue/
+.aider*
+!.aider.conf.yml
