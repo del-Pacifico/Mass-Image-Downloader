@@ -49,7 +49,7 @@ npm test
 | **v2.8.188** | PR A, PR B, PR C | Config & settings hotfixes | #99, #100, #101, #118 |
 | **v2.8.189** | PR D, PR E, PR F, PR G | Web-linked Gallery epic | #102–#109, #112–#114, #116, #121, discussions #76, #83, #90|
 | **v2.8.190** | PR H, PR I, PR J, PR K, PR L | Inspector targeting, UX features, tooling | #30–#32, #37, #91, #94, #96, #111, #115, #117, #122, discussion #92 |
-| **v2.8.191** | PR M (candidate) | Opt-in Bulk resiliency | discussion #123 (pending approval) |
+| **v2.8.191** | PR M, PR O (candidates) | Web-linked fallback & Bulk resiliency | #125, discussion #123 (pending approval) |
 
 Housekeeping (label pass, stale discussion closures, announcements) is scheduled in
 [Section 8](#🏷️-8-meta--housekeeping) and does not require a code release.
@@ -72,7 +72,8 @@ graph TD
     PRH --> PRJ["PR J - #94 #111 #30-32 #37<br/>UX features + tooling"]
     PRH --> PRK["PR K - #115<br/>background-image detection"]
     PRJ --> PRL["PR L - #117 #122<br/>Bulk module + orchestration refactor"]
-    PRL --> PRM["PR M - discussion #123<br/>opt-in transient retries (candidate)"]
+    PRM["PR M - #125<br/>Web-linked Visual fallback fix"]
+    PRL --> PRO["PR O - discussion #123<br/>opt-in transient retries (candidate)"]
 ```
 
 </details>
@@ -462,15 +463,37 @@ risk of changing existing behavior.
 
 ---
 
-## 🧩 7. v2.8.191 — Candidate: Opt-in Bulk resiliency
+## 🧩 7. v2.8.191 — Candidate: Web-linked fallback & Bulk resiliency
 
-**Status:** Candidate only. Discussion #123 requires maintainer approval and promotion
-to a feature issue before implementation is scheduled.
+**Status:** Candidate train only. Issue #125 needs browser reproduction and triage;
+discussion #123 needs maintainer approval and promotion to a feature issue. No item in
+this train is committed for implementation until its gate is met.
 
-### PR M — `feat/<issue>-bulk-retries` (proposed)
+### PR M — `fix/125-web-linked-visual-fallback` (candidate)
+
+**Closes:** [#125](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/125)
+
+**Why:** When the Web-linked content script finds no valid linked candidates, it sends
+`{ action: "extractVisualGallery" }` without an `images` array. The background visual
+handler requires that array, so the promised fallback does not start. This is a separate
+behavior fix, not part of the background orchestration refactor.
+
+**Scope:** Repair the handoff so Visual Gallery detection runs on the current page and
+passes its discovered image data through the existing background contract. Do not change
+Web-linked candidate selection, grouping heuristics, or the background orchestration
+structure in this fix.
+
+**Exit criteria:** Reproduce the empty-candidate path on a supported browser; verify the
+visual scan starts, its images reach the normal Visual Gallery handling path, and the
+user receives accurate feedback. Confirm ordinary Web-linked and direct Visual Gallery
+flows remain unchanged. `npm run check` and `npm test` pass.
+
+**Scheduling gate:** PR M remains a candidate until #125 is reproduced and triaged.
+
+### PR O — `feat/<issue>-bulk-retries` (proposed)
 
 **Implements:** [discussion #123](https://github.com/del-Pacifico/Mass-Image-Downloader/discussions/123)
-after it is approved and promoted to an issue using the Feature Request template.
+after it is approved and promoted to a feature issue using the Feature Request template.
 
 **Dependency:** PR L (#117, #122) should land first. Its awaitable orchestration provides
 the testable per-image lifecycle needed to retry a failed image without replaying a
@@ -482,7 +505,7 @@ with minimum waits of 1, 2, and 4 seconds; honor a longer `Retry-After` up to 30
 Retry only eligible transient failures; do not retry permanent validation failures or
 user cancellations.
 
-**Scheduling gate:** Do not treat PR M as committed release work until the discussion
+**Scheduling gate:** Do not treat PR O as committed release work until the discussion
 is approved, a feature issue is created and labeled, and its scope is accepted by the
 maintainer. The issue number and final branch name replace the placeholders above.
 
@@ -538,3 +561,4 @@ No code release required. Scheduled after v2.8.188 lands.
 | 2026-10-29|Added Issue #120 (`[Docs] Add Quick Start guide for non-technical users`) to v2.8.187 PR #110. Documentation alignment for first-time user onboarding, shipped with the pending release batch.|
 | 2026-10-31 | Added Issue #121 ([Refactor] Upgrade URL validation in utils.js to support Content-Type fallback) to v2.8.189 PR E. Groups extensionless CDN validation refactor with existing `utils.js` cleanup (#103), respecting the "Refactors ship separately" rule and keeping PR C (v2.8.188) strictly focused on the wrapped-URL bugfix (#118). |
 | 2026-11-13 | Added Issue #122 to v2.8.190 PR L alongside #117 as a behavior-preserving Bulk orchestration refactor. Recorded Discussion #123 as a conditional v2.8.191 PR M candidate, dependent on PR L and pending maintainer approval and promotion to a feature issue. |
+| 2026-11-14 | Added Issue #125 as the v2.8.191 PR M candidate for the Web-linked Visual Gallery fallback defect and re-sequenced Discussion #123 as conditional PR O, pending approval and promotion to a feature issue. |

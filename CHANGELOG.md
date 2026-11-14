@@ -31,6 +31,7 @@ For **planned** releases and release-train sequencing, see [`docs/ROADMAP.md`](d
 
 ### Documentation
 
+- Updated `docs/ROADMAP.md`: added Issue #125 as the v2.8.191 PR M candidate for the Web-linked Visual Gallery fallback defect and re-sequenced Discussion #123 as conditional PR O pending approval and promotion to a feature issue.
 - Updated `docs/ROADMAP.md`: added Issue #122 to v2.8.190 PR L alongside #117 as a behavior-preserving Bulk orchestration refactor, and recorded Discussion #123 as a conditional v2.8.191 PR M candidate pending maintainer approval and promotion to a feature issue.
 - Updated `docs/ROADMAP.md`: added Issue #119 (`[EdgeCase] Unchecked runtime.lastError "Download must be in progress" appears intermittently in service worker console`) as a triage item in §8 Meta & housekeeping. No confirmed reproduction flow; no functional impact. Will be promoted to `type: bug` if a reliable reproduction sequence is identified.
 - Replaced the repository preview image with an optimized WebP asset (`assets/Mass-Image-Downloader-preview10.webp`), replacing `assets/Mass-Image-Downloader-preview08.png`. Updated the root `README.md` reference accordingly. Reduces the preview payload while preserving the rendered width and visual composition.
