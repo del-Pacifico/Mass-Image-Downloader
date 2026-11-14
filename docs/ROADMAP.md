@@ -6,7 +6,7 @@
 **Contributors:** Mr. [@agentsmid](https://github.com/agentsmid)</br>
 **Status:** Proposed — pending maintainer approval</br>
 **Standards:** This document follows the [Contributing Guide](CONTRIBUTING.md), including the Documentation Standards, Markdown Format, Development Flow, and Labeling Rules sections.</br>
-**Last updated:** 2026-10-14
+**Last updated:** 2026-11-13
 
 ---
 
@@ -48,10 +48,11 @@ npm test
 | **v2.8.187** | PR #110 (existing) | Pending release batch | #73, #74, #77, #78, #120 |
 | **v2.8.188** | PR A, PR B, PR C | Config & settings hotfixes | #99, #100, #101, #118 |
 | **v2.8.189** | PR D, PR E, PR F, PR G | Web-linked Gallery epic | #102–#109, #112–#114, #116, #121, discussions #76, #83, #90|
-| **v2.8.190** | PR H, PR I, PR J, PR K, PR L | Inspector targeting, UX features, tooling | #30–#32, #37, #91, #94, #96, #111, #115, #117, discussion #92 |
+| **v2.8.190** | PR H, PR I, PR J, PR K, PR L | Inspector targeting, UX features, tooling | #30–#32, #37, #91, #94, #96, #111, #115, #117, #122, discussion #92 |
+| **v2.8.191** | PR M (candidate) | Opt-in Bulk resiliency | discussion #123 (pending approval) |
 
 Housekeeping (label pass, stale discussion closures, announcements) is scheduled in
-[Section 7](#🏷️-7-meta--housekeeping) and does not require a code release.
+[Section 8](#🏷️-8-meta--housekeeping) and does not require a code release.
 
 <details>
 <summary><strong>Dependency graph (supplementary — same information as the table)</strong></summary>
@@ -70,7 +71,8 @@ graph TD
     PRG --> PRI["PR I - discussion #92<br/>cancel hotkey"]
     PRH --> PRJ["PR J - #94 #111 #30-32 #37<br/>UX features + tooling"]
     PRH --> PRK["PR K - #115<br/>background-image detection"]
-    PRJ --> PRL["PR L - #117<br/>bulk.js module extraction"]
+    PRJ --> PRL["PR L - #117 #122<br/>Bulk module + orchestration refactor"]
+    PRL --> PRM["PR M - discussion #123<br/>opt-in transient retries (candidate)"]
 ```
 
 </details>
@@ -393,16 +395,19 @@ to maintain the Minimal Technical Footprint.
 Opera One. Confirm icon appears, downloads correct image, and no regression on
 standard `<img>` pages.
 
-### PR L — `chore/bulk-module-extraction`
+### PR L — `refactor/117-122-bulk-orchestration`
 
-**Closes:** [#117](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/117)
+**Closes:** [#117](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/117),
+[#122](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/122)
 
 **Why:** The Bulk Image Download flow is the only core feature implemented inline
 within `background.js` (via `handleBulkDownloadHotkey()` and `handleBulkDownload()`),
 while every other feature has its own dedicated module file (`injectSaveIcon.js`,
 `imageInspector.js`, `extractWebLinkedGallery.js`, `extractGallery.js`, `settingsPeek.js`,
 `clipboardHotkeys.js`). This refactor extracts the Bulk logic into a new `scripts/bulk.js`
-module to align the project with its own Single Responsibility architecture.
+module to align the project with its own Single Responsibility architecture. Issue #122
+extends the same refactor by making the existing orchestration awaitable and easier
+to test, without changing user-facing behavior.
 
 **Scope:**
 
@@ -417,6 +422,8 @@ module to align the project with its own Single Responsibility architecture.
    - Remove the inlined Bulk logic.
    - Delegate the `hotkey-bulk-download` command to an imported `bulk.js` handler.
 4. Update `README.md` "Key files and responsibilities" table to add an entry for `bulk.js`.
+5. Make the internal orchestration awaitable and testable while preserving the existing
+  popup/hotkey entry points, response contract, download flow, and visible feedback.
 
 **Exit criteria:**
 
@@ -426,21 +433,25 @@ module to align the project with its own Single Responsibility architecture.
 - Manual QA on Brave + Edge + Opera One: Bulk hotkey (`Alt+Shift+D`) behaves identically
   to pre-refactor on direct image tabs, wrapped-URL tabs, mixed tabs, and
   resume-from-last-batch flow.
+- Focused tests confirm existing tab selection, filters, batching, duplicate handling,
+  filename/path behavior, and response contract remain unchanged.
 
-**Why here (v2.8.190):** Thematically aligned with PR J (tooling) and PR H (inspector
-targeting). Near-zero behavioral risk — pure code movement. Does not block any of the
-bug-fix PRs (H, K) that precede it.
+**Why here (v2.8.190):** Issue #122 is a direct continuation of #117 in the same Bulk
+orchestration boundary. Keeping both in PR L avoids a second extraction/refactor pass,
+while focused parity tests protect the no-behavior-change requirement. It does not block
+the bug-fix PRs (H, K) that precede it.
 
 **Out of scope:**
 
-- Behavioral changes to Bulk (URL validation, unwrapping, format checks). Those belong
-  in separate bug-fix PRs.
+- Behavioral changes to Bulk, including retries, new settings, URL validation,
+  unwrapping, or format checks. Those belong in separate feature or bug-fix work.
 - Changes to other modules.
 - API surface changes to the Bulk user flow (hotkey, toasts, badge behavior must remain
   identical).
 
-**Risk assessment:** Low. Code-movement refactor with no behavioral changes. Main risk:
-missing a helper that Bulk depends on — mitigated by full Bulk QA matrix post-refactor.
+**Risk assessment:** Medium. The scope includes moving callback-driven orchestration
+behind an awaitable internal flow; parity tests and the full Bulk QA matrix mitigate the
+risk of changing existing behavior.
 
 ### Exit criteria for v2.8.190
 
@@ -451,7 +462,33 @@ missing a helper that Bulk depends on — mitigated by full Bulk QA matrix post-
 
 ---
 
-## 🏷️ 7. Meta & housekeeping
+## 🧩 7. v2.8.191 — Candidate: Opt-in Bulk resiliency
+
+**Status:** Candidate only. Discussion #123 requires maintainer approval and promotion
+to a feature issue before implementation is scheduled.
+
+### PR M — `feat/<issue>-bulk-retries` (proposed)
+
+**Implements:** [discussion #123](https://github.com/del-Pacifico/Mass-Image-Downloader/discussions/123)
+after it is approved and promoted to an issue using the Feature Request template.
+
+**Dependency:** PR L (#117, #122) should land first. Its awaitable orchestration provides
+the testable per-image lifecycle needed to retry a failed image without replaying a
+whole batch.
+
+**Proposed scope:** Add a Bulk Options checkbox, disabled by default, for retrying
+transient failures. When enabled, allow up to three additional attempts (four total),
+with minimum waits of 1, 2, and 4 seconds; honor a longer `Retry-After` up to 30 seconds.
+Retry only eligible transient failures; do not retry permanent validation failures or
+user cancellations.
+
+**Scheduling gate:** Do not treat PR M as committed release work until the discussion
+is approved, a feature issue is created and labeled, and its scope is accepted by the
+maintainer. The issue number and final branch name replace the placeholders above.
+
+---
+
+## 🏷️ 8. Meta & housekeeping
 
 No code release required. Scheduled after v2.8.188 lands.
 
@@ -471,7 +508,7 @@ No code release required. Scheduled after v2.8.188 lands.
 
 ---
 
-## 🧭 8. Guiding principles of this roadmap
+## 🧭 9. Guiding principles of this roadmap
 
 1. **Urgency over effort.** High-priority and regression items always precede backlog.
 2. **Each PR leaves the base cleaner than it found it** — hotfix → behavior hardening
@@ -481,13 +518,13 @@ No code release required. Scheduled after v2.8.188 lands.
 4. **Discussions close with decisions.** When a discussion's problem is promoted to
    issues (#90 → #112–#114), the discussion closes with the architectural decision
    recorded instead of lingering as a zombie.
-5. **Releases are small and frequent.** Four releases over the epic instead of one
-   monolith keeps `main` releasable at every step, following the
+5. **Releases are small and frequent.** Four scheduled releases, plus a conditional
+  fifth candidate, keep `main` releasable at every step, following the
    `feature/chore/fix branch → dev → main → tag/release` flow.
 
 ---
 
-## 📝 9. Roadmap change log
+## 📝 10. Roadmap change log
 
 | Date | Change |
 |---|---|
@@ -500,3 +537,4 @@ No code release required. Scheduled after v2.8.188 lands.
 | 2026-10-14 | Added Issue #118 (`[Bug] Bulk Image Download rejects Reddit wrapped media URLs despite allowWrappedImageUrls being enabled`) to v2.8.188 as PR C. Regression of CHANGELOG v2.8.185 promise that Bulk normalizes wrapped URLs. Root cause confirmed: `isDirectImageUrl()` does not implement unwrapping logic. |
 | 2026-10-29|Added Issue #120 (`[Docs] Add Quick Start guide for non-technical users`) to v2.8.187 PR #110. Documentation alignment for first-time user onboarding, shipped with the pending release batch.|
 | 2026-10-31 | Added Issue #121 ([Refactor] Upgrade URL validation in utils.js to support Content-Type fallback) to v2.8.189 PR E. Groups extensionless CDN validation refactor with existing `utils.js` cleanup (#103), respecting the "Refactors ship separately" rule and keeping PR C (v2.8.188) strictly focused on the wrapped-URL bugfix (#118). |
+| 2026-11-13 | Added Issue #122 to v2.8.190 PR L alongside #117 as a behavior-preserving Bulk orchestration refactor. Recorded Discussion #123 as a conditional v2.8.191 PR M candidate, dependent on PR L and pending maintainer approval and promotion to a feature issue. |
