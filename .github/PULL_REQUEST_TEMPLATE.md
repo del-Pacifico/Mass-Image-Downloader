@@ -59,9 +59,11 @@ _Check what you actually ran._
 - [ ] `npm test`
 
 **Browsers tested:**
-- [ ] Edge (Chromium): `version`
-- [ ] Chrome: `version`
 - [ ] Brave: `version`
+- [ ] Edge (Chromium): `version`
+- [ ] Opera (Chromium): `version`
+- [ ] Vivaldi (Chromium): `version`
+- [ ] Chrome (Unsupported / At your own risk): `version` 
 - [ ] Other Chromium: `version`
 
 **Steps verified (short list):**

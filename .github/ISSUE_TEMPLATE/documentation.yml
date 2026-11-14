@@ -46,7 +46,7 @@ body:
     attributes:
       label: File Path
       description: Provide the path to the affected file (relative to repository root).
-      placeholder: "e.g. docs/configuration-guides/configuration-guides.md"
+      placeholder: "e.g. docs/configuration-guides/README.md"
     validations:
       required: true
 
