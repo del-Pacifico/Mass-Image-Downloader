@@ -49,7 +49,7 @@ npm test
 | **v2.8.188** | PR A, PR B, PR C | Config & settings hotfixes | #99, #100, #101, #118 |
 | **v2.8.189** | PR D, PR E, PR F, PR G | Web-linked Gallery epic | #102–#109, #112–#114, #116, #121, discussions #76, #83, #90|
 | **v2.8.190** | PR H, PR I, PR J, PR K, PR L | Inspector targeting, UX features, tooling | #30–#32, #37, #91, #94, #96, #111, #115, #117, #122, discussion #92 |
-| **v2.8.191** | PR M, PR O (candidates) | Web-linked fallback & Bulk resiliency | #125, discussion #123 (pending approval) |
+| **v2.8.191** | PR M, PR N, PR O (candidates) | Web-linked fallback/orchestration & Bulk resiliency | #125, #124, discussion #123 (pending approval) |
 
 Housekeeping (label pass, stale discussion closures, announcements) is scheduled in
 [Section 8](#🏷️-8-meta--housekeeping) and does not require a code release.
@@ -73,6 +73,7 @@ graph TD
     PRH --> PRK["PR K - #115<br/>background-image detection"]
     PRJ --> PRL["PR L - #117 #122<br/>Bulk module + orchestration refactor"]
     PRM["PR M - #125<br/>Web-linked Visual fallback fix"]
+    PRM --> PRN["PR N - #124<br/>Web-linked background orchestration refactor"]
     PRL --> PRO["PR O - discussion #123<br/>opt-in transient retries (candidate)"]
 ```
 
@@ -463,11 +464,12 @@ risk of changing existing behavior.
 
 ---
 
-## 🧩 7. v2.8.191 — Candidate: Web-linked fallback & Bulk resiliency
+## 🧩 7. v2.8.191 — Candidate: Web-linked fallback/orchestration & Bulk resiliency
 
 **Status:** Candidate train only. Issue #125 needs browser reproduction and triage;
-discussion #123 needs maintainer approval and promotion to a feature issue. No item in
-this train is committed for implementation until its gate is met.
+Issue #124 needs triage; discussion #123 needs maintainer approval and promotion to a
+feature issue. No item in this train is committed for implementation until its gate is
+met.
 
 ### PR M — `fix/125-web-linked-visual-fallback` (candidate)
 
@@ -489,6 +491,32 @@ user receives accurate feedback. Confirm ordinary Web-linked and direct Visual G
 flows remain unchanged. `npm run check` and `npm test` pass.
 
 **Scheduling gate:** PR M remains a candidate until #125 is reproduced and triaged.
+
+### PR N — `refactor/124-web-linked-background-orchestration` (candidate)
+
+**Closes:** [#124](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/124)
+
+**Why:** The page-side detector already lives in `scripts/extractWebLinkedGallery.js`,
+but the background-owned tab-opening lifecycle remains nested in the central message
+router. Isolating that orchestration makes the MV3 handoff and tab lifecycle easier to
+test without mixing page DOM work into the service worker.
+
+**Dependency:** Land PR M (#125) first if both changes touch the background router, so
+the behavior fix is not refactored over before it is stabilized.
+
+**Scope:** Extract the `processWebLinkedGallery` background handler into a focused
+service-worker module. Preserve the current message contract, immediate ACK, URL
+filtering, concurrency and pacing, tab ordering, optional One-click injection, bounded
+injection retries, badge/toast behavior, and error handling. Do not change candidate
+selection or grouping.
+
+**Exit criteria:** Focused tests cover message validation, ACK semantics, concurrency,
+rate pacing, tab creation failures, optional injection, and both popup/hotkey entry
+points. `npm run check` and `npm test` pass; manual QA covers Brave, Edge, Vivaldi, and
+Opera One.
+
+**Scheduling gate:** PR N remains a candidate until #124 is triaged and its scope is
+approved. Keep it separate from PR M's behavior fix.
 
 ### PR O — `feat/<issue>-bulk-retries` (proposed)
 
@@ -562,3 +590,4 @@ No code release required. Scheduled after v2.8.188 lands.
 | 2026-10-31 | Added Issue #121 ([Refactor] Upgrade URL validation in utils.js to support Content-Type fallback) to v2.8.189 PR E. Groups extensionless CDN validation refactor with existing `utils.js` cleanup (#103), respecting the "Refactors ship separately" rule and keeping PR C (v2.8.188) strictly focused on the wrapped-URL bugfix (#118). |
 | 2026-11-13 | Added Issue #122 to v2.8.190 PR L alongside #117 as a behavior-preserving Bulk orchestration refactor. Recorded Discussion #123 as a conditional v2.8.191 PR M candidate, dependent on PR L and pending maintainer approval and promotion to a feature issue. |
 | 2026-11-14 | Added Issue #125 as the v2.8.191 PR M candidate for the Web-linked Visual Gallery fallback defect and re-sequenced Discussion #123 as conditional PR O, pending approval and promotion to a feature issue. |
+| 2026-11-14 | Added Issue #124 as the v2.8.191 PR N candidate for a behavior-preserving Web-linked Gallery background orchestration refactor, sequenced after PR M so the behavior fix lands first. |
