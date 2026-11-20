@@ -50,6 +50,7 @@ npm test
 | **v2.8.189** | PR D, PR E, PR F, PR G | Web-linked Gallery epic | #102–#109, #112–#114, #116, #121, discussions #76, #83, #90|
 | **v2.8.190** | PR H, PR I, PR J, PR K, PR L | Inspector targeting, UX features, tooling | #30–#32, #37, #91, #94, #96, #111, #115, #117, #122, discussion #92 |
 | **v2.8.191** | PR M, PR N, PR O (candidates) | Web-linked fallback/orchestration & Bulk resiliency | #125, #124, discussion #123 (pending approval) |
+| **v2.8.192**|PR P, PR Q, PR R|Download tracking & feedback enhancements|#126, #127, #128|
 
 Housekeeping (label pass, stale discussion closures, announcements) is scheduled in
 [Section 8](#🏷️-8-meta--housekeeping) and does not require a code release.
@@ -72,9 +73,18 @@ graph TD
     PRH --> PRJ["PR J - #94 #111 #30-32 #37<br/>UX features + tooling"]
     PRH --> PRK["PR K - #115<br/>background-image detection"]
     PRJ --> PRL["PR L - #117 #122<br/>Bulk module + orchestration refactor"]
-    PRM["PR M - #125<br/>Web-linked Visual fallback fix"]
+    
+    %% Web-linked track (continúa desde el epic de Web-linked)
+    PRG --> PRM["PR M - #125<br/>Web-linked Visual fallback fix"]
     PRM --> PRN["PR N - #124<br/>Web-linked background orchestration refactor"]
+    
+    %% Bulk track (continúa desde el refactor de Bulk)
     PRL --> PRO["PR O - discussion #123<br/>opt-in transient retries (candidate)"]
+    
+    %% Download tracking & feedback track (nace tras el refactor de orquestación)
+    PRL --> PRP["PR P - #126<br/>badge counter refactor"]
+    PRP --> PRQ["PR Q - #127<br/>Web-linked auto-save"]
+    PRP --> PRR["PR R - #128<br/>detailed summary toast"]
 ```
 
 </details>
@@ -539,7 +549,98 @@ maintainer. The issue number and final branch name replace the placeholders abov
 
 ---
 
-## 🏷️ 8. Meta & housekeeping
+## 📊 8. v2.8.192 — Download tracking & feedback enhancements
+
+Status: Planned. All three issues are new features/refactors originating from QA findings during PR #110 testing.
+
+### PR P — `refactor/126-unify-badge-counter`
+
+Closes: [#126](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/126)
+
+Why first: The badge counter currently behaves inconsistently across flows (Bulk counts initiated downloads, Web-linked counts opened tabs, Inspector shows fixed "1"). This refactor establishes a unified contract: the badge reflects only **actually completed downloads** across all flows. This is a prerequisite for PR Q and PR R, which depend on accurate badge counts.
+
+Scope:
+
+- Create a unified helper in `utils.js` (e.g., `trackDownloadCompletion`) that listens to `chrome.downloads.onChanged`
+- Update all download flows (Bulk, Visual, Linked, Web-linked, Inspector) to increment the badge only when `state === "complete"`
+- For Web-linked Gallery: decouple badge from tab-opening loop; tie it to actual download completion in each tab
+- Reset badge counter at the start of each new flow
+
+Exit criteria:
+
+- Badge shows incremental count of completed downloads (not initiated or opened tabs)
+- Final badge state matches the "saved" count in the completion toast (when PR R is implemented)
+- `npm run check` and `npm test` pass
+- Manual QA on Brave + Edge + Opera One: confirm badge behavior across all five flows
+
+### PR Q — `feat/127-web-linked-auto-save`
+
+Closes: [#127](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/127)
+
+Dependency: PR P (#126) must land first. The auto-save flow requires the unified badge counter to accurately reflect downloads.
+
+Why second: This feature extends the Web-linked Gallery flow (which was hardened in v2.8.189 PR D and refactored in v2.8.191 PR N). It addresses a UX friction point: manually clicking One-click on 20+ opened tabs is tedious.
+
+Scope:
+
+- Add new toggle `webLinkedAutoSave` (default `false`) in Options under "🔗 Web-Linked Gallery Settings"
+- When enabled: background script processes URLs sequentially (1 tab at a time, respecting `webLinkedGalleryDelay`)
+- For each URL: open tab (inactive), inject extraction script, download image, close tab, proceed to next
+- Show progress toast: `"MID: Auto-saving 3 / 20 pages..."`
+- Retry logic: 1 attempt on failure, then skip and continue
+- Final toast: summary with saved/blocked/retried/skipped counts + duration (format: `Nm Ns`)
+
+Exit criteria:
+
+- Toggle appears in Options and persists correctly
+- When enabled, Web-linked flow processes URLs sequentially without user intervention
+- Progress toast updates in real-time
+- Final summary toast matches PR R format
+- When disabled, flow behaves exactly as today (manual One-click required)
+- `npm run check` and `npm test` pass
+
+### PR R — `feat/128-detailed-download-summary`
+
+Closes: [#128](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/128)
+
+Dependency: PR P (#126) must land first. The detailed summary requires accurate badge counts to display correct "saved" numbers.
+
+Why third: This is a transversal UX improvement that applies to all download flows. It ships last because it depends on the unified badge counter (PR P) and can be tested independently of the Web-linked auto-save (PR Q).
+
+Scope:
+
+- Add new toggle `showDetailedDownloadSummary` (default `false`) in Options under "📢 Notifications > Feedback & Reports"
+- When enabled: replace completion toast with multi-line summary
+- Format (no emojis, professional):
+
+```text
+MID: Flow name (Bulk/Galleries/etc) Done.
+n saved
+n blocked
+n retry
+n skipped
+Duration: Nm Ns
+```
+
+- Counters: saved, blocked (CORS/network), retried, skipped (size/format), duration
+- Requires CSS change: add `white-space: pre-line` to toast styling in `utils.js`
+- Apply to all flows: Bulk, Visual Gallery, Linked Gallery, Web-linked Gallery, Inspector
+
+Exit criteria:
+- Toggle appears in Options and persists correctly
+- When enabled, all flows show detailed summary toast
+- Toast renders correctly with line breaks
+- "saved" count matches final badge count
+- When disabled, flows show current simple toast
+- `npm run check` and `npm test` pass
+
+Exit criteria for v2.8.192
+PR P, PR Q, and PR R merged into `dev`, promoted `dev → main`, tagged `v2.8.192`.
+`CHANGELOG.md` updated for all three user-visible changes.
+
+---
+
+## 🏷️ 9. Meta & housekeeping
 
 No code release required. Scheduled after v2.8.188 lands.
 
@@ -559,7 +660,7 @@ No code release required. Scheduled after v2.8.188 lands.
 
 ---
 
-## 🧭 9. Guiding principles of this roadmap
+## 🧭 10. Guiding principles of this roadmap
 
 1. **Urgency over effort.** High-priority and regression items always precede backlog.
 2. **Each PR leaves the base cleaner than it found it** — hotfix → behavior hardening
@@ -575,7 +676,7 @@ No code release required. Scheduled after v2.8.188 lands.
 
 ---
 
-## 📝 10. Roadmap change log
+## 📝 11. Roadmap change log
 
 | Date | Change |
 |---|---|
@@ -591,3 +692,6 @@ No code release required. Scheduled after v2.8.188 lands.
 | 2026-11-13 | Added Issue #122 to v2.8.190 PR L alongside #117 as a behavior-preserving Bulk orchestration refactor. Recorded Discussion #123 as a conditional v2.8.191 PR M candidate, dependent on PR L and pending maintainer approval and promotion to a feature issue. |
 | 2026-11-14 | Added Issue #125 as the v2.8.191 PR M candidate for the Web-linked Visual Gallery fallback defect and re-sequenced Discussion #123 as conditional PR O, pending approval and promotion to a feature issue. |
 | 2026-11-14 | Added Issue #124 as the v2.8.191 PR N candidate for a behavior-preserving Web-linked Gallery background orchestration refactor, sequenced after PR M so the behavior fix lands first. |
+| 2026-11-19|Added Issue #126 ([Refactor] Unify badge counter across all flows to track actual completed downloads) to v2.8.192 as PR P. Originates from QA of PR #110, Category 3: Portfolios. Prerequisite for PR Q and PR R.|
+| 2026-11-19|Added Issue #127 ([Feature] Web-linked auto-save sequential mode) to v2.8.192 as PR Q. Extends Web-linked Gallery flow with opt-in auto-save. Depends on PR P (#126).|
+| 2026-11-19|Added Issue #128 ([Feature] Detailed download summary toast) to v2.8.192 as PR R. Transversal UX improvement for all download flows. Depends on PR P (#126).|
