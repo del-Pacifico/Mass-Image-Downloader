@@ -12,10 +12,10 @@
 ![GitHub community standards](https://img.shields.io/badge/community%20standards-100%25-brightgreen?style=flat-square&logo=github)
 
 <p align="center">
-  <img src="assets/Mass-Image-Downloader-preview08.png" alt="Mass Image Downloader preview" width="900">
+  <img src="assets/MID-The-Friendly-Hero.webp" alt="Mass Image Downloader preview" width="900">
 </p>
 
-Mass Image Downloader is a Chromium Manifest V3 extension for collecting and downloading images at scale from open tabs, single pages, and multi-page galleries while keeping results filtered, named, and reproducible.
+**Mass Image Downloader** is a Chromium Manifest V3 extension for collecting and downloading images at scale from open tabs, single pages, and multi-page galleries while keeping results filtered, named, and reproducible.
 
 ---
 
@@ -34,35 +34,22 @@ Mass Image Downloader is a Chromium Manifest V3 extension for collecting and dow
 
 ## 🏗️ Installation
 
-1. Clone this repository using HTTPS or SSH:
+- For detailed, step-by-step unpacked installation instructions (including OS-specific guides and developer mode setup), please refer to our [Quick Start Guide](docs/quick-start.md).
 
-   ```bash
-   git clone https://github.com/del-Pacifico/Mass-Image-Downloader.git
-   ```
-
-   ```bash
-   git clone git@github.com:del-Pacifico/Mass-Image-Downloader.git
-   ```
-
-2. Open a Chromium-based browser and go to the extensions page:
-   - Edge: `edge://extensions`
-   - Brave: `brave://extensions`
-   - Opera: `opera://extensions`
-   - Vivaldi: `vivaldi://extensions`
-3. Enable Developer Mode.
-4. Select **Load unpacked**.
-5. Choose the cloned repository root folder, the one containing `manifest.json`.
-
-For the long-form unpacked installation notes, see the [Extended Project Overview](docs/project-overview-extended.md#-installation-developer-mode--unpacked).
+- For the long-form unpacked installation notes, see the [Extended Project Overview](docs/project-overview-extended.md#-installation-developer-mode--unpacked).
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
+
+**New here?** Start with our [Quick Start Guide](docs/quick-start.md) for a step-by-step walkthrough designed for `first-time users`.
 
 1. Pin the extension icon.
 2. Open the popup and choose a download mode.
 3. Configure formats, size filters, naming, pacing, and gallery limits from the Options page.
 4. Run the workflow from the popup or with the configured keyboard shortcuts.
+
+> ⚠️ *Before running*, disable your browser's **"Ask where to save each file before downloading"** prompt so bulk and gallery downloads proceed without interruption.
 
 ---
 
@@ -82,30 +69,30 @@ These commands validate the extension manifest, declared paths, version alignmen
 ## 📑 Documentation
 
 - [Documentation Hub](docs/README.md) - entry point for all manuals.
-- [User Manual](docs/user-manual/README.md) - basic usage and workflows.
-- [Configuration Guides](docs/configuration-guides/configuration-guides.md) - scenario-based setup.
-- [Technical Manual](docs/technical-manual/README.md) - internal behavior and execution flow.
-- [Advanced Manual](docs/advanced-manual/README.md) - design rationale, trade-offs, and edge cases.
-- [Extended Project Overview](docs/project-overview-extended.md) - the previous long-form README preserved as a reference, including [Release Highlights](docs/project-overview-extended.md#-release-highlights).
-- [Hotkeys Policy](docs/hotkeys/hotkeys.md) - official shortcut policy.
+  - `Quick Start Guide` - step-by-step guide for first-time, non-technical users.
+  - `User Manual` - basic usage and workflows.
+  - `Configuration Guides` - scenario-based setup.
+  - `Technical Manual` - internal behavior and execution flow.
+  - `Advanced Manual` - design rationale, trade-offs, and edge cases.
+  - `Extended Project Overview` - the *previous long-form README* preserved as a reference, including Release Highlights.
+  - `Hotkeys Policy` - official shortcut policy.
+  - `Release Roadmap` - planned releases, release-train sequencing, and contribution alignment.
 
 ---
 
 ## 📋 Requirements
 
-- Chromium-based browser.
-- Minimum Chromium version: `93`.
+- `Chromium-based browser`, minimum version Chromium `93` (declared in `manifest.json`).
 - Manifest version: `3`.
-- QA tested primarily on Brave, with additional QA coverage on Microsoft Edge, Opera One, and Vivaldi.
-- Google Chrome has not been validated by the project QA process.
-- Browser-level shortcut conflicts or restrictions may require manual configuration.
+- QA tested primarily on `Brave`, with additional QA coverage on `MS Edge`, `Opera`, and `Vivaldi`.
+- *Google Chrome* has `not been validated` by the project QA process.
+- Browser-level shortcut conflicts or restrictions may require manual configuration (MS Edge and Opera).
 
 ---
 
 ## 🏷️ Version
 
 The current public version is shown by the GitHub Release badge above.
-
 For source-level validation, check:
 
 - the latest GitHub tag/release
@@ -118,43 +105,48 @@ See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## 🏛️ Project Philosophy
 
-Mass Image Downloader is built on a set of core principles: reliability, user control, performance, security, quality, and open collaboration.
+**Mass Image Downloader** is built on a set of core principles: reliability, user control, performance, security, quality, and open collaboration.
 
-These values guide every decision – from code architecture to user feedback design. For a deeper dive, see the full **[Project Philosophy](docs/philosophy.md)** document.
+These values guide every decision – from code architecture to user feedback design. 
+For a deeper dive, see the full **[Project Philosophy](docs/philosophy.md)** document.
 
 ---
 
 ## 🤝 Contributing
 
-Contributions should follow the project flow: feature or chore branch, PR to `dev`, merge to `main`, then tag/release.
+Contributions should follow the project flow:
+
+- feature or chore branch
+- PR to `dev`
+- merge to `main`
+- then tag/release.
 
 All issues, pull requests, and discussions should use the repository's descriptive label taxonomy so planning, review, and release work stay traceable.
-
 See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md).
 
 ---
 
 ## 🆘 Support the Project
 
-If Mass Image Downloader helps your workflow, consider starring the repository, opening focused issues, sharing reproducible test cases, or contributing documentation and fixes through the standard branch flow.
+If **Mass Image Downloader** helps your workflow, consider starring the repository, opening focused issues, sharing reproducible test cases, or contributing documentation and fixes through the standard branch flow.
 
-Responsible feedback is especially useful for gallery edge cases, browser compatibility checks, and real-world configuration scenarios.
+Responsible feedback is especially useful for gallery `edge cases`, `browser compatibility` checks, and `real-world` configuration scenarios.
 
 ---
 
 ## 😌 Acknowledgements
 
-Thank you for using Mass Image Downloader and supporting a focused, privacy-friendly tool for collecting images with predictable, browser-native workflows.
+Thank you for using **Mass Image Downloader** and supporting a `focused`, `privacy-friendly` tool for collecting images with `predictable`, `browser-native` workflows.
 
-Built for power users, researchers, curators, QA teams, dataset builders, and automation workflows that need controlled output without external services, tracking, or unnecessary complexity.
+Built for `power users`, `researchers`, `curators`, `QA teams`, `dataset builders`, and `automation workflows` that need controlled output without external services, *tracking*, or `unnecessary complexity`.
 
-Made with ❤️ by Del-Pacifico.
+Made with ❤️ by **Del-Pacifico**.
 
 ---
 
 ## ⚖️ License
 
-Mass Image Downloader is licensed under the [Mozilla Public License 2.0](LICENSE).
+**Mass Image Downloader** is licensed under the [Mozilla Public License 2.0](LICENSE).
 
 ---
 
