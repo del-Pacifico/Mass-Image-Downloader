@@ -2,25 +2,73 @@
 
 **Project:** Mass Image Downloader (Chrome MV3, open source, MPL 2.0)</br>
 **Repository:** github.com/del-Pacifico/Mass-Image-Downloader</br>
-**Maintainer:** Sergio Palma Hidalgo ([@sergiopalmah](https://github.com/sergiopalmah))</br>
-**Contributors:** Mr. [@agentsmid](https://github.com/agentsmid)</br>
-**Status:** Proposed — pending maintainer approval</br>
+**Maintainer:** 👨🏼‍💻 Sergio Palma H ([@sergiopalmah](https://github.com/sergiopalmah))</br>
+**Contributors:** 🥷🏻 Mr. AgentSmid ([@agentsmid](https://github.com/agentsmid))</br>
+**Status:** Proposed - pending maintainer approval</br>
 **Standards:** This document follows the [Contributing Guide](CONTRIBUTING.md), including the Documentation Standards, Markdown Format, Development Flow, and Labeling Rules sections.</br>
 **Last updated:** 2026-11-13
+
+---
+
+## 📑 Table of Contents
+
+- [🏔️ Mass Image Downloader – Release Roadmap](#️-mass-image-downloader--release-roadmap)
+  - [📑 Table of Contents](#-table-of-contents)
+  - [🧭 1. Purpose](#-1-purpose)
+    - [How to read this document](#how-to-read-this-document)
+  - [📋 2. Release overview](#-2-release-overview)
+  - [🚢 3. Upcoming scheduled PRs (Issues/discussions tracked and explored)](#-3-upcoming-scheduled-prs-issuesdiscussions-tracked-and-explored)
+    - [🏆 Release v2.8.187  - Pending release batch](#-release-v28187----pending-release-batch)
+      - [Closes](#closes)
+      - [Rationale](#rationale)
+      - [Post-merge verification (mandatory)](#post-merge-verification-mandatory)
+    - [🚑 Release v2.8.188 - Config \& settings hotfixes](#-release-v28188---config--settings-hotfixes)
+      - [PR A - `fix/101-minmax-range-validation`](#pr-a---fix101-minmax-range-validation)
+      - [PR B - `fix/99-100-settings-sync-defects`](#pr-b---fix99-100-settings-sync-defects)
+      - [PR C - `fix/118-bulk-wrapped-url-validation`](#pr-c---fix118-bulk-wrapped-url-validation)
+      - [Exit criteria for v2.8.188](#exit-criteria-for-v28188)
+    - [🧗 Release v2.8.189 - Web-linked Gallery epic](#-release-v28189---web-linked-gallery-epic)
+      - [PR D - `fix/112-116-web-linked-hardening`](#pr-d---fix112-116-web-linked-hardening)
+      - [PR E - `refactor/102-109-utils-cleanup`](#pr-e---refactor102-109-utils-cleanup)
+      - [PR F - `perf/76-linear-grouping`](#pr-f---perf76-linear-grouping)
+      - [PR G - `feat/83-hybrid-mode`](#pr-g---feat83-hybrid-mode)
+      - [Exit criteria for v2.8.189](#exit-criteria-for-v28189)
+    - [🔍 Release v2.8.190 - Inspector targeting, UX features, tooling](#-release-v28190---inspector-targeting-ux-features-tooling)
+      - [PR H - `fix/96-91-inspector-targeting`](#pr-h---fix96-91-inspector-targeting)
+      - [PR I - `feat/92-cancel-hotkey`](#pr-i---feat92-cancel-hotkey)
+      - [PR J - `feat/94-toast-position`, `chore/111-conflict-markers`, `fix/30-32-overlay-geometry`, `feat/37-context-menu`](#pr-j---feat94-toast-position-chore111-conflict-markers-fix30-32-overlay-geometry-feat37-context-menu)
+      - [PR K - `fix/115-background-image-detection`](#pr-k---fix115-background-image-detection)
+      - [PR L - `refactor/117-122-bulk-orchestration`](#pr-l---refactor117-122-bulk-orchestration)
+      - [Exit criteria for v2.8.190](#exit-criteria-for-v28190)
+    - [🧩 Release v2.8.191 - Candidate: Web-linked fallback/orchestration \& Bulk resiliency](#-release-v28191---candidate-web-linked-fallbackorchestration--bulk-resiliency)
+      - [PR M - `fix/125-web-linked-visual-fallback` (candidate)](#pr-m---fix125-web-linked-visual-fallback-candidate)
+      - [PR N - `refactor/124-web-linked-background-orchestration` (candidate)](#pr-n---refactor124-web-linked-background-orchestration-candidate)
+      - [PR O - `feat/<issue>-bulk-retries` (proposed)](#pr-o---featissue-bulk-retries-proposed)
+    - [📊 Release v2.8.192 - Download tracking \& feedback enhancements](#-release-v28192---download-tracking--feedback-enhancements)
+      - [PR P - `refactor/126-unify-badge-counter`](#pr-p---refactor126-unify-badge-counter)
+      - [PR Q - `feat/127-web-linked-auto-save`](#pr-q---feat127-web-linked-auto-save)
+      - [PR R - `feat/128-detailed-download-summary`](#pr-r---feat128-detailed-download-summary)
+    - [🎨 Release v2.8.193 - Web-linked heuristics \& One-click UX enhancements](#-release-v28193---web-linked-heuristics--one-click-ux-enhancements)
+      - [PR S - `feat/129-web-linked-sibling-pattern`](#pr-s---feat129-web-linked-sibling-pattern)
+      - [PR T - `feat/130-prefix-suffix-propagation`](#pr-t---feat130-prefix-suffix-propagation)
+      - [PR U - `feat/131-oneclick-tab-close-control`](#pr-u---feat131-oneclick-tab-close-control)
+  - [🏷️ 4. Meta \& housekeeping](#️-4-meta--housekeeping)
+  - [🧭 5. Guiding principles of this roadmap](#-5-guiding-principles-of-this-roadmap)
+  - [📝 6. Roadmap change log](#-6-roadmap-change-log)
 
 ---
 
 ## 🧭 1. Purpose
 
 This document is the single source of truth for planned releases. It orders all open
-work — from most urgent to least urgent — into versioned release trains, each backed
+work - from most urgent to least urgent - into versioned release trains, each backed
 by one or more pull requests with explicit scope, dependencies, and QA gates.
 
 It complements, and does not replace:
 
-- [CHANGELOG.md](../CHANGELOG.md) — what **shipped**
-- [GitHub Issues](https://github.com/del-Pacifico/Mass-Image-Downloader/issues) — what is **tracked**
-- [GitHub Discussions](https://github.com/del-Pacifico/Mass-Image-Downloader/discussions) — what is **explored**
+- [CHANGELOG.md](../CHANGELOG.md) - what **shipped**
+- [GitHub Issues](https://github.com/del-Pacifico/Mass-Image-Downloader/issues) - what is **tracked**
+- [GitHub Discussions](https://github.com/del-Pacifico/Mass-Image-Downloader/discussions) - what is **explored**
 
 ### How to read this document
 
@@ -51,12 +99,13 @@ npm test
 | **v2.8.190** | PR H, PR I, PR J, PR K, PR L | Inspector targeting, UX features, tooling | #30–#32, #37, #91, #94, #96, #111, #115, #117, #122, discussion #92 |
 | **v2.8.191** | PR M, PR N, PR O (candidates) | Web-linked fallback/orchestration & Bulk resiliency | #125, #124, discussion #123 (pending approval) |
 | **v2.8.192**|PR P, PR Q, PR R|Download tracking & feedback enhancements|#126, #127, #128|
+| **v2.8.193**|PR S, PR T, PR U|Web-linked heuristics & One-click UX enhancements|#129, #130, #131|
 
 Housekeeping (label pass, stale discussion closures, announcements) is scheduled in
-[Section 8](#🏷️-8-meta--housekeeping) and does not require a code release.
+[Section 4](#🏷️4-Meta-&-housekeeping) and does not require a code release.
 
 <details>
-<summary><strong>Dependency graph (supplementary — same information as the table)</strong></summary>
+<summary><strong>📊 Dependency graph (supplementary - same information as the table)</strong></summary>
 
 ```mermaid
 graph TD
@@ -85,18 +134,26 @@ graph TD
     PRL --> PRP["PR P - #126<br/>badge counter refactor"]
     PRP --> PRQ["PR Q - #127<br/>Web-linked auto-save"]
     PRP --> PRR["PR R - #128<br/>detailed summary toast"]
+
+    %% v2.8.193 Track: Web-linked heuristics & One-click UX enhancements
+    PRD --> PRS["PR S - #129<br/>web-linked sibling pattern"]
+    PRG --> PRT["PR T - #130<br/>prefix-suffix propagation"]
+    PRK --> PRT
+    PRK --> PRU["PR U - #131<br/>oneclick tab close control"]
 ```
 
 </details>
 
 ---
 
-## 🚢 3. v2.8.187 — Pending release batch
+## 🚢 3. Upcoming scheduled PRs (Issues/discussions tracked and explored) 
+
+### 🏆 Release v2.8.187  - Pending release batch
 
 **Source:** existing PR [#110](https://github.com/del-Pacifico/Mass-Image-Downloader/pull/110)
 **Status:** QA-approved; awaiting maintainer merge (assigned to @sergiopalmah)
 
-### Closes
+#### Closes
 
 | Item | Summary |
 |---|---|
@@ -106,17 +163,17 @@ graph TD
 | #78 | One-click IIFE guard + toast sequence hardening |
 | #120|Added `docs/quick-start.md`: comprehensive step-by-step guide for non-technical users, covering installation, first download workflow, and common issues. Linked from root `README.md` and Documentation Hub (`docs/README.md`).|
 
-### Rationale
+#### Rationale
 
 This is the operational gate for everything below. The fixes have been QA-approved
 since September; the branch is stable, and merging unblocks:
 
-- the anti-ad filter from #74 — a stated **precondition** for the Hybrid mode feature
+- the anti-ad filter from #74 - a stated **precondition** for the Hybrid mode feature
   (discussion #83);
 - the release of v2.8.187, which ships the #77 fix already marked
   `status: ready-for-release` / `status: qa-approved`.
 
-### Post-merge verification (mandatory)
+#### Post-merge verification (mandatory)
 
 - Re-test the #77 fix on the Inspector flow in Brave.
 - Verify **#96** (regression candidate): the spatial fallback introduced by the #77 fix
@@ -124,12 +181,12 @@ since September; the branch is stable, and merging unblocks:
 
 ---
 
-## 🚑 4. v2.8.188 — Config & settings hotfixes
+### 🚑 Release v2.8.188 - Config & settings hotfixes
 
 Three PRs addressing configuration and validation defects. Shipped together as one
 hotfix release because all affect how user settings are validated and applied at runtime.
 
-### PR A — `fix/101-minmax-range-validation`
+#### PR A - `fix/101-minmax-range-validation`
 
 **Closes:** [#101](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/101)
 
@@ -138,21 +195,21 @@ hotfix release because all affect how user settings are validated and applied at
 `isConfigCacheValueUsable()` only checks `> 0`. Corrupted storage values (`NaN`,
 `-5`, `999999`) propagate to **every** extraction flow (Bulk, Direct Links, Visual,
 Web-Linked, Inspector). The correct pattern already exists in `imageInspector.js`
-(range 1–10000 with fallback to defaults) — the fix replicates it in `utils.js`.
+(range 1–10000 with fallback to defaults) - the fix replicates it in `utils.js`.
 
 **Scope discipline:** ships alone. Minimal diff, clean blame, trivially cherry-pickable.
 
 **QA:** corrupt storage via DevTools (`minWidth: "abc"`, `minHeight: -5`,
 `minWidth: 999999`) and confirm fallback to 800×600 across all five flows.
 
-### PR B — `fix/99-100-settings-sync-defects`
+#### PR B - `fix/99-100-settings-sync-defects`
 
 **Closes:** [#99](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/99),
 [#100](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/100)
 
 **Why second:** same module, same defect class, one review cycle:
 
-- **#99 — High business impact, trivial fix:** `options.js` references
+- **#99 - High business impact, trivial fix:** `options.js` references
   `document.getElementById("downloadLimit")`, which does not exist in `options.html`.
   The `|| 1` fallback silently nulls download concurrency on every settings save,
   defeating the Performance Presets. For a mass-download extension this degrades the
@@ -165,7 +222,7 @@ Web-Linked, Inspector). The correct pattern already exists in `imageInspector.js
 **QA:** change formats and download limit in Options; confirm immediate effect in a
 live extraction without reload; confirm presets actually parallelize.
 
-### PR C — `fix/118-bulk-wrapped-url-validation`
+#### PR C - `fix/118-bulk-wrapped-url-validation`
 
 **Closes:** [#118](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/118)
 
@@ -200,7 +257,7 @@ behavior that blocks core functionality (0 downloads from valid tabs).
 2. Alternative approach: add a wrapper function `unwrapImageUrl()` that detects and
    extracts wrapped URLs, then modify `handleBulkDownload()` to call it before
    `isDirectImageUrl()`.
-3. All fixes should follow the Global Scope Fixes (80/20 Rule) — a generic unwrapping
+3. All fixes should follow the Global Scope Fixes (80/20 Rule) - a generic unwrapping
    helper that works for any `?url=<image>` pattern, not Reddit-specific logic.
 
 **Exit criteria:**
@@ -221,7 +278,7 @@ hotfixes in v2.8.188 rather than waiting for v2.8.189 or later.
 across multiple flows. Mitigated by comprehensive testing of all extended URL patterns
 and the existing `npm test` suite.
 
-### Exit criteria for v2.8.188
+#### Exit criteria for v2.8.188
 
 - PR A, PR B, and PR C merged into `dev` through the standard review flow, then
   promoted `dev → main` and tagged `v2.8.188` per the release flow.
@@ -232,13 +289,13 @@ and the existing `npm test` suite.
 
 ---
 
-## 🧗 5. v2.8.189 — Web-linked Gallery epic
+### 🧗 Release v2.8.189 - Web-linked Gallery epic
 
 The largest gravity well in the backlog: five issues and three discussions all touch
 `extractWebLinkedGallery.js` / gallery grouping. Sequenced so each PR leaves the code
 cleaner for the next: **behavior hardening → rename → algorithm → feature**.
 
-### PR D — `fix/112-116-web-linked-hardening`
+#### PR D - `fix/112-116-web-linked-hardening`
 
 **Closes:** [#112](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/112),
 [#113](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/113),
@@ -253,9 +310,9 @@ of PR #110, all in the same flow:
 - **#114 (Pexels):** candidate detection accepts `/search/`, `/r/` (affiliate), and
   `/collections/` paths; the dominant group is 5–7 URLs instead of 20+. **Blocks the
   intended download.** Notably, the anti-ad scoring from #74 does **not** catch these
-  patterns on v2.8.187 — confirmed in QA.
+  patterns on v2.8.187 - confirmed in QA.
 - **#113 (Unsplash):** profile anchors (`/@user`) are admitted alongside `/photos/`;
-  the flow stops **silently** before grouping — no terminal toast, no error. Possible
+  the flow stops **silently** before grouping - no terminal toast, no error. Possible
   unhandled grouper edge with mixed candidates.
 - **#112 (Shutterstock):** 15 `/search/...` URLs group at 81.7% similarity and open
   15 irrelevant tabs.
@@ -285,25 +342,25 @@ stabilized (PR E) keeps the refactor blame clean.
 all four QA-baseline browsers; confirm correct grouping, correct tab set, and terminal
 toasts on failure.
 
-### PR E — `refactor/102-109-utils-cleanup`
+#### PR E - `refactor/102-109-utils-cleanup`
 
 **Closes:** [#102](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/102), [#103](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/103), [#104](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/104), [#105](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/105), [#106](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/106), [#107](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/107), [#108](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/108), [#109](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/109), [#121](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/121) 
 
 Single cleanup PR for all low-priority `utils.js` debt, formally deferred by PR #110 to "a future PR" and already suggested for grouping by the issues themselves:
 
-- #102 — rename the two divergent `calculatePathSimilarity` implementations (Option A: minimal disambiguation). Prerequisite for PR F.
-- #103 — remove unnecessary `async` from pure predicates (`isDirectImageUrl`, `isAllowedImageFormat`).
-- #121 — upgrade `isDirectImageUrl` and `isAllowedImageFormat` to support `Content-Type` fallback for extensionless CDN URLs.
-- #104 — initialize `downloadFolder` / `customFolderPath` in the configCache literal.
-- #105 — sanitize illegal filesystem characters in `buildDownloadPath` (latent bug).
-- #106 / #107 — remove dead code (`moveToNextTab`, `isValidRelativeFolder`).
-- #108 — cap the `closedTabs` set (MV3 hygiene).
-- #109 — unify `sanitizeFilenameComponent` export style.
+- #102 - rename the two divergent `calculatePathSimilarity` implementations (Option A: minimal disambiguation). Prerequisite for PR F.
+- #103 - remove unnecessary `async` from pure predicates (`isDirectImageUrl`, `isAllowedImageFormat`).
+- #121 - upgrade `isDirectImageUrl` and `isAllowedImageFormat` to support `Content-Type` fallback for extensionless CDN URLs.
+- #104 - initialize `downloadFolder` / `customFolderPath` in the configCache literal.
+- #105 - sanitize illegal filesystem characters in `buildDownloadPath` (latent bug).
+- #106 / #107 - remove dead code (`moveToNextTab`, `isValidRelativeFolder`).
+- #108 - cap the `closedTabs` set (MV3 hygiene).
+- #109 - unify `sanitizeFilenameComponent` export style.
 
 **Why fourth:** debt concentrated in one file, near-zero risk, fully covered by
 `npm test`; unblocks PR F with a clean base.
 
-### PR F — `perf/76-linear-grouping`
+#### PR F - `perf/76-linear-grouping`
 
 **Implements:** [discussion #76](https://github.com/del-Pacifico/Mass-Image-Downloader/discussions/76)
 **Labels:** `type: performance` + `scope: galleries` + `priority: medium` (per Labeling Rules)
@@ -314,17 +371,17 @@ a 1,500-image gallery. The discussion ships a validated design: configurable
 informative toast. Requires #102 (rename) done first to keep the algorithm change
 blame clean.
 
-### PR G — `feat/83-hybrid-mode`
+#### PR G - `feat/83-hybrid-mode`
 
 **Implements:** [discussion #83](https://github.com/del-Pacifico/Mass-Image-Downloader/discussions/83)
 
 Opt-in hybrid mode that detects image-wrapper pages (ImageTwist, imgbox-class hosts)
 and injects the correct One-click icon. The design is consensus-ready (detection
-counters + three injection priorities) and was blocked on #74 — unblocked by v2.8.187.
+counters + three injection priorities) and was blocked on #74 - unblocked by v2.8.187.
 Ships last in the epic because it touches the same two files hardened in PR D and
 renamed in PR E.
 
-### Exit criteria for v2.8.189
+#### Exit criteria for v2.8.189
 
 - PR D–G merged into `dev`, promoted `dev → main`, tagged `v2.8.189`.
 - `CHANGELOG.md` updated for the user-visible fixes (#112–#114, #116) and new features.
@@ -333,53 +390,53 @@ renamed in PR E.
 
 ---
 
-## 🔍 6. v2.8.190 — Inspector targeting, UX features, tooling
+### 🔍 Release v2.8.190 - Inspector targeting, UX features, tooling
 
-### PR H — `fix/96-91-inspector-targeting`
+#### PR H - `fix/96-91-inspector-targeting`
 
 **Closes:** [#96](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/96),
 [#91](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/91)
 **Triage only (no fix):** [#95](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/95),
 [#97](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/97)
 
-**Why:** #96 is a **confirmed regression** of the #77 fix — the spatial fallback
+**Why:** #96 is a **confirmed regression** of the #77 fix - the spatial fallback
 mounts overlays over thumbnails occluded by a site lightbox (ArtStation). Regressions
 always jump the queue. The proposed fix (occlusion check via `elementFromPoint`) is
 small and scoped. #91 shares the targeting phase: the One-click scoring must verify
 visibility (`getBoundingClientRect`, carousel active-slide class) before anchoring.
-Same file family (`injectSaveIcon.js`), same fix family — different flow from PR D.
+Same file family (`injectSaveIcon.js`), same fix family - different flow from PR D.
 
 #95 (lazy-loaded + CDN-parameterized thumbnails) and #97 (Behance) receive only
 documented triage (hypotheses H1–H4 for #97) in this PR, respecting one-confirmed-
 defect-per-PR discipline.
 
-### PR I — `feat/92-cancel-hotkey`
+#### PR I - `feat/92-cancel-hotkey`
 
 **Implements:** [discussion #92](https://github.com/del-Pacifico/Mass-Image-Downloader/discussions/92)
 
 Mature feature proposal: `Shift+Alt+C` cancels in-progress flows. The hard analysis
 is already done (MV3's 4-command limit forces a page-side `keydown` handler; message
-contract and the 8-file documentation matrix are specified). Ships here — not earlier —
+contract and the 8-file documentation matrix are specified). Ships here - not earlier -
 because the `activeFlow` flag lands best on the orchestration cleaned up by PR D–G,
 and it is the cross-cutting mitigation for flows that open dozens of tabs
 (discussions #90, #91). Hotkey documentation updates land in `docs/hotkeys/hotkeys.md`,
 per the project's documentation rules.
 
-### PR J — `feat/94-toast-position`, `chore/111-conflict-markers`, `fix/30-32-overlay-geometry`, `feat/37-context-menu`
+#### PR J - `feat/94-toast-position`, `chore/111-conflict-markers`, `fix/30-32-overlay-geometry`, `feat/37-context-menu`
 
 Four small items, one release:
 
-- **#94 — Configurable toast position (four corners).** UX mitigation for #93; default
+- **#94 - Configurable toast position (four corners).** UX mitigation for #93; default
   top-right changes nothing for existing users. Stays inside the project palette.
-- **#111 — Conflict-marker detection in `npm run check`.** Born from a real merge
+- **#111 - Conflict-marker detection in `npm run check`.** Born from a real merge
   conflict that survived QA into `docs/README.md` during PR #110. Sub-second tooling.
-- **#30 / #31 / #32 — Overlay geometry.** The three `InspectorOverlayOffset` sub-issues
+- **#30 / #31 / #32 - Overlay geometry.** The three `InspectorOverlayOffset` sub-issues
   of #21 share one fix: rect selection + viewport clamping. Visual-only impact.
-- **#37 — Context menu MVP.** Implementation of discussion #36. **Precondition:**
+- **#37 - Context menu MVP.** Implementation of discussion #36. **Precondition:**
   consolidate the three duplicate entry-point discussions (#36, #70, #81) into #36
   before coding; #37 carries `needs: design`.
 
-### PR K — `fix/115-background-image-detection`
+#### PR K - `fix/115-background-image-detection`
 
 **Closes:** [#115](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/115)
 
@@ -395,7 +452,7 @@ elements with `background-image` CSS. Extract URLs via regex, validate against a
 formats and minimum dimensions, and admit them as valid candidates.
 
 **Why not in PR H:** PR H addresses targeting/visibility defects (#96 occlusion, #91
-carousel active-slide). Issue #115 is a candidate *detection* defect — the icon never
+carousel active-slide). Issue #115 is a candidate *detection* defect - the icon never
 finds a candidate to target. Different defect class, per the one-confirmed-defect-class-per-PR
 rule.
 
@@ -407,7 +464,7 @@ to maintain the Minimal Technical Footprint.
 Opera One. Confirm icon appears, downloads correct image, and no regression on
 standard `<img>` pages.
 
-### PR L — `refactor/117-122-bulk-orchestration`
+#### PR L - `refactor/117-122-bulk-orchestration`
 
 **Closes:** [#117](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/117),
 [#122](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/122)
@@ -465,7 +522,7 @@ the bug-fix PRs (H, K) that precede it.
 behind an awaitable internal flow; parity tests and the full Bulk QA matrix mitigate the
 risk of changing existing behavior.
 
-### Exit criteria for v2.8.190
+#### Exit criteria for v2.8.190
 
 - PR H–L merged into `dev`, promoted `dev → main`, tagged `v2.8.190`.
 - `CHANGELOG.md` updated; `docs/hotkeys/hotkeys.md` updated for the cancel hotkey.
@@ -474,14 +531,14 @@ risk of changing existing behavior.
 
 ---
 
-## 🧩 7. v2.8.191 — Candidate: Web-linked fallback/orchestration & Bulk resiliency
+### 🧩 Release v2.8.191 - Candidate: Web-linked fallback/orchestration & Bulk resiliency
 
 **Status:** Candidate train only. Issue #125 needs browser reproduction and triage;
 Issue #124 needs triage; discussion #123 needs maintainer approval and promotion to a
 feature issue. No item in this train is committed for implementation until its gate is
 met.
 
-### PR M — `fix/125-web-linked-visual-fallback` (candidate)
+#### PR M - `fix/125-web-linked-visual-fallback` (candidate)
 
 **Closes:** [#125](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/125)
 
@@ -502,7 +559,7 @@ flows remain unchanged. `npm run check` and `npm test` pass.
 
 **Scheduling gate:** PR M remains a candidate until #125 is reproduced and triaged.
 
-### PR N — `refactor/124-web-linked-background-orchestration` (candidate)
+#### PR N - `refactor/124-web-linked-background-orchestration` (candidate)
 
 **Closes:** [#124](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/124)
 
@@ -528,7 +585,7 @@ Opera One.
 **Scheduling gate:** PR N remains a candidate until #124 is triaged and its scope is
 approved. Keep it separate from PR M's behavior fix.
 
-### PR O — `feat/<issue>-bulk-retries` (proposed)
+#### PR O - `feat/<issue>-bulk-retries` (proposed)
 
 **Implements:** [discussion #123](https://github.com/del-Pacifico/Mass-Image-Downloader/discussions/123)
 after it is approved and promoted to a feature issue using the Feature Request template.
@@ -549,11 +606,11 @@ maintainer. The issue number and final branch name replace the placeholders abov
 
 ---
 
-## 📊 8. v2.8.192 — Download tracking & feedback enhancements
+### 📊 Release v2.8.192 - Download tracking & feedback enhancements
 
 Status: Planned. All three issues are new features/refactors originating from QA findings during PR #110 testing.
 
-### PR P — `refactor/126-unify-badge-counter`
+#### PR P - `refactor/126-unify-badge-counter`
 
 Closes: [#126](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/126)
 
@@ -573,7 +630,7 @@ Exit criteria:
 - `npm run check` and `npm test` pass
 - Manual QA on Brave + Edge + Opera One: confirm badge behavior across all five flows
 
-### PR Q — `feat/127-web-linked-auto-save`
+#### PR Q - `feat/127-web-linked-auto-save`
 
 Closes: [#127](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/127)
 
@@ -599,7 +656,7 @@ Exit criteria:
 - When disabled, flow behaves exactly as today (manual One-click required)
 - `npm run check` and `npm test` pass
 
-### PR R — `feat/128-detailed-download-summary`
+#### PR R - `feat/128-detailed-download-summary`
 
 Closes: [#128](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/128)
 
@@ -627,6 +684,7 @@ Duration: Nm Ns
 - Apply to all flows: Bulk, Visual Gallery, Linked Gallery, Web-linked Gallery, Inspector
 
 Exit criteria:
+
 - Toggle appears in Options and persists correctly
 - When enabled, all flows show detailed summary toast
 - Toast renders correctly with line breaks
@@ -640,30 +698,99 @@ PR P, PR Q, and PR R merged into `dev`, promoted `dev → main`, tagged `v2.8.19
 
 ---
 
-## 🏷️ 9. Meta & housekeeping
+### 🎨 Release v2.8.193 - Web-linked heuristics & One-click UX enhancements
+
+Status: Planned. All three issues are new features originating from structured QA of PR #110, Category 4: Wallpapers.
+
+#### PR S - `feat/129-web-linked-sibling-pattern`
+
+Closes:[#129](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/129)
+Why first: Extends the Web-linked Gallery heuristic to recognize modern DOM patterns where `<img>` and `<a>` tags are siblings within a common parent (e.g., `<figure>`), rather than strictly nested. This unblocks wallpaper sites like Wallhaven.cc that use overlay patterns.
+Scope:
+
+- Modify candidate detection logic in `extractWebLinkedGallery.js` to scan for gallery container elements (`<figure>`, `<div>` with gallery classes) containing both an `<img>` (with `src`/`data-src`) and an `<a>` tag (with valid `href`) as siblings
+- Logically pair the image source with the anchor's `href` to build the candidate list
+- Preserve existing nested `<a><img>` pattern detection (backward compatibility)
+- Add diagnostic logs for sibling-pattern matches (debug level ≥ 2)
+Exit criteria:
+- On Wallhaven.cc search results, Web-linked Gallery successfully identifies thumbnail/detail-page pairs
+- Console log shows `> 0` valid gallery candidates with sibling-pattern match indication
+- Detail pages are resolved, and the modal presents full-resolution images
+- Existing nested-pattern detection remains unchanged (no regression on WallpaperAccess, Unsplash, etc.)
+- `npm run check` and `npm test` pass
+- Manual QA on Brave + Edge + Opera One
+
+#### PR T - `feat/130-prefix-suffix-propagation`
+
+Closes:[#130](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/130)
+Why second: Addresses UX friction where users configure a `prefix` (e.g., "Star wars") before launching Web-linked Gallery, but the opened tabs' One-click downloads do not inherit that prefix. This creates inconsistent naming across batch operations.
+Scope:
+
+- When Web-linked Gallery opens a batch of tabs, inject a transient context payload into each tab containing the active `prefix` and `suffix` values at launch time
+- Modify `injectSaveIcon.js` to check for this context payload on initialization
+- If present, apply the inherited prefix/suffix to the download filename, overriding or merging with the tab's own settings
+- Clear the payload after the first One-click download to avoid side effects on subsequent manual navigation
+- Add diagnostic logs for context injection and consumption (debug level ≥ 2)
+Exit criteria:
+- When Web-linked Gallery is launched with a configured `prefix`, all tabs opened by the gallery inherit that prefix for One-click downloads
+- The prefix is applied only to tabs opened by the gallery session, not to tabs opened manually afterward
+- After the first One-click download on a tab, the inherited context is cleared
+- If no prefix is configured, behavior remains unchanged (no regression)
+- `npm run check` and `npm test` pass
+- Manual QA on Brave + Edge + Opera One
+
+#### PR U - `feat/131-oneclick-tab-close-control`
+
+Closes:[#131](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/131)
+Why third: Provides user control over One-click Download tab lifecycle, addressing QA/debugging friction where tabs close automatically before logs can be inspected.
+Scope:
+
+- Add new boolean setting `oneClickKeepTabOpen` (default `false`) in Options under "🖱️ One-click Download Settings"
+- When disabled (default): Tab closes automatically after download (current behavior preserved)
+- When enabled: Tab remains open after download, allowing manual closure
+- Modify `injectSaveIcon.js` to check this setting before calling tab-close logic
+- Setting persists across browser restarts (stored in `chrome.storage.sync`)
+- Setting is respected in both standalone One-click and Web-linked → One-click workflows
+Exit criteria:
+- New checkbox appears in One-click settings section of options UI
+- When disabled (default): Tabs close automatically after One-click download (current behavior)
+- When enabled: Tabs remain open after One-click download
+- Setting persists across browser restarts
+- Setting is respected in both standalone One-click and Web-linked → One-click workflows
+- `npm run check` and `npm test` pass
+- Manual QA on Brave + Edge + Opera One
+
+Exit criteria for v2.8.193
+PR S, PR T, and PR U merged into `dev`, promoted `dev → main`, tagged `v2.8.193`.
+`CHANGELOG.md` updated for all three user-visible features.
+QA summary posted to the PR #110 discussion thread documenting Category 4 findings.
+
+---
+
+## 🏷️ 4. Meta & housekeeping
 
 No code release required. Scheduled after v2.8.188 lands.
 
 1. **Label pass** (per Labeling Rules): promote #113 and #114 to `priority: high`
-   (functional failure / silent stop — impact exceeds their current `normal` +
+   (functional failure / silent stop - impact exceeds their current `normal` +
    `needs: triage`); align the `type:` label of #114 (title says `[Bug]`, label says
    `edge-case`); ensure every promoted issue carries `type:*` + `scope:*` +
    `priority:*` + `status:*` before planning.
 2. **Release labels:** release PRs and tags carry `type: release` + `scope: release`
    plus the appropriate release status label.
 3. **Close stale discussions:** #28, #29 (documentation announcements), #33, #34, #35
-   (governance of labels/issue system — historical), #80 (release announcement,
+   (governance of labels/issue system - historical), #80 (release announcement,
    superseded by each new release).
-4. **Cold backlog review:** #38 (i18n) and #75 (Ethical Hacking Framework) — keep as
+4. **Cold backlog review:** #38 (i18n) and #75 (Ethical Hacking Framework) - keep as
    backlog or close if no traction within one to two release cycles.
-5. **Service worker triage:** [#119](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/119) — intermittent `Unchecked runtime.lastError: Download must be in progress` warning in the service worker console. No confirmed reproduction flow; no functional impact. If a reliable reproduction sequence is identified, promote to `type: bug` with `priority: normal` and assign to the next appropriate bugfix PR (likely PR H in v2.8.190, which already touches the service worker lifecycle).
+5. **Service worker triage:** [#119](https://github.com/del-Pacifico/Mass-Image-Downloader/issues/119) - intermittent `Unchecked runtime.lastError: Download must be in progress` warning in the service worker console. No confirmed reproduction flow; no functional impact. If a reliable reproduction sequence is identified, promote to `type: bug` with `priority: normal` and assign to the next appropriate bugfix PR (likely PR H in v2.8.190, which already touches the service worker lifecycle).
 
 ---
 
-## 🧭 10. Guiding principles of this roadmap
+## 🧭 5. Guiding principles of this roadmap
 
 1. **Urgency over effort.** High-priority and regression items always precede backlog.
-2. **Each PR leaves the base cleaner than it found it** — hotfix → behavior hardening
+2. **Each PR leaves the base cleaner than it found it** - hotfix → behavior hardening
    → rename → algorithm → feature. Never refactor over freshly changed behavior.
 3. **One confirmed defect class per bugfix PR.** Triage and hypotheses are documented,
    not mixed into fixes.
@@ -676,7 +803,7 @@ No code release required. Scheduled after v2.8.188 lands.
 
 ---
 
-## 📝 11. Roadmap change log
+## 📝 6. Roadmap change log
 
 | Date | Change |
 |---|---|
@@ -684,7 +811,7 @@ No code release required. Scheduled after v2.8.188 lands.
 | 2026-10-12 | Revised to full Contributing Guide compliance: project-name-first H1, emoji headers only, language-tagged code blocks, corrected `dev → main → tag` release flow, CHANGELOG exit criteria, label rules, collapsible dependency graph. |
 | 2026-10-13 | Added Issue #115 (One-click icon fails on X/Twitter due to CSS `background-image` rendering) to v2.8.190 as PR K. Discovered during QA of PR #110, Social site category. |
 | 2026-10-14 | Added Issue #116 (Reddit Web-linked Gallery accepts default avatars as candidates and opens user profile pages) to v2.8.189 PR D. Discovered during QA of PR #110, Social site category. Branch renamed `fix/112-114-web-linked-hardening` → `fix/112-116-web-linked-hardening`. |
-| 2026-10-14 | Added Issue #117 (Chore: extract Bulk Image Download logic from `background.js` into dedicated `bulk.js` module) to v2.8.190 as PR L. Architectural alignment with the project's Single Responsibility principle — Bulk is currently the only core feature without a dedicated module file. |
+| 2026-10-14 | Added Issue #117 (Chore: extract Bulk Image Download logic from `background.js` into dedicated `bulk.js` module) to v2.8.190 as PR L. Architectural alignment with the project's Single Responsibility principle - Bulk is currently the only core feature without a dedicated module file. |
 | 2026-10-14 | Added Issue #118 (`[Bug] Bulk Image Download rejects Reddit wrapped media URLs despite allowWrappedImageUrls being enabled`) to v2.8.188 as PR C. Regression of CHANGELOG v2.8.185 promise that Bulk normalizes wrapped URLs. Root cause confirmed: `isDirectImageUrl()` does not implement unwrapping logic. |
 | 2026-10-14 | Added Issue #118 (`[Bug] Bulk Image Download rejects Reddit wrapped media URLs despite allowWrappedImageUrls being enabled`) to v2.8.188 as PR C. Regression of CHANGELOG v2.8.185 promise that Bulk normalizes wrapped URLs. Root cause confirmed: `isDirectImageUrl()` does not implement unwrapping logic. |
 | 2026-10-29|Added Issue #120 (`[Docs] Add Quick Start guide for non-technical users`) to v2.8.187 PR #110. Documentation alignment for first-time user onboarding, shipped with the pending release batch.|
@@ -695,3 +822,4 @@ No code release required. Scheduled after v2.8.188 lands.
 | 2026-11-19|Added Issue #126 ([Refactor] Unify badge counter across all flows to track actual completed downloads) to v2.8.192 as PR P. Originates from QA of PR #110, Category 3: Portfolios. Prerequisite for PR Q and PR R.|
 | 2026-11-19|Added Issue #127 ([Feature] Web-linked auto-save sequential mode) to v2.8.192 as PR Q. Extends Web-linked Gallery flow with opt-in auto-save. Depends on PR P (#126).|
 | 2026-11-19|Added Issue #128 ([Feature] Detailed download summary toast) to v2.8.192 as PR R. Transversal UX improvement for all download flows. Depends on PR P (#126).|
+| 2026-11-25|Added Issues #129, #130, #131 to new release v2.8.193 as PRs S, T, U. All three originate from structured QA of PR #110, Category 4: Wallpapers. #129 extends Web-linked Gallery heuristic for sibling DOM patterns (Wallhaven.cc). #130 propagates prefix/suffix context from Web-linked to One-click. #131 adds user control over One-click tab auto-close.|
